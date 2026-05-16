@@ -261,6 +261,27 @@ async function removeStoragePaths(paths: { bucket: string; path: string }[]) {
   }
 }
 
+/** Remove storage objects for all attachments on a movement (call before post delete). */
+export async function cleanupMovementAttachmentStorage(movementId: string): Promise<void> {
+  const byPost = await fetchAttachmentsForPosts([movementId])
+  const list = byPost.get(movementId) ?? []
+  if (list.length === 0) return
+
+  const client = requireSupabase()
+  const byBucket = new Map<string, string[]>()
+  for (const att of list) {
+    const paths = byBucket.get(att.storage_bucket) ?? []
+    paths.push(att.storage_path)
+    byBucket.set(att.storage_bucket, paths)
+  }
+  for (const [bucket, paths] of byBucket) {
+    const { error } = await client.storage.from(bucket).remove(paths)
+    if (error) {
+      console.warn('Attachment storage cleanup failed:', error.message)
+    }
+  }
+}
+
 export async function deleteMovementAttachment(attachment: MovementAttachment): Promise<void> {
   const client = requireSupabase()
   await client.storage.from(attachment.storage_bucket).remove([attachment.storage_path])

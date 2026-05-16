@@ -10,7 +10,10 @@ import { enrichPostsWithPolls, insertPollOptions } from './polls'
 import { isPollMovement } from './movements'
 import { enrichPostsWithActions, fetchPostActionsForPosts } from './postActions'
 import { enrichPostsWithPetitionSignatures } from './petitionSignatures'
-import { enrichPostsWithAttachmentsAsync } from './movementAttachments'
+import {
+  cleanupMovementAttachmentStorage,
+  enrichPostsWithAttachmentsAsync,
+} from './movementAttachments'
 import { isPetitionMovement } from './petitions'
 import { requireSupabase } from './supabase'
 import { FEED_ENRICH_TIMEOUT_MS, FEED_REQUEST_TIMEOUT_MS } from './requestConfig'
@@ -30,6 +33,7 @@ const FEED_SOURCE = 'posts_public_safe' as const
 
 export const DEFAULT_FEED_PAGE_SIZE = 25
 export const PROFILE_POSTS_LIMIT = 100
+export const PROFILE_MOVEMENTS_PAGE_SIZE = 12
 
 export interface FetchPostsPageParams {
   viewerUserId?: string
@@ -247,16 +251,23 @@ async function fetchPublicFeedRows(params: FetchPostsPageParams): Promise<{
   }
 }
 
-async function fetchOwnPostRows(userId: string, limit = PROFILE_POSTS_LIMIT): Promise<PostRowBase[]> {
+async function fetchOwnPostRows(
+  userId: string,
+  options?: { limit?: number; offset?: number },
+): Promise<PostRowBase[]> {
   const client = requireSupabase()
+  const limit = options?.limit ?? PROFILE_POSTS_LIMIT
+  const offset = options?.offset ?? 0
 
   async function run(columns: string) {
-    return client
+    let q = client
       .from('posts')
       .select(columns)
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
-      .limit(limit)
+    if (offset > 0) q = q.range(offset, offset + limit - 1)
+    else q = q.limit(limit)
+    return q
   }
 
   let { data, error } = await run(POST_OWN_COLUMNS)
@@ -577,11 +588,15 @@ export async function createPost(input: CreateMovementInput) {
   return post
 }
 
-export async function fetchPostsByUser(userId: string, signal?: AbortSignal): Promise<Post[]> {
+export async function fetchPostsByUser(
+  userId: string,
+  signal?: AbortSignal,
+  options?: { limit?: number; offset?: number },
+): Promise<Post[]> {
   return withAutoRetry(
     async () => {
       const rows = await withTimeout(
-        fetchOwnPostRows(userId),
+        fetchOwnPostRows(userId, options),
         FEED_REQUEST_TIMEOUT_MS,
         undefined,
         signal,
@@ -590,6 +605,20 @@ export async function fetchPostsByUser(userId: string, signal?: AbortSignal): Pr
     },
     { signal },
   )
+}
+
+/**
+ * Hard-delete a movement the authenticated user owns.
+ * RLS on private.posts enforces ownership; attachment storage is cleaned first.
+ */
+export async function deletePost(postId: string, userId: string): Promise<void> {
+  const client = requireSupabase()
+
+  await cleanupMovementAttachmentStorage(postId)
+
+  const { error } = await client.from('posts').delete().eq('id', postId).eq('user_id', userId)
+
+  if (error) throw enhanceSupabaseError(error)
 }
 
 /** Total supports received across a user's posts (lightweight aggregate) */

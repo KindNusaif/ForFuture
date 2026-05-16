@@ -20,6 +20,20 @@ export function PostCardSkeleton() {
   )
 }
 
+export function MyMovementCardSkeleton() {
+  return (
+    <article className="card-surface p-4 sm:p-5">
+      <div className="flex justify-between gap-3">
+        <Skeleton className="h-6 w-32 rounded-full" />
+        <Skeleton className="h-8 w-8 rounded-lg" />
+      </div>
+      <Skeleton className="mt-3 h-5 w-4/5" />
+      <Skeleton className="mt-2 h-4 w-full" />
+      <Skeleton className="mt-4 h-4 w-2/3" />
+    </article>
+  )
+}
+
 export function ProfileHeaderSkeleton() {
   return (
     <div className="card-surface p-6 sm:p-8">

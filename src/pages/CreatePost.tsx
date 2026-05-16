@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import ActionPathAI from '../components/actionpath/ActionPathAI'
 import { ArrowLeft, Loader2, Send } from 'lucide-react'
@@ -68,6 +68,20 @@ export default function CreatePost() {
     }
     return 'idea_for_change'
   })
+
+  useEffect(() => {
+    if (typeFromUrl === 'quick_youth_poll') {
+      setMovementType('quick_youth_poll')
+      return
+    }
+    if (typeFromUrl && MOVEMENT_TYPE_VALUES.includes(typeFromUrl as MovementType)) {
+      setMovementType(typeFromUrl as MovementType)
+      return
+    }
+    if (!typeFromUrl) {
+      setMovementType((prev) => (prev === 'quick_youth_poll' ? 'idea_for_change' : prev))
+    }
+  }, [typeFromUrl])
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [category, setCategory] = useState<Category | ''>('')

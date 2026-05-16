@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Home, PlusCircle, User, BarChart3, LogOut, Map, Shield, BadgeCheck, HeartHandshake, Activity } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useIsAdmin } from '../hooks/useIsAdmin'
@@ -7,6 +7,7 @@ import LanguageSwitcher from './LanguageSwitcher'
 import Logo from './Logo'
 import { useAuth } from '../hooks/useAuth'
 import { signOut } from '../lib/auth'
+import { isCreateMovementNavActive, isQuickPollNavActive } from '../lib/createNav'
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
@@ -24,6 +25,7 @@ export default function AppShell({ children }: { children?: ReactNode }) {
   const { profile } = useAuth()
   const isAdmin = useIsAdmin()
   const navigate = useNavigate()
+  const location = useLocation()
   const { t } = useTranslation()
 
   async function handleLogout() {
@@ -60,11 +62,21 @@ export default function AppShell({ children }: { children?: ReactNode }) {
                 <HeartHandshake className="h-5 w-5 shrink-0" aria-hidden />
                 Donation &amp; Relief
               </NavLink>
-              <NavLink to="/create" className={navLinkClass}>
+              <NavLink
+                to="/create"
+                className={() =>
+                  navLinkClass({ isActive: isCreateMovementNavActive(location) })
+                }
+                aria-current={isCreateMovementNavActive(location) ? 'page' : undefined}
+              >
                 <PlusCircle className="h-5 w-5 shrink-0" aria-hidden />
                 {t('nav.createMovement')}
               </NavLink>
-              <NavLink to="/create?type=quick_youth_poll" className={navLinkClass}>
+              <NavLink
+                to="/create?type=quick_youth_poll"
+                className={() => navLinkClass({ isActive: isQuickPollNavActive(location) })}
+                aria-current={isQuickPollNavActive(location) ? 'page' : undefined}
+              >
                 <BarChart3 className="h-5 w-5 shrink-0" aria-hidden />
                 {t('nav.quickPolls')}
               </NavLink>
@@ -130,11 +142,21 @@ export default function AppShell({ children }: { children?: ReactNode }) {
             <Map className="h-5 w-5" />
             {t('nav.map')}
           </NavLink>
-          <NavLink to="/create" className={mobileLinkClass}>
+          <NavLink
+            to="/create"
+            className={() =>
+              mobileLinkClass({ isActive: isCreateMovementNavActive(location) })
+            }
+            aria-current={isCreateMovementNavActive(location) ? 'page' : undefined}
+          >
             <PlusCircle className="h-5 w-5" />
             {t('nav.create')}
           </NavLink>
-          <NavLink to="/create?type=quick_youth_poll" className={mobileLinkClass}>
+          <NavLink
+            to="/create?type=quick_youth_poll"
+            className={() => mobileLinkClass({ isActive: isQuickPollNavActive(location) })}
+            aria-current={isQuickPollNavActive(location) ? 'page' : undefined}
+          >
             <BarChart3 className="h-5 w-5" />
             {t('nav.polls')}
           </NavLink>

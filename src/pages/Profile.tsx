@@ -1,70 +1,90 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { BarChart3, FileText, Heart, Mic, Plus, RefreshCw, User } from 'lucide-react'
-import { getTotalPollVotesReceived } from '../lib/polls'
-import VerifiedOrganizerBadge from '../components/VerifiedOrganizerBadge'
-import EmptyState from '../components/EmptyState'
-import PostCard from '../components/PostCard'
-import StatCard from '../components/StatCard'
-import { PostCardSkeleton, ProfileHeaderSkeleton } from '../components/Skeleton'
+import { Plus, RefreshCw } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import AsyncLoadHint from '../components/AsyncLoadHint'
+import Toast from '../components/Toast'
 import MyReportsSection from '../components/MyReportsSection'
+import DeleteMovementDialog from '../components/profile/DeleteMovementDialog'
+import MyMovementsSection from '../components/profile/MyMovementsSection'
+import ProfileDashboardHeader, {
+  type BioSaveStatus,
+} from '../components/profile/ProfileDashboardHeader'
+import ProfileImpactSection, {
+  type ProfileImpactStats,
+} from '../components/profile/ProfileImpactSection'
+import { ProfileHeaderSkeleton } from '../components/Skeleton'
 import { MODERATION_FEATURE_BLURB } from '../lib/moderation'
 import { useAuth } from '../hooks/useAuth'
 import { useLoadingProgress } from '../hooks/useLoadingProgress'
 import { updateProfileBio } from '../lib/auth'
-import { fetchPostsByUser } from '../lib/posts'
+import { deletePost, fetchPostsByUser, PROFILE_MOVEMENTS_PAGE_SIZE } from '../lib/posts'
+import { getTotalPollVotesReceived } from '../lib/polls'
 import { formatError } from '../lib/errors'
 import { isRequestAborted } from '../lib/supabaseRequest'
 import type { Post } from '../types'
 
 function ProfileContent({ userId, email }: { userId: string; email?: string | null }) {
+  const { t } = useTranslation()
   const { profile, refreshProfile } = useAuth()
-  const [posts, setPosts] = useState<Post[]>([])
-  const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const abortRef = useRef<AbortController | null>(null)
-  const requestIdRef = useRef(0)
-  const { showSlowHint, showRecovery } = useLoadingProgress(loading || refreshing)
-  const [bioOverride, setBioOverride] = useState<string | null>(null)
-  const [savingBio, setSavingBio] = useState(false)
 
-  const totalSupport = useMemo(
-    () => posts.reduce((sum, p) => sum + (p.support_count ?? 0), 0),
-    [posts],
+  const [allPosts, setAllPosts] = useState<Post[]>([])
+  const [visibleCount, setVisibleCount] = useState(PROFILE_MOVEMENTS_PAGE_SIZE)
+  const [movementsLoading, setMovementsLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [movementsError, setMovementsError] = useState<string | null>(null)
+
+  const posts = useMemo(() => allPosts.slice(0, visibleCount), [allPosts, visibleCount])
+  const hasMore = visibleCount < allPosts.length
+
+  const [bioOverride, setBioOverride] = useState<string | null>(null)
+  const [bioSaveStatus, setBioSaveStatus] = useState<BioSaveStatus>('idle')
+  const [bioError, setBioError] = useState<string | null>(null)
+
+  const [deleteTarget, setDeleteTarget] = useState<Post | null>(null)
+  const [deleting, setDeleting] = useState(false)
+  const [toast, setToast] = useState<{ variant: 'success' | 'error'; message: string } | null>(
+    null,
   )
 
-  const totalPollVotes = useMemo(() => getTotalPollVotesReceived(posts), [posts])
+  const abortRef = useRef<AbortController | null>(null)
+  const requestIdRef = useRef(0)
+  const { showSlowHint, showRecovery } = useLoadingProgress(movementsLoading || refreshing)
 
-  const memberSince = useMemo(() => {
-    if (!profile?.created_at) return null
-    return new Date(profile.created_at).toLocaleDateString(undefined, {
-      month: 'long',
-      year: 'numeric',
-    })
-  }, [profile])
+  const bioDraft = bioOverride ?? profile?.bio ?? ''
 
-  const reload = useCallback(async (isRefresh = false) => {
+  const impactStats = useMemo<ProfileImpactStats | null>(() => {
+    if (movementsLoading) return null
+    return {
+      movementsPosted: allPosts.length,
+      engagementsReceived: allPosts.reduce((sum, p) => sum + (p.support_count ?? 0), 0),
+      pollsCreated: allPosts.filter((p) => p.movement_type === 'quick_youth_poll').length,
+      pollVotesReceived: getTotalPollVotesReceived(allPosts),
+      petitionsCreated: allPosts.filter((p) => p.movement_type === 'youth_petition').length,
+    }
+  }, [allPosts, movementsLoading])
+
+  const reloadMovements = useCallback(async (isRefresh = false) => {
     abortRef.current?.abort()
     const controller = new AbortController()
     abortRef.current = controller
     const requestId = ++requestIdRef.current
 
     if (isRefresh) setRefreshing(true)
-    else setLoading(true)
-    setError(null)
+    else setMovementsLoading(true)
+    setMovementsError(null)
 
     try {
       const userPosts = await fetchPostsByUser(userId, controller.signal)
       if (requestId !== requestIdRef.current || controller.signal.aborted) return
-      setPosts(userPosts)
+      setAllPosts(userPosts)
+      setVisibleCount(PROFILE_MOVEMENTS_PAGE_SIZE)
     } catch (err) {
       if (requestId !== requestIdRef.current || isRequestAborted(err)) return
-      setError(formatError(err))
+      setMovementsError(formatError(err))
     } finally {
       if (requestId === requestIdRef.current) {
-        setLoading(false)
+        setMovementsLoading(false)
         setRefreshing(false)
       }
     }
@@ -72,171 +92,118 @@ function ProfileContent({ userId, email }: { userId: string; email?: string | nu
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      void reload(false)
+      void reloadMovements(false)
     }, 0)
     return () => {
       window.clearTimeout(timer)
       abortRef.current?.abort()
     }
-  }, [reload])
-
-  const bioDraft = bioOverride ?? profile?.bio ?? ''
+  }, [reloadMovements])
 
   async function saveBio() {
-    setSavingBio(true)
-    setError(null)
+    if (bioSaveStatus === 'saving') return
+    setBioSaveStatus('saving')
+    setBioError(null)
     try {
       await updateProfileBio(userId, bioDraft)
       setBioOverride(null)
       await refreshProfile()
+      setBioSaveStatus('saved')
+      window.setTimeout(() => setBioSaveStatus('idle'), 2500)
     } catch (err) {
-      setError(formatError(err))
-    } finally {
-      setSavingBio(false)
+      setBioError(formatError(err))
+      setBioSaveStatus('error')
     }
   }
 
-  const displayName = profile?.display_name ?? 'Your profile'
-  const initials = displayName
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase()
+  async function confirmDelete() {
+    if (!deleteTarget || deleting) return
+    setDeleting(true)
+    try {
+      await deletePost(deleteTarget.id, userId)
+      setAllPosts((prev) => prev.filter((p) => p.id !== deleteTarget.id))
+      setDeleteTarget(null)
+      setToast({ variant: 'success', message: t('profile.deleteSuccess') })
+    } catch {
+      setToast({ variant: 'error', message: t('profile.deleteFailed') })
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  function handleLoadMore() {
+    setVisibleCount((n) => Math.min(n + PROFILE_MOVEMENTS_PAGE_SIZE, allPosts.length))
+  }
+
+  if (!profile) {
+    return <ProfileHeaderSkeleton />
+  }
 
   return (
     <>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-sm font-semibold uppercase tracking-wide text-accent-600">
-          My Profile
-        </h1>
+        <p className="text-sm font-semibold uppercase tracking-wide text-accent-600">
+          {t('profile.title')}
+        </p>
         <div className="flex gap-2">
           <button
             type="button"
-            onClick={() => void reload(true)}
-            disabled={loading || refreshing}
+            onClick={() => void reloadMovements(true)}
+            disabled={movementsLoading || refreshing}
             className="inline-flex min-h-[40px] items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:opacity-50"
           >
-            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-            Refresh
+            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} aria-hidden />
+            {t('profile.refresh')}
           </button>
-          <Link
-            to="/create"
-            className="btn-primary !min-h-[40px] !py-2"
-          >
-            <Plus className="h-4 w-4" />
-            Create a Youth Movement
+          <Link to="/create" className="btn-primary !min-h-[40px] !py-2">
+            <Plus className="h-4 w-4" aria-hidden />
+            {t('profile.createMovement')}
           </Link>
         </div>
       </div>
 
-      {loading ? (
-        <ProfileHeaderSkeleton />
-      ) : (
-        <header className="card-surface overflow-hidden bg-linear-to-br from-accent-50/50 via-white to-brand-50/30">
-          <div className="p-6 sm:p-8">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-              <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-accent-600 to-brand-600 text-xl font-bold text-white shadow-lg shadow-accent-600/25">
-                {initials || <User className="h-8 w-8" />}
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="flex min-w-0 flex-wrap items-center gap-2">
-                  <h2 className="truncate text-2xl font-bold text-slate-900">{displayName}</h2>
-                  {(profile?.is_verified_organizer ?? profile?.is_verified_organization) && (
-                    <VerifiedOrganizerBadge
-                      verificationType={
-                        profile.organizer_verification_type ??
-                        profile.organization_verification_type
-                      }
-                      size="md"
-                      prominent
-                    />
-                  )}
-                </div>
-                <p className="mt-0.5 truncate text-sm text-slate-600">{email}</p>
-                <div className="mt-4">
-                  <label htmlFor="bio" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Bio
-                  </label>
-                  <textarea
-                    id="bio"
-                    value={bioDraft}
-                    onChange={(e) => setBioOverride(e.target.value)}
-                    rows={3}
-                    maxLength={280}
-                    placeholder="Tell the community what you care about…"
-                    className="wrap-user-text mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => void saveBio()}
-                    disabled={savingBio}
-                    className="mt-2 text-sm font-semibold text-brand-700 hover:text-brand-800 disabled:opacity-50"
-                  >
-                    {savingBio ? 'Saving…' : 'Save bio'}
-                  </button>
-                </div>
-                {memberSince && (
-                  <p className="mt-1 text-xs text-slate-500">Member since {memberSince}</p>
-                )}
-                {(profile?.is_verified_organizer ?? profile?.is_verified_organization) && (
-                  <div className="mt-4 rounded-xl border border-emerald-200/80 bg-emerald-50/40 px-4 py-4">
-                    <p className="text-xs font-bold uppercase tracking-wide text-emerald-800">
-                      Verification status
-                    </p>
-                    <p className="mt-2 text-sm text-slate-700">
-                      Your public profile is verified as an organizer on ForFuture. Campaigns you
-                      post are still reviewed separately before they receive a trust badge.
-                    </p>
-                  </div>
-                )}
-                {profile?.youth_voice_id && (
-                  <div className="mt-4 rounded-xl border border-accent-200 bg-white/90 px-4 py-4 shadow-sm">
-                    <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-accent-700">
-                      <Mic className="h-3.5 w-3.5" aria-hidden />
-                      Youth Voice ID
-                    </p>
-                    <p className="wrap-user-text mt-1 font-mono text-lg font-bold tracking-wide text-accent-900">
-                      {profile.youth_voice_id}
-                    </p>
-                    <p className="mt-2 text-xs leading-relaxed text-slate-600">
-                      Your Youth Voice ID lets you speak publicly without showing your real profile
-                      identity.
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <dl className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4 sm:gap-4">
-              <StatCard label="Movements posted" value={posts.length} icon={FileText} />
-              <StatCard label="Engagements received" value={totalSupport} icon={Heart} accent />
-              <StatCard
-                label="Polls created"
-                value={posts.filter((p) => p.movement_type === 'quick_youth_poll').length}
-                icon={BarChart3}
-              />
-              <StatCard label="Poll votes received" value={totalPollVotes} icon={BarChart3} />
-              <StatCard
-                label="Petitions created"
-                value={posts.filter((p) => p.movement_type === 'youth_petition').length}
-                icon={BarChart3}
-              />
-            </dl>
-          </div>
-        </header>
+      {toast && (
+        <div className="mb-4">
+          <Toast
+            variant={toast.variant}
+            message={toast.message}
+            onDismiss={() => setToast(null)}
+          />
+        </div>
       )}
+
+      <ProfileDashboardHeader
+        profile={profile}
+        email={email}
+        bioDraft={bioDraft}
+        onBioChange={setBioOverride}
+        onSaveBio={saveBio}
+        bioSaveStatus={bioSaveStatus}
+        bioError={bioError}
+      />
+
+      <ProfileImpactSection stats={impactStats} loading={movementsLoading} />
 
       <AsyncLoadHint
         className="mt-4"
-        showSlowHint={(loading || refreshing) && showSlowHint && !error}
-        showRecovery={(loading || refreshing) && showRecovery && !error}
-        error={error}
-        onRetry={() => void reload(true)}
-        slowMessage="Loading your movements…"
+        showSlowHint={movementsLoading && showSlowHint && !movementsError}
+        showRecovery={movementsLoading && showRecovery && !movementsError}
+        error={movementsError}
+        onRetry={() => void reloadMovements(true)}
+        slowMessage={t('loading.movements')}
       />
 
-      <details className="mt-8 rounded-xl border border-slate-200/80 bg-slate-50/50 px-4 py-3">
+      <MyMovementsSection
+        posts={posts}
+        totalCount={allPosts.length}
+        loading={movementsLoading}
+        loadingMore={false}
+        hasMore={hasMore}
+        onLoadMore={handleLoadMore}
+        onDelete={setDeleteTarget}
+      />
+
+      <details className="mt-10 rounded-xl border border-slate-200/80 bg-slate-50/50 px-4 py-3">
         <summary className="cursor-pointer text-sm font-semibold text-slate-800">
           Safe Reporting &amp; Fair Moderation
         </summary>
@@ -245,55 +212,15 @@ function ProfileContent({ userId, email }: { userId: string; email?: string | nu
 
       <MyReportsSection userId={userId} />
 
-      <div className="mb-4 mt-10 flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-slate-900">My Movements</h3>
-        {!loading && posts.length > 0 && (
-          <span className="text-sm text-slate-500">
-            {posts.length} {posts.length === 1 ? 'post' : 'posts'}
-          </span>
-        )}
-      </div>
-
-      {loading ? (
-        <ul className="space-y-4">
-          {[1, 2].map((i) => (
-            <li key={i}>
-              <PostCardSkeleton />
-            </li>
-          ))}
-        </ul>
-      ) : posts.length === 0 ? (
-        <EmptyState
-          icon={FileText}
-          title="No initiatives yet"
-          description="Share your first idea with the community. It only takes a minute."
-        />
-      ) : (
-        <ul className="min-w-0 space-y-4">
-          {posts.map((post) => (
-            <li key={post.id} className="min-w-0">
-              <PostCard
-                post={post}
-                detailPath={`/feed/${post.id}`}
-                showSupport={false}
-                showIdentityBadge
-              />
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {!loading && posts.length === 0 && (
-        <div className="mt-6 text-center">
-          <Link
-            to="/create"
-            className="btn-primary"
-          >
-            <Plus className="h-5 w-5" />
-            Create your first initiative
-          </Link>
-        </div>
-      )}
+      <DeleteMovementDialog
+        open={deleteTarget !== null}
+        postTitle={deleteTarget?.title ?? ''}
+        deleting={deleting}
+        onConfirm={() => void confirmDelete()}
+        onCancel={() => {
+          if (!deleting) setDeleteTarget(null)
+        }}
+      />
     </>
   )
 }
@@ -304,7 +231,7 @@ export default function Profile() {
   if (!user) return null
 
   return (
-    <section className="mx-auto min-w-0 max-w-3xl px-4 py-8 sm:px-6">
+    <section className="mx-auto min-w-0 max-w-4xl px-4 py-8 sm:px-6">
       <ProfileContent key={user.id} userId={user.id} email={user.email} />
     </section>
   )
