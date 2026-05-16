@@ -204,8 +204,16 @@ begin
          where review_status = 'reviewed'
            and (reviewed_campaign_type = 'fundraising' or movement_type = 'fundraising')),
       'reports_processed',
-        (select count(*)::int from public.content_reports
-         where status in ('action_taken', 'no_violation_found', 'dismissed', 'under_review')),
+        case
+          when exists (
+            select 1 from pg_tables
+            where schemaname = 'public' and tablename = 'content_reports'
+          ) then (
+            select count(*)::int from public.content_reports
+            where status in ('action_taken', 'no_violation_found', 'dismissed', 'under_review')
+          )
+          else 0
+        end,
       'youth_voice_posts',
         (select count(*)::int from posts where posting_identity = 'youth_voice')
     ) as data

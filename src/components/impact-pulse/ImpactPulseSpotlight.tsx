@@ -1,0 +1,77 @@
+import { Link } from 'react-router-dom'
+import { ArrowRight, Sparkles } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import type { ImpactPulseSpotlight as SpotlightData } from '../../lib/impactPulse'
+import { formatImpactCountFull } from '../../lib/impactPulse'
+import { buildMovementConfig } from '../../lib/movements'
+import CampaignReviewBadge from '../CampaignReviewBadge'
+import SectionShell from './SectionShell'
+import { Skeleton } from '../Skeleton'
+
+interface Props {
+  spotlight: SpotlightData | null
+  detailBase: string
+  loading?: boolean
+}
+
+export default function ImpactPulseSpotlight({ spotlight, detailBase, loading }: Props) {
+  const { t } = useTranslation()
+
+  return (
+    <SectionShell id="spotlight" title={t('impactPulse.spotlight.title')}>
+      {!loading && !spotlight ? (
+        <div className="card-surface border-dashed px-6 py-14 text-center">
+          <Sparkles className="mx-auto h-10 w-10 text-accent-500" aria-hidden />
+          <p className="mt-4 text-sm text-slate-600">{t('impactPulse.spotlight.empty')}</p>
+        </div>
+      ) : (
+        <article className="relative overflow-hidden rounded-3xl border border-accent-200/80 bg-linear-to-br from-accent-600 via-brand-700 to-slate-900 p-6 text-white shadow-xl sm:p-8">
+          <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
+          {loading ? (
+            <div className="relative space-y-3">
+              <Skeleton className="h-4 w-32 rounded-lg bg-white/20" />
+              <Skeleton className="h-8 w-4/5 rounded-lg bg-white/20" />
+              <Skeleton className="h-4 w-48 rounded-lg bg-white/20" />
+            </div>
+          ) : spotlight ? (
+            <div className="relative min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">
+                  {buildMovementConfig(spotlight.movement_type, t).shortLabel}
+                </span>
+                <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold">
+                  {t(`categories.${spotlight.category}`, { defaultValue: spotlight.category })}
+                </span>
+                {spotlight.review_status === 'reviewed' && (
+                  <CampaignReviewBadge
+                    movementType={spotlight.movement_type}
+                    reviewedCampaignType={spotlight.reviewed_campaign_type}
+                    size="sm"
+                  />
+                )}
+              </div>
+              <h3 className="mt-4 text-2xl font-extrabold tracking-tight [overflow-wrap:anywhere] [word-break:break-word] sm:text-3xl">
+                {spotlight.title}
+              </h3>
+              <p className="mt-2 text-sm text-white/80">
+                {spotlight.public_author_name}
+              </p>
+              <p className="mt-1 text-sm font-semibold text-accent-100">
+                {t('impactPulse.spotlight.engagement', {
+                  count: formatImpactCountFull(spotlight.engagement_count),
+                })}
+              </p>
+              <Link
+                to={`${detailBase}/${spotlight.id}`}
+                className="mt-6 inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-brand-800 transition hover:bg-accent-50"
+              >
+                {t('impactPulse.spotlight.cta')}
+                <ArrowRight className="h-4 w-4" aria-hidden />
+              </Link>
+            </div>
+          ) : null}
+        </article>
+      )}
+    </SectionShell>
+  )
+}

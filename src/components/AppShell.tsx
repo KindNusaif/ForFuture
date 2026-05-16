@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { Home, PlusCircle, User, BarChart3, LogOut, Map, Shield, BadgeCheck, HeartHandshake } from 'lucide-react'
+import { Home, PlusCircle, User, BarChart3, LogOut, Map, Shield, BadgeCheck, HeartHandshake, Activity } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useIsAdmin } from '../hooks/useIsAdmin'
 import LanguageSwitcher from './LanguageSwitcher'
@@ -51,6 +51,10 @@ export default function AppShell({ children }: { children?: ReactNode }) {
               <NavLink to="/impact-map" className={navLinkClass}>
                 <Map className="h-5 w-5 shrink-0" aria-hidden />
                 {t('nav.impactMap')}
+              </NavLink>
+              <NavLink to="/impact" className={navLinkClass}>
+                <Activity className="h-5 w-5 shrink-0" aria-hidden />
+                {t('nav.impactPulse')}
               </NavLink>
               <NavLink to="/relief" className={navLinkClass}>
                 <HeartHandshake className="h-5 w-5 shrink-0" aria-hidden />

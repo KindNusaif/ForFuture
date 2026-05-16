@@ -22,6 +22,7 @@ import AdminModeration from './pages/AdminModeration'
 import AdminTrustReview from './pages/AdminTrustReview'
 import ReliefHub from './pages/ReliefHub'
 import CreateReliefPost from './pages/CreateReliefPost'
+import YouthImpactPulse from './pages/YouthImpactPulse'
 
 export default function App() {
   return (
@@ -53,6 +54,7 @@ export default function App() {
           {/* Impact Map — members keep app shell; guests use public nav */}
           <Route element={<ImpactMapLayout />}>
             <Route path="impact-map" element={<ImpactMap />} />
+            <Route path="impact" element={<YouthImpactPulse />} />
           </Route>
 
           {/* Public guest explore — read only */}

@@ -11,6 +11,7 @@
     "relief": "Donation & Relief",
     "myFeed": "My Feed",
     "impactMap": "Impact Map",
+    "impactPulse": "Youth Impact Pulse",
     "map": "Map",
     "create": "Create",
     "createMovement": "Create a Youth Movement",
@@ -62,7 +63,10 @@
     "whyActionTitle": "Voices become action",
     "whyActionText": "Turn concerns into volunteer drives, polls, campaigns, and lawful peaceful civic participation.",
     "ctaTitle": "Your voice can become tomorrow's movement.",
-    "ctaSubtitle": "Join ForFuture to create movements, support youth-led change, or explore momentum as a guest — no account required."
+    "ctaSubtitle": "Join ForFuture to create movements, support youth-led change, or explore momentum as a guest — no account required.",
+    "impactPulseTitle": "Youth Impact Pulse",
+    "impactPulseText": "See how youth voices are turning into petitions, volunteer drives, relief support, and trusted civic action — with live platform insights.",
+    "impactPulseCta": "View Youth Impact Pulse"
   },
   "auth": {
     "loginTitle": "Welcome back",
@@ -481,6 +485,90 @@
       "goalAmount": "Goal amount (USD)",
       "transparency": "Organizer transparency note",
       "transparencyPh": "How will funds be used? Who is accountable?"
+    }
+  },
+  "impactPulse": {
+    "eyebrow": "Youth Impact Pulse",
+    "tagline": "A live snapshot of how youth voices are turning into real action.",
+    "heroTitle": "See How Youth Voices Become Real Action",
+    "heroSubtitle": "Track the ideas, movements, petitions, volunteer efforts, relief support, and civic momentum growing across ForFuture.",
+    "migrationTitle": "Dashboard metrics are not available yet",
+    "migrationBody": "Run supabase/youth_impact_pulse.sql in the Supabase SQL Editor, then refresh this page to load live aggregates.",
+    "glance": {
+      "title": "Impact at a Glance",
+      "subtitle": "Platform-wide counts from real youth-led activity — updated when you open this page.",
+      "voices": "Youth Voices Shared",
+      "movements": "Movements Launched",
+      "petitions": "Petitions Started",
+      "volunteer": "Volunteer Drives",
+      "relief": "Relief & Fundraising Causes",
+      "pollVotes": "Poll Votes Cast"
+    },
+    "journey": {
+      "title": "Voice-to-Action Journey",
+      "subtitle": "How participation grows from speaking up to trusted community impact.",
+      "explainer": "Every movement begins with a voice. ForFuture helps turn concerns into collective civic action.",
+      "stages": {
+        "voices": "Voices Raised",
+        "petitions": "Petitions Created",
+        "volunteer": "Volunteer Actions Formed",
+        "relief": "Relief & Donation Responses",
+        "trusted": "Trusted Campaigns Reviewed"
+      }
+    },
+    "weekly": {
+      "title": "Youth Momentum This Week",
+      "subtitle": "Highlights from the last 7 days of platform activity.",
+      "empty": "Weekly momentum is building — new insights will appear as more youth take action.",
+      "mostSupported": "Most Supported This Week",
+      "fastestPetition": "Fastest Growing Petition",
+      "topType": "Most Active Movement Type",
+      "topCategory": "Most Engaged Category",
+      "supportCount": "{{count}} supports & engagements",
+      "weekSignatures": "{{count}} signatures in the last 7 days"
+    },
+    "themes": {
+      "title": "Most Active Impact Themes",
+      "subtitle": "Categories where youth are creating the most movements.",
+      "empty": "Category insights will appear as more movements are shared."
+    },
+    "districts": {
+      "title": "Where Youth Energy Is Rising",
+      "subtitle": "Aggregated district-level activity — no exact addresses or private identities.",
+      "empty": "Regional momentum will appear as more location-based movements are created.",
+      "activeMovements": "{{count}} active movements"
+    },
+    "participation": {
+      "title": "Community Participation Breakdown",
+      "subtitle": "ForFuture is not passive content — it drives real participation.",
+      "pollVotes": "Poll Votes Cast",
+      "signatures": "Petition Signatures",
+      "volunteer": "Volunteer Responses",
+      "relief": "Relief Support Interests",
+      "supports": "Movement Supports",
+      "fundraising": "Fundraising Support Interests"
+    },
+    "trust": {
+      "title": "Trust & Safety Snapshot",
+      "subtitle": "Public-safe aggregates that show how credibility and moderation work together.",
+      "note": "Freedom of expression and community safety grow together through transparent moderation and trust systems.",
+      "verified": "Verified Organizers",
+      "reviewed": "Reviewed Campaigns",
+      "fundraising": "Trusted Fundraising Campaigns",
+      "reports": "Reports Processed",
+      "youthVoice": "Youth Voice Posts Shared"
+    },
+    "spotlight": {
+      "title": "Movement in the Spotlight",
+      "empty": "Your next movement could appear here.",
+      "engagement": "{{count}} people engaged",
+      "cta": "View Movement"
+    },
+    "cta": {
+      "title": "Be Part of the Next Impact Story",
+      "subtitle": "Share your voice, start a movement, support a cause, or help a community move forward.",
+      "create": "Create a Youth Movement",
+      "explore": "Explore Youth Momentum"
     }
   },
   "common": {

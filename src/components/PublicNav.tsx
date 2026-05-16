@@ -22,6 +22,9 @@ export default function PublicNav() {
       <Link to="/impact-map" className={linkClass}>
         {t('nav.impactMap')}
       </Link>
+      <Link to="/impact" className={linkClass}>
+        {t('nav.impactPulse')}
+      </Link>
       <Link to="/create" className={linkClass}>
         {t('nav.create')}
       </Link>
@@ -41,6 +44,9 @@ export default function PublicNav() {
       </Link>
       <Link to="/impact-map" className={linkClass}>
         {t('nav.impactMap')}
+      </Link>
+      <Link to="/impact" className={linkClass}>
+        {t('nav.impactPulse')}
       </Link>
       <a href="/#why-forfuture" className={linkClass}>
         {t('nav.about')}
@@ -97,6 +103,13 @@ export default function PublicNav() {
                 {t('nav.impactMap')}
               </Link>
               <Link
+                to="/impact"
+                className="block rounded-lg px-3 py-2.5 text-sm font-medium"
+                onClick={() => setOpen(false)}
+              >
+                {t('nav.impactPulse')}
+              </Link>
+              <Link
                 to="/create"
                 className="block rounded-lg px-3 py-2.5 text-sm font-medium"
                 onClick={() => setOpen(false)}
@@ -133,6 +146,13 @@ export default function PublicNav() {
                 onClick={() => setOpen(false)}
               >
                 {t('nav.impactMap')}
+              </Link>
+              <Link
+                to="/impact"
+                className="block rounded-lg px-3 py-2.5 text-sm font-medium"
+                onClick={() => setOpen(false)}
+              >
+                {t('nav.impactPulse')}
               </Link>
               <a
                 href="/#why-forfuture"

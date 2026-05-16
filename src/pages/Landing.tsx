@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import {
+  Activity,
   ArrowRight,
   BarChart3,
   Compass,
@@ -52,6 +53,13 @@ export default function Landing() {
       text: t('relief.landingText'),
       link: '/explore/relief',
       linkLabel: t('relief.landingCta'),
+    },
+    {
+      icon: Activity,
+      title: t('landing.impactPulseTitle'),
+      text: t('landing.impactPulseText'),
+      link: '/impact',
+      linkLabel: t('landing.impactPulseCta'),
     },
   ]
 

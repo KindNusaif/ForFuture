@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
-import { Heart, Map, Sparkles, Users } from 'lucide-react'
+import { Activity, Heart, Map, Sparkles, Users } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 const tips = [
   {
@@ -20,6 +21,8 @@ const tips = [
 ]
 
 export default function TrendingPanel() {
+  const { t } = useTranslation()
+
   return (
     <aside className="hidden w-72 shrink-0 xl:block">
       <div className="sticky top-6 space-y-4">
@@ -54,6 +57,19 @@ export default function TrendingPanel() {
         </div>
 
         <Link
+          to="/impact"
+          className="card-surface flex items-center gap-3 p-4 transition hover:border-accent-200 hover:shadow-md"
+        >
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-100 text-accent-700">
+            <Activity className="h-5 w-5" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-slate-900">{t('nav.impactPulse')}</p>
+            <p className="text-xs text-slate-500">{t('impactPulse.tagline')}</p>
+          </div>
+        </Link>
+
+        <Link
           to="/impact-map"
           className="card-surface flex items-center gap-3 p-4 transition hover:border-accent-200 hover:shadow-md"
         >
@@ -61,8 +77,8 @@ export default function TrendingPanel() {
             <Map className="h-5 w-5" />
           </span>
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-slate-900">Impact Map</p>
-            <p className="text-xs text-slate-500">Volunteer, civic action & issues near you</p>
+            <p className="text-sm font-semibold text-slate-900">{t('nav.impactMap')}</p>
+            <p className="text-xs text-slate-500">Volunteer, civic action &amp; issues near you</p>
           </div>
         </Link>
       </div>
