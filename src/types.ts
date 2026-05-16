@@ -177,6 +177,28 @@ export interface Post {
   author_organization_verification_type?: OrganizationVerificationType | null
   /** Populated for quick_youth_poll movements */
   poll?: PollVoteState | null
+  /** Supporting images and PDFs */
+  attachments?: MovementAttachment[]
+}
+
+export type MovementAttachmentFileType = 'image' | 'document'
+
+export interface MovementAttachment {
+  id: string
+  movement_id: string
+  uploader_id: string
+  file_type: MovementAttachmentFileType
+  /** image | document today; video reserved for future uploads */
+  media_kind: MovementAttachmentFileType | 'video'
+  mime_type: string
+  storage_bucket: string
+  storage_path: string
+  original_file_name: string
+  file_size_bytes: number
+  display_order: number
+  created_at: string
+  /** Resolved public URL for display */
+  public_url: string
 }
 
 /** Payload for creating a movement (post) */

@@ -23,7 +23,7 @@ export function isMissingColumn(error: unknown): boolean {
 }
 
 const SCHEMA_FIX_HINT =
-  'Run supabase/fix_database.sql, supabase/trust_review_system.sql, supabase/donation_relief_hub.sql, and supabase/youth_impact_pulse.sql in the Supabase SQL Editor, then hard-refresh this page (Ctrl+Shift+R).'
+  'Run supabase/fix_database.sql, supabase/trust_review_system.sql, supabase/donation_relief_hub.sql, supabase/movement_attachments.sql, and supabase/youth_impact_pulse.sql in the Supabase SQL Editor, then hard-refresh this page (Ctrl+Shift+R).'
 
 export function enhanceSupabaseError(error: unknown): Error {
   if (!isPostgrestError(error)) {

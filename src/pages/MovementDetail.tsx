@@ -212,6 +212,7 @@ function MovementDetailContent({
           pollVoting={pollVoting}
           showIdentityBadge
           showEngagementHint
+          showFullMedia
         />
       )}
     </>

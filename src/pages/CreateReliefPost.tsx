@@ -18,6 +18,9 @@ import {
   type ReliefCreateSubtype,
 } from '../lib/reliefHub'
 import { createPost } from '../lib/posts'
+import { uploadMovementAttachments } from '../lib/movementAttachments'
+import MovementMediaUploader from '../components/media/MovementMediaUploader'
+import { usePendingMovementMedia } from '../hooks/usePendingMovementMedia'
 import { formatError } from '../lib/errors'
 import { hasFieldErrors, POST_LIMITS, validateReliefCreate } from '../lib/validation'
 import type { Category, PostingIdentity } from '../types'
@@ -62,8 +65,10 @@ export default function CreateReliefPost() {
     longitude: null,
   })
   const [loading, setLoading] = useState(false)
+  const [uploadingMedia, setUploadingMedia] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string | undefined>>({})
+  const pendingMedia = usePendingMovementMedia()
 
   const requiresProfile = subtype ? requiresProfileForReliefSubtype(subtype) : false
   const effectivePostingIdentity = requiresProfile ? 'profile' : postingIdentity
@@ -96,12 +101,17 @@ export default function CreateReliefPost() {
     setFieldErrors(errors)
     if (hasFieldErrors(errors)) return
 
+    if (pendingMedia.hasFiles && !pendingMedia.validation.valid) {
+      setError(pendingMedia.validation.issues[0]?.message ?? 'Check your attachments.')
+      return
+    }
+
     setLoading(true)
     setError(null)
 
     try {
       const movementType = movementTypeForReliefSubtype(subtype)
-      await createPost({
+      const post = await createPost({
         userId: user.id,
         title: title.trim(),
         description: description.trim(),
@@ -138,6 +148,28 @@ export default function CreateReliefPost() {
         beneficiary_description: reliefFields.beneficiary_description,
         organizer_transparency_note: reliefFields.organizer_transparency_note,
       })
+
+      if (pendingMedia.hasFiles) {
+        setUploadingMedia(true)
+        try {
+          await uploadMovementAttachments({
+            movementId: post.id,
+            userId: user.id,
+            files: pendingMedia.files,
+          })
+          pendingMedia.clearFiles()
+        } catch (uploadErr) {
+          setError(
+            `${formatError(uploadErr)} Your relief post was published, but some files could not be attached.`,
+          )
+          setLoading(false)
+          setUploadingMedia(false)
+          return
+        } finally {
+          setUploadingMedia(false)
+        }
+      }
+
       navigate('/relief', {
         state: { toast: { type: 'success', message: t('relief.publishSuccess') } },
       })
@@ -219,6 +251,17 @@ export default function CreateReliefPost() {
               disabled={loading}
             />
 
+            <MovementMediaUploader
+              files={pendingMedia.files}
+              remainingImages={pendingMedia.remainingImages}
+              remainingDocuments={pendingMedia.remainingDocuments}
+              onAddFiles={pendingMedia.addFiles}
+              onRemoveFile={pendingMedia.removeFile}
+              validationIssues={pendingMedia.allIssues}
+              disabled={loading}
+              uploading={uploadingMedia}
+            />
+
             <ReliefHubFields
               subtype={subtype}
               values={reliefFields}
@@ -235,8 +278,12 @@ export default function CreateReliefPost() {
               </p>
             )}
 
-            <button type="submit" disabled={loading} className="btn-primary w-full sm:w-auto">
-              {loading ? (
+            <button
+              type="submit"
+              disabled={loading || uploadingMedia}
+              className="btn-primary w-full sm:w-auto"
+            >
+              {loading || uploadingMedia ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
                   {t('create.publishing')}

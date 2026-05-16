@@ -13,7 +13,11 @@ import { emptyMovementFields } from '../lib/movementFieldValues'
 import type { MovementFieldValues } from '../lib/movementFieldValues'
 import { emptyPollOptions } from '../lib/pollFieldDefaults'
 import type { MapLocation } from '../lib/googleMaps'
+import { movementSupportsAttachments } from '../lib/mediaConfig'
+import { uploadMovementAttachments } from '../lib/movementAttachments'
 import { getMovementConfig, isPollMovement } from '../lib/movements'
+import MovementMediaUploader from '../components/media/MovementMediaUploader'
+import { usePendingMovementMedia } from '../hooks/usePendingMovementMedia'
 import { isPetitionMovement } from '../lib/petitions'
 import { createPost } from '../lib/posts'
 import { formatError } from '../lib/errors'
@@ -72,7 +76,9 @@ export default function CreatePost() {
   const [movementFields, setMovementFields] = useState<MovementFieldValues>(emptyMovementFields)
   const [pollOptions, setPollOptions] = useState<string[]>(emptyPollOptions)
   const [loading, setLoading] = useState(false)
+  const [uploadingMedia, setUploadingMedia] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const pendingMedia = usePendingMovementMedia()
   const [fieldErrors, setFieldErrors] = useState<CreatePostFieldErrors>({})
   const [mapLocation, setMapLocation] = useState<MapLocation>({
     location_name: '',
@@ -185,12 +191,19 @@ export default function CreatePost() {
     setFieldErrors(errors)
     if (hasFieldErrors(errors)) return
 
+    if (movementSupportsAttachments(movementType) && pendingMedia.hasFiles) {
+      if (!pendingMedia.validation.valid) {
+        setError(pendingMedia.validation.issues[0]?.message ?? 'Check your attachments.')
+        return
+      }
+    }
+
     setLoading(true)
     setError(null)
     try {
       const slots = movementFields.volunteer_slots.trim()
       const goalRaw = movementFields.petition_support_goal.trim()
-      await createPost({
+      const post = await createPost({
         userId: user.id,
         title: title.trim(),
         description: isPetition ? petitionDescription : description.trim(),
@@ -234,6 +247,28 @@ export default function CreatePost() {
         petition_closing_date: movementFields.petition_closing_date || undefined,
         petition_impact_note: movementFields.petition_impact_note,
       })
+
+      if (movementSupportsAttachments(movementType) && pendingMedia.hasFiles) {
+        setUploadingMedia(true)
+        try {
+          await uploadMovementAttachments({
+            movementId: post.id,
+            userId: user.id,
+            files: pendingMedia.files,
+          })
+          pendingMedia.clearFiles()
+        } catch (uploadErr) {
+          setError(
+            `${formatError(uploadErr)} Your movement was published, but some files could not be attached.`,
+          )
+          setLoading(false)
+          setUploadingMedia(false)
+          return
+        } finally {
+          setUploadingMedia(false)
+        }
+      }
+
       navigate('/feed', {
         replace: true,
         state: {
@@ -304,6 +339,19 @@ export default function CreatePost() {
             onChange={handleMovementTypeChange}
             disabled={loading}
           />
+
+          {movementSupportsAttachments(movementType) && (
+            <MovementMediaUploader
+              files={pendingMedia.files}
+              remainingImages={pendingMedia.remainingImages}
+              remainingDocuments={pendingMedia.remainingDocuments}
+              onAddFiles={pendingMedia.addFiles}
+              onRemoveFile={pendingMedia.removeFile}
+              validationIssues={pendingMedia.allIssues}
+              disabled={loading}
+              uploading={uploadingMedia}
+            />
+          )}
 
           <FormField
             label={isPoll ? 'Poll question' : isPetition ? 'Petition title' : 'Title'}

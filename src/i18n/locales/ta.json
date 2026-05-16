@@ -353,6 +353,27 @@
     "loadFailed": "இந்த உள்ளடக்கத்தை இப்போது ஏற்ற முடியவில்லை.",
     "checkConnection": "Please check your connection and try again."
   },
+  "media": {
+    "sectionTitle": "ஆதரவு ஊடகங்களைச் சேர்க்கவும்",
+    "sectionHint": "உங்கள் இயக்கத்தை விளக்க உதவும் புகைப்படங்கள் அல்லது PDF ஆவணங்களைச் சேர்க்கவும்.",
+    "acceptedTypes": "படங்கள்: JPG, PNG, WebP. ஆவணங்கள்: PDF.",
+    "limits": "{{images}} படங்கள் மற்றும் {{pdfs}} PDF வரை",
+    "dropLabel": "கோப்புகளை இழுத்து விடுங்கள்",
+    "dropTitle": "கோப்புகளை இங்கே இழுத்து விடுங்கள்",
+    "remaining": "{{images}} பட இடங்கள், {{pdfs}} PDF இடங்கள் மீதம்",
+    "chooseFiles": "கோப்புகளைத் தேர்ந்தெடு",
+    "typeImage": "படம்",
+    "typePdf": "PDF ஆவணம்",
+    "removeFile": "கோப்பை நீக்கு",
+    "uploading": "இணைப்புகள் பதிவேற்றப்படுகின்றன…",
+    "feedPreviewAria": "இயக்க ஊடக முன்னோட்டம்",
+    "pdfResource": "PDF வளம் — பார்க்க",
+    "pdfCount": "{{count}} ஆதரவு ஆவணங்கள்",
+    "galleryTitle": "ஆதரவு படங்கள்",
+    "documentsTitle": "ஆதரவு ஆவணங்கள்",
+    "viewPdf": "பார்க்க",
+    "imageFailed": "படம் கிடைக்கவில்லை"
+  },
   "common": {
     "close": "மூடு",
     "cancel": "ரத்து செய்",

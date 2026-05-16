@@ -22,6 +22,8 @@ import ReliefSubtypeBadge from './relief/ReliefSubtypeBadge'
 import UnderReviewBadge from './UnderReviewBadge'
 import VerifiedOrganizerBadge from './VerifiedOrganizerBadge'
 import ReportContentButton from './ReportContentButton'
+import MovementMediaFeedPreview from './media/MovementMediaFeedPreview'
+import MovementMediaDetail from './media/MovementMediaDetail'
 import type { Post } from '../types'
 
 const PREVIEW_CHAR_THRESHOLD = 180
@@ -51,6 +53,8 @@ interface PostCardProps {
   showIdentityBadge?: boolean
   showEngagementHint?: boolean
   detailPath?: string
+  /** Full gallery + documents on movement detail */
+  showFullMedia?: boolean
 }
 
 export default function PostCard({
@@ -66,6 +70,7 @@ export default function PostCard({
   guestMode = false,
   showEngagementHint = false,
   detailPath,
+  showFullMedia = false,
 }: PostCardProps) {
   const movement = getMovementConfig(post.movement_type)
   const visual = getMovementVisual(post.movement_type)
@@ -209,7 +214,17 @@ export default function PostCard({
             View full movement →
           </Link>
         )}
+
+        {post.attachments && post.attachments.length > 0 && !showFullMedia && (
+          <MovementMediaFeedPreview attachments={post.attachments} />
+        )}
       </div>
+
+      {showFullMedia && post.attachments && post.attachments.length > 0 && (
+        <div className="px-4 sm:px-5">
+          <MovementMediaDetail attachments={post.attachments} />
+        </div>
+      )}
 
       <div className="px-4 pb-4 sm:px-5 sm:pb-5">
         {isPoll ? (

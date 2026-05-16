@@ -657,6 +657,27 @@
       "safety_note": "Safety note"
     }
   },
+  "media": {
+    "sectionTitle": "Add Supporting Media",
+    "sectionHint": "Add photos or PDF documents that help explain your movement.",
+    "acceptedTypes": "Images: JPG, PNG, WebP. Documents: PDF.",
+    "limits": "Up to {{images}} images and {{pdfs}} PDFs",
+    "dropLabel": "Drop files to attach supporting media",
+    "dropTitle": "Drag and drop files here",
+    "remaining": "{{images}} image slots and {{pdfs}} PDF slots remaining",
+    "chooseFiles": "Choose files",
+    "typeImage": "Image",
+    "typePdf": "PDF document",
+    "removeFile": "Remove file",
+    "uploading": "Uploading attachments…",
+    "feedPreviewAria": "Movement media preview",
+    "pdfResource": "PDF Resource — View",
+    "pdfCount": "{{count}} supporting documents",
+    "galleryTitle": "Supporting Images",
+    "documentsTitle": "Supporting Documents",
+    "viewPdf": "View",
+    "imageFailed": "Image unavailable"
+  },
   "common": {
     "close": "Close",
     "cancel": "Cancel",

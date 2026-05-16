@@ -10,6 +10,7 @@ import { enrichPostsWithPolls, insertPollOptions } from './polls'
 import { isPollMovement } from './movements'
 import { enrichPostsWithActions, fetchPostActionsForPosts } from './postActions'
 import { enrichPostsWithPetitionSignatures } from './petitionSignatures'
+import { enrichPostsWithAttachmentsAsync } from './movementAttachments'
 import { isPetitionMovement } from './petitions'
 import { requireSupabase } from './supabase'
 import { FEED_ENRICH_TIMEOUT_MS, FEED_REQUEST_TIMEOUT_MS } from './requestConfig'
@@ -311,7 +312,7 @@ export async function enrichPosts(
   if (rows.length === 0) return []
 
   const asPosts = rows as Post[]
-  const [withPolls, withSupport, withPetitions] = await Promise.all([
+  const [withPolls, withSupport, withPetitions, withAttachments] = await Promise.all([
     withTimeout(enrichPostsWithPolls(asPosts, viewerUserId), FEED_ENRICH_TIMEOUT_MS, undefined, signal),
     withTimeout(enrichPostsWithActions(asPosts, viewerUserId), FEED_ENRICH_TIMEOUT_MS, undefined, signal),
     withTimeout(
@@ -320,10 +321,12 @@ export async function enrichPosts(
       undefined,
       signal,
     ),
+    withTimeout(enrichPostsWithAttachmentsAsync(asPosts), FEED_ENRICH_TIMEOUT_MS, undefined, signal),
   ])
 
   const pollById = new Map(withPolls.map((p) => [p.id, p.poll]))
   const petitionById = new Map(withPetitions.map((p) => [p.id, p]))
+  const attachById = new Map(withAttachments.map((p) => [p.id, p.attachments]))
 
   return withSupport.map((p) => {
     const petitionOverlay = petitionById.get(p.id)
@@ -338,6 +341,7 @@ export async function enrichPosts(
     return {
       ...merged,
       poll: pollById.get(p.id) ?? merged.poll,
+      attachments: attachById.get(p.id) ?? merged.attachments,
     }
   })
 }

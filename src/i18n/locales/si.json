@@ -353,6 +353,27 @@
     "loadFailed": "මෙම අන්තර්ගතය දැන් පූරණය කළ නොහැක.",
     "checkConnection": "Please check your connection and try again."
   },
+  "media": {
+    "sectionTitle": "සහායක මාධ්‍ය එක් කරන්න",
+    "sectionHint": "ඔබේ චලනය පැහැදිලි කිරීමට උදව් වන ඡායාරූප හෝ PDF ලේඛන එක් කරන්න.",
+    "acceptedTypes": "රූප: JPG, PNG, WebP. ලේඛන: PDF.",
+    "limits": "රූප {{images}}ක් සහ PDF {{pdfs}}ක් දක්වා",
+    "dropLabel": "ගොනු අමුණන්න",
+    "dropTitle": "ගොනු මෙතැනට ඇද දමන්න",
+    "remaining": "රූප {{images}}ක්, PDF {{pdfs}}ක් ඉතිරි",
+    "chooseFiles": "ගොනු තෝරන්න",
+    "typeImage": "රූපය",
+    "typePdf": "PDF ලේඛනය",
+    "removeFile": "ගොනුව ඉවත් කරන්න",
+    "uploading": "ඇමුණුම් උඩුගත වෙමින්…",
+    "feedPreviewAria": "චලන මාධ්‍ය පෙරදසුන",
+    "pdfResource": "PDF සම්පත — බලන්න",
+    "pdfCount": "සහායක ලේඛන {{count}}ක්",
+    "galleryTitle": "සහායක රූප",
+    "documentsTitle": "සහායක ලේඛන",
+    "viewPdf": "බලන්න",
+    "imageFailed": "රූපය ලබා ගත නොහැක"
+  },
   "common": {
     "close": "වසන්න",
     "cancel": "අවලංගු කරන්න",
