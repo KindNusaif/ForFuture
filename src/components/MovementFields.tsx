@@ -139,6 +139,42 @@ export default function MovementFields({
           )}
         </div>
       )
+    case 'youth_petition':
+      return (
+        <div className="space-y-4 rounded-xl border border-fuchsia-100 bg-fuchsia-50/40 p-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-fuchsia-900">
+            Youth Petition
+          </p>
+          <p className="text-xs leading-relaxed text-fuchsia-800/90">
+            Gather youth support for a clear call for change. This is community advocacy on
+            ForFuture — not a government-verified or legally binding signature system.
+          </p>
+          {ta(
+            'petition_issue',
+            'Issue / problem',
+            'Explain the problem that needs attention.',
+          )}
+          {ta(
+            'petition_requested_change',
+            'Requested change',
+            'Clearly state what action or change is being requested.',
+          )}
+          {inp(
+            'petition_target_authority',
+            'Target authority or audience',
+            'e.g. Local Council, School Administration, Transport Authority',
+          )}
+          <div className="grid gap-4 sm:grid-cols-2">
+            {inp('petition_support_goal', 'Support goal (optional)', 'e.g. 500', 'number')}
+            {inp('petition_closing_date', 'Closing date (optional)', '', 'date')}
+          </div>
+          {ta(
+            'petition_impact_note',
+            'Why this matters (optional)',
+            'A short note on why this change is important.',
+          )}
+        </div>
+      )
     case 'peaceful_civic_action':
       return (
         <div className="space-y-4 rounded-xl border border-indigo-100 bg-indigo-50/40 p-4">

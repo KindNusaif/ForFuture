@@ -20,6 +20,7 @@ export type MovementType =
   | 'fundraising'
   | 'peaceful_civic_action'
   | 'quick_youth_poll'
+  | 'youth_petition'
 
 /** Civic engagement stored in post_actions */
 export type PostActionType =
@@ -55,6 +56,7 @@ export type TrustedCampaignType =
   | 'volunteer_drive'
   | 'civic_action'
   | 'general_campaign'
+  | 'petition'
 
 export interface Profile {
   id: string
@@ -108,6 +110,12 @@ export interface Post {
   action_location?: string | null
   action_purpose?: string | null
   safety_note?: string | null
+  petition_issue?: string | null
+  petition_requested_change?: string | null
+  petition_target_authority?: string | null
+  petition_support_goal?: number | null
+  petition_closing_date?: string | null
+  petition_impact_note?: string | null
   location_name?: string | null
   latitude?: number | null
   longitude?: number | null
@@ -147,6 +155,12 @@ export interface CreateMovementInput {
   action_location?: string
   action_purpose?: string
   safety_note?: string
+  petition_issue?: string
+  petition_requested_change?: string
+  petition_target_authority?: string
+  petition_support_goal?: number | null
+  petition_closing_date?: string
+  petition_impact_note?: string
   location_name?: string
   latitude?: number | null
   longitude?: number | null

@@ -10,6 +10,8 @@ import { useJoinMovement } from '../hooks/useJoinMovement'
 import { getMovementConfig } from '../lib/movements'
 import type { MovementFilter } from '../lib/movements'
 import { isPollMovement } from '../lib/movements'
+import { isPetitionMovement } from '../lib/petitions'
+import { signPetition } from '../lib/petitionSignatures'
 import { castPollVote } from '../lib/polls'
 import { DEFAULT_FEED_PAGE_SIZE, fetchPostsPage } from '../lib/posts'
 import { getActionSuccessMessage } from '../lib/movements'
@@ -60,6 +62,7 @@ function PostFeedContent({
   const [movementFilter, setMovementFilter] = useState<MovementFilter>('All')
   const [search, setSearch] = useState('')
   const [supportingId, setSupportingId] = useState<string | null>(null)
+  const [petitionSigningId, setPetitionSigningId] = useState<string | null>(null)
   const [pollVotingId, setPollVotingId] = useState<string | null>(null)
   const [actionToast, setActionToast] = useState<FeedToast | null>(null)
 
@@ -155,8 +158,8 @@ function PostFeedContent({
     }
   }, [search, movementFilter, category, isGuest, hasMore])
 
-  function handleRestrictedAction() {
-    openJoinModal()
+  function handleRestrictedAction(variant: 'default' | 'petition' = 'default') {
+    openJoinModal(variant)
   }
 
   function dismissToast() {
@@ -196,6 +199,41 @@ function PostFeedContent({
     }
   }
 
+  async function handlePetitionSign(postId: string) {
+    if (isGuest) {
+      handleRestrictedAction('petition')
+      return
+    }
+    if (!userId) return
+
+    const post = posts.find((p) => p.id === postId)
+    if (!post || post.supported_by_me) return
+
+    setPetitionSigningId(postId)
+    try {
+      await signPetition(postId, userId)
+      setPosts((prev) =>
+        prev.map((p) => {
+          if (p.id !== postId) return p
+          return {
+            ...p,
+            supported_by_me: true,
+            support_count: (p.support_count ?? 0) + 1,
+          }
+        }),
+      )
+      setActionToast({
+        type: 'success',
+        message: 'You have supported this petition.',
+        detail: 'Thank you for adding your youth voice to this call for change.',
+      })
+    } catch (err) {
+      setActionToast({ type: 'error', message: formatError(err) })
+    } finally {
+      setPetitionSigningId(null)
+    }
+  }
+
   async function handleSupport(postId: string) {
     if (isGuest) {
       handleRestrictedAction()
@@ -204,7 +242,7 @@ function PostFeedContent({
     if (!userId) return
 
     const post = posts.find((p) => p.id === postId)
-    if (!post) return
+    if (!post || isPetitionMovement(post.movement_type)) return
 
     setSupportingId(postId)
     try {
@@ -258,7 +296,7 @@ function PostFeedContent({
         onCategoryChange={setCategory}
         isGuest={isGuest}
         showCreateButton={showCreateButton}
-        onGuestCreate={handleRestrictedAction}
+        onGuestCreate={() => handleRestrictedAction()}
       />
 
       {error && !displayedToast && (
@@ -305,7 +343,7 @@ function PostFeedContent({
           )}
           {isGuest && (
             <p className="mt-6 text-center">
-              <button type="button" onClick={handleRestrictedAction} className="btn-primary">
+              <button type="button" onClick={() => handleRestrictedAction()} className="btn-primary">
                 Join ForFuture to take action
               </button>
             </p>
@@ -319,9 +357,17 @@ function PostFeedContent({
                 <PostCard
                   post={post}
                   detailPath={isGuest ? `/explore/${post.id}` : `/feed/${post.id}`}
-                  onSupport={isPollMovement(post.movement_type) ? undefined : handleSupport}
+                  onSupport={
+                    isPollMovement(post.movement_type) || isPetitionMovement(post.movement_type)
+                      ? undefined
+                      : handleSupport
+                  }
+                  onPetitionSign={
+                    isPetitionMovement(post.movement_type) ? handlePetitionSign : undefined
+                  }
                   onPollVote={handlePollVote}
                   supporting={supportingId === post.id}
+                  petitionSigning={petitionSigningId === post.id}
                   pollVoting={pollVotingId === post.id}
                   guestMode={isGuest}
                 />

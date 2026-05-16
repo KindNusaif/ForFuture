@@ -13,6 +13,7 @@ import type { MovementFieldValues } from '../lib/movementFieldValues'
 import { emptyPollOptions } from '../lib/pollFieldDefaults'
 import type { MapLocation } from '../lib/googleMaps'
 import { getMovementConfig, isPollMovement } from '../lib/movements'
+import { isPetitionMovement } from '../lib/petitions'
 import { createPost } from '../lib/posts'
 import { formatError } from '../lib/errors'
 import {
@@ -43,6 +44,7 @@ const MOVEMENT_TYPE_VALUES: MovementType[] = [
   'fundraising',
   'peaceful_civic_action',
   'quick_youth_poll',
+  'youth_petition',
 ]
 
 export default function CreatePost() {
@@ -75,6 +77,7 @@ export default function CreatePost() {
 
   const requiresProfile = getMovementConfig(movementType).requiresProfileIdentity
   const isPoll = isPollMovement(movementType)
+  const isPetition = isPetitionMovement(movementType)
   const defaultAuthorName = profile?.display_name ?? ''
   const authorName = authorNameOverride ?? defaultAuthorName
   const effectivePostingIdentity = requiresProfile ? 'profile' : postingIdentity
@@ -97,9 +100,19 @@ export default function CreatePost() {
     e.preventDefault()
     if (!user || !profile?.youth_voice_id) return
 
+    const issueText = movementFields.petition_issue.trim()
+    const petitionDescription = isPetition
+      ? issueText.length >= POST_LIMITS.descriptionMin
+        ? issueText
+        : `${issueText}\n\n${movementFields.petition_requested_change.trim()}`.slice(
+            0,
+            POST_LIMITS.descriptionMax,
+          )
+      : description.trim()
+
     const errors = validateCreatePost({
       title,
-      description,
+      description: petitionDescription,
       category,
       authorName,
       postingIdentity: effectivePostingIdentity,
@@ -107,6 +120,11 @@ export default function CreatePost() {
       fundraising_goal_amount: movementFields.fundraising_goal_amount,
       fundraising_purpose: movementFields.fundraising_purpose,
       pollOptions: isPoll ? pollOptions : undefined,
+      petition_issue: movementFields.petition_issue,
+      petition_requested_change: movementFields.petition_requested_change,
+      petition_target_authority: movementFields.petition_target_authority,
+      petition_support_goal: movementFields.petition_support_goal,
+      petition_closing_date: movementFields.petition_closing_date,
     })
     setFieldErrors(errors)
     if (hasFieldErrors(errors)) return
@@ -115,10 +133,11 @@ export default function CreatePost() {
     setError(null)
     try {
       const slots = movementFields.volunteer_slots.trim()
+      const goalRaw = movementFields.petition_support_goal.trim()
       await createPost({
         userId: user.id,
         title: title.trim(),
-        description: description.trim(),
+        description: isPetition ? petitionDescription : description.trim(),
         category: category as Category,
         authorName: authorName.trim(),
         postingIdentity: effectivePostingIdentity,
@@ -152,16 +171,28 @@ export default function CreatePost() {
         latitude: mapLocation.latitude,
         longitude: mapLocation.longitude,
         pollOptions: isPoll ? pollOptions.map((o) => o.trim()).filter(Boolean) : undefined,
+        petition_issue: movementFields.petition_issue,
+        petition_requested_change: movementFields.petition_requested_change,
+        petition_target_authority: movementFields.petition_target_authority,
+        petition_support_goal: goalRaw ? parseInt(goalRaw, 10) : null,
+        petition_closing_date: movementFields.petition_closing_date || undefined,
+        petition_impact_note: movementFields.petition_impact_note,
       })
       navigate('/feed', {
         replace: true,
         state: {
           toast: {
             type: 'success' as const,
-            message: isPoll ? 'Poll published!' : 'Movement published!',
+            message: isPoll
+              ? 'Poll published!'
+              : isPetition
+                ? 'Petition published!'
+                : 'Movement published!',
             detail: isPoll
               ? 'Your community poll is now live.'
-              : `"${title.trim()}" is now live on the feed.`,
+              : isPetition
+                ? 'Your petition is now gathering youth support.'
+                : `"${title.trim()}" is now live on the feed.`,
           },
         },
       })
@@ -212,7 +243,7 @@ export default function CreatePost() {
           />
 
           <FormField
-            label={isPoll ? 'Poll question' : 'Title'}
+            label={isPoll ? 'Poll question' : isPetition ? 'Petition title' : 'Title'}
             id="title"
             error={fieldErrors.title}
           >
@@ -224,7 +255,9 @@ export default function CreatePost() {
               placeholder={
                 isPoll
                   ? 'e.g. What issue should our community focus on first?'
-                  : 'Give your movement a clear, compelling title'
+                  : isPetition
+                    ? 'e.g. Improve Pedestrian Safety Near Schools'
+                    : 'Give your movement a clear, compelling title'
               }
               aria-invalid={Boolean(fieldErrors.title)}
               className={`${inputClass} ${fieldErrors.title ? inputErrorClass : ''}`}
@@ -241,27 +274,29 @@ export default function CreatePost() {
             />
           )}
 
-          <FormField
-            label={isPoll ? 'Context (optional)' : 'Description'}
-            id="description"
-            error={fieldErrors.description}
-          >
-            <textarea
+          {!isPetition && (
+            <FormField
+              label={isPoll ? 'Context (optional)' : 'Description'}
               id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={isPoll ? 3 : 6}
-              maxLength={POST_LIMITS.descriptionMax}
-              placeholder={
-                isPoll
-                  ? 'Add a short note to help voters understand the question (optional).'
-                  : 'Describe your movement, who it helps, and what you hope to achieve.'
-              }
-              aria-invalid={Boolean(fieldErrors.description)}
-              className={`${inputClass} resize-y min-h-[140px] ${fieldErrors.description ? inputErrorClass : ''}`}
-            />
-            <CharCount current={description.length} max={POST_LIMITS.descriptionMax} />
-          </FormField>
+              error={fieldErrors.description}
+            >
+              <textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={isPoll ? 3 : 6}
+                maxLength={POST_LIMITS.descriptionMax}
+                placeholder={
+                  isPoll
+                    ? 'Add a short note to help voters understand the question (optional).'
+                    : 'Describe your movement, who it helps, and what you hope to achieve.'
+                }
+                aria-invalid={Boolean(fieldErrors.description)}
+                className={`${inputClass} resize-y min-h-[140px] ${fieldErrors.description ? inputErrorClass : ''}`}
+              />
+              <CharCount current={description.length} max={POST_LIMITS.descriptionMax} />
+            </FormField>
+          )}
 
           <MovementFields
             movementType={movementType}
@@ -326,7 +361,7 @@ export default function CreatePost() {
             ) : (
               <>
                 <Send className="h-5 w-5" />
-                {isPoll ? 'Publish poll' : 'Publish movement'}
+                {isPoll ? 'Publish poll' : isPetition ? 'Publish petition' : 'Publish movement'}
               </>
             )}
           </button>

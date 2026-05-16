@@ -195,6 +195,11 @@ function ProfileContent({ userId, email }: { userId: string; email?: string | nu
                 icon={BarChart3}
               />
               <StatCard label="Poll votes received" value={totalPollVotes} icon={BarChart3} />
+              <StatCard
+                label="Petitions created"
+                value={posts.filter((p) => p.movement_type === 'youth_petition').length}
+                icon={BarChart3}
+              />
             </dl>
           </div>
         </header>

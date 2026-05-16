@@ -44,6 +44,13 @@ export const MOVEMENT_VISUAL: Record<MovementType, MovementVisualStyle> = {
     sectionPanel: 'border-orange-100/90 bg-orange-50/40',
     actionZone: 'border-orange-100/80 bg-linear-to-br from-orange-50/30 to-white',
   },
+  youth_petition: {
+    accentBar: 'border-l-fuchsia-500',
+    headerWash: 'from-fuchsia-50/70 via-white to-white',
+    iconChip: 'bg-fuchsia-100 text-fuchsia-800 ring-fuchsia-200/80',
+    sectionPanel: 'border-fuchsia-100/90 bg-fuchsia-50/40',
+    actionZone: 'border-fuchsia-100/80 bg-linear-to-br from-fuchsia-50/30 to-white',
+  },
   quick_youth_poll: {
     accentBar: 'border-l-cyan-500',
     headerWash: 'from-cyan-50/60 via-white to-white',
@@ -66,6 +73,9 @@ export function shouldShowMomentumPill(
   if (movementType === 'quick_youth_poll') {
     return (pollVotes ?? 0) >= 5
   }
+  if (movementType === 'youth_petition') {
+    return supportCount >= 10
+  }
   return supportCount >= 5
 }
 
@@ -76,6 +86,11 @@ export function getMomentumLabel(
 ): string {
   if (movementType === 'quick_youth_poll') {
     return `${pollVotes ?? 0} votes`
+  }
+  if (movementType === 'youth_petition') {
+    if (supportCount >= 100) return 'Strong support'
+    if (supportCount >= 25) return 'Growing petition'
+    return ''
   }
   if (supportCount >= 25) return 'Growing momentum'
   if (supportCount >= 5) return 'Active now'

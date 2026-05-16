@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { getMovementConfig, isPollMovement } from '../lib/movements'
+import { isPetitionMovement } from '../lib/petitions'
 import { getMomentumLabel, getMovementVisual, shouldShowMomentumPill } from '../lib/movementVisual'
 import { getPostAuthorPresentation } from '../lib/postIdentity'
 import { shouldShowAuthorVerification, shouldShowTrustedCampaign } from '../lib/trust'
@@ -8,6 +9,7 @@ import MovementCardExtras from './MovementCardExtras'
 import MovementTypeBadge from './MovementTypeBadge'
 import PollVoteBlock from './PollVoteBlock'
 import MovementActionButton from './MovementActionButton'
+import PetitionActionButton from './PetitionActionButton'
 import PostAuthor from './PostAuthor'
 import TrustedCampaignBadge from './TrustedCampaignBadge'
 import VerifiedOrganizationBadge from './VerifiedOrganizationBadge'
@@ -30,8 +32,10 @@ const categoryColors: Record<string, string> = {
 interface PostCardProps {
   post: Post
   onSupport?: (postId: string) => void
+  onPetitionSign?: (postId: string) => void
   onPollVote?: (postId: string, optionId: string) => void | Promise<void>
   supporting?: boolean
+  petitionSigning?: boolean
   pollVoting?: boolean
   showSupport?: boolean
   highlight?: boolean
@@ -44,8 +48,10 @@ interface PostCardProps {
 export default function PostCard({
   post,
   onSupport,
+  onPetitionSign,
   onPollVote,
   supporting,
+  petitionSigning,
   pollVoting,
   showSupport = true,
   highlight,
@@ -56,6 +62,7 @@ export default function PostCard({
   const movement = getMovementConfig(post.movement_type)
   const visual = getMovementVisual(post.movement_type)
   const isPoll = isPollMovement(post.movement_type)
+  const isPetition = isPetitionMovement(post.movement_type)
   const { isAnonymous } = getPostAuthorPresentation(post)
   const showTrusted = shouldShowTrustedCampaign(post)
   const showAuthorVerified = shouldShowAuthorVerification(post)
@@ -74,9 +81,15 @@ export default function PostCard({
 
   const description = post.description?.trim() ?? ''
   const showDescription =
-    !isPoll || (description && description !== 'Community poll')
+    (!isPoll && !isPetition) || (description && description !== 'Community poll')
   const hasExtraSection =
-    post.movement_type === 'idea_for_change'
+    isPetition
+      ? Boolean(
+          post.petition_issue ||
+            post.petition_requested_change ||
+            post.petition_target_authority,
+        )
+      : post.movement_type === 'idea_for_change'
       ? Boolean(post.proposed_solution || post.expected_impact)
       : post.movement_type === 'raise_voice'
         ? Boolean(post.issue_summary || post.desired_change)
@@ -156,9 +169,14 @@ export default function PostCard({
           </h3>
         )}
 
-        {showDescription && (
+        {showDescription && !isPetition && (
           <p className="line-clamp-card wrap-user-text mt-2 text-sm leading-relaxed text-slate-600">
             {post.description}
+          </p>
+        )}
+        {isPetition && post.petition_issue && (
+          <p className="line-clamp-card wrap-user-text mt-2 text-sm leading-relaxed text-slate-600">
+            {post.petition_issue}
           </p>
         )}
 
@@ -196,6 +214,14 @@ export default function PostCard({
                 {pollVotes} {pollVotes === 1 ? 'vote' : 'votes'}
               </p>
             </div>
+          ) : isPetition && showSupport && onPetitionSign ? (
+            <PetitionActionButton
+              post={post}
+              loading={petitionSigning}
+              guestMode={guestMode}
+              showHint={showEngagementHint}
+              onSign={() => onPetitionSign(post.id)}
+            />
           ) : showSupport && onSupport ? (
             <MovementActionButton
               movementType={post.movement_type}

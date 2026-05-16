@@ -9,6 +9,8 @@ import { fetchPostById } from '../lib/posts'
 import { castPollVote } from '../lib/polls'
 import { getActionSuccessMessage } from '../lib/movements'
 import { togglePostAction } from '../lib/postActions'
+import { signPetition } from '../lib/petitionSignatures'
+import { isPetitionMovement } from '../lib/petitions'
 import { formatError } from '../lib/errors'
 import type { Post } from '../types'
 
@@ -33,6 +35,7 @@ function MovementDetailContent({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [supporting, setSupporting] = useState(false)
+  const [petitionSigning, setPetitionSigning] = useState(false)
   const [pollVoting, setPollVoting] = useState(false)
   const [actionMessage, setActionMessage] = useState<string | null>(null)
 
@@ -59,12 +62,36 @@ function MovementDetailContent({
     return <Navigate to={`/feed/${id}`} replace />
   }
 
+  async function handlePetitionSign(postId: string) {
+    if (isGuest) {
+      openJoinModal('petition')
+      return
+    }
+    if (!user || !post || post.supported_by_me) return
+
+    setPetitionSigning(true)
+    try {
+      await signPetition(postId, user.id)
+      setPost({
+        ...post,
+        supported_by_me: true,
+        support_count: (post.support_count ?? 0) + 1,
+      })
+      setError(null)
+      setActionMessage('You have supported this petition.')
+    } catch (err) {
+      setError(formatError(err))
+    } finally {
+      setPetitionSigning(false)
+    }
+  }
+
   async function handleSupport(postId: string) {
     if (isGuest) {
       openJoinModal()
       return
     }
-    if (!user || !post) return
+    if (!user || !post || isPetitionMovement(post.movement_type)) return
     setSupporting(true)
     try {
       const nowParticipating = await togglePostAction(
@@ -149,9 +176,13 @@ function MovementDetailContent({
           post={post}
           highlight
           guestMode={isGuest}
-          onSupport={handleSupport}
+          onSupport={isPetitionMovement(post.movement_type) ? undefined : handleSupport}
+          onPetitionSign={
+            isPetitionMovement(post.movement_type) ? handlePetitionSign : undefined
+          }
           onPollVote={handlePollVote}
           supporting={supporting}
+          petitionSigning={petitionSigning}
           pollVoting={pollVoting}
           showIdentityBadge
           showEngagementHint

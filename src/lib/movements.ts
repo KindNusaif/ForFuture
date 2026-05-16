@@ -5,6 +5,7 @@ import {
   Megaphone,
   HeartHandshake,
   Scale,
+  ScrollText,
   type LucideIcon,
 } from 'lucide-react'
 import type { MovementType, PostActionType } from '../types'
@@ -36,7 +37,7 @@ export interface MovementTypeConfig {
 const plural = (n: number, one: string, many: string) => (n === 1 ? one : many)
 
 export const MOVEMENT_TO_ACTION_TYPE: Record<
-  Exclude<MovementType, 'quick_youth_poll'>,
+  Exclude<MovementType, 'quick_youth_poll' | 'youth_petition'>,
   PostActionType
 > = {
   idea_for_change: 'support_idea',
@@ -47,7 +48,7 @@ export const MOVEMENT_TO_ACTION_TYPE: Record<
 }
 
 export function getActionTypeForMovement(type: MovementType): PostActionType {
-  if (type === 'quick_youth_poll') return 'support_idea'
+  if (type === 'quick_youth_poll' || type === 'youth_petition') return 'support_idea'
   return MOVEMENT_TO_ACTION_TYPE[type]
 }
 
@@ -152,6 +153,25 @@ export const MOVEMENT_TYPES: MovementTypeConfig[] = [
     requiresProfileIdentity: false,
   },
   {
+    value: 'youth_petition',
+    label: 'Youth Petition',
+    shortLabel: 'Petitions',
+    description:
+      'Turn a serious concern into a collective call for change and gather youth support.',
+    icon: ScrollText,
+    badgeClass: 'bg-fuchsia-50 text-fuchsia-900 ring-fuchsia-200',
+    actionType: 'support_idea',
+    ctaLabel: 'Sign the Petition',
+    ctaActiveLabel: 'Supported',
+    ctaSupportedLabel: 'You have supported this petition',
+    engagementHint: 'Gather community support for meaningful change.',
+    countLabel: (n) => `${n} ${plural(n, 'youth supporter', 'youth supporters')}`,
+    emptyTitle: 'No petitions yet',
+    emptyDescription: 'Start a collective call for change.',
+    requiresProfileIdentity: false,
+    actionDisclaimer: 'Community advocacy — not a legally binding signature.',
+  },
+  {
     value: 'quick_youth_poll',
     label: 'Quick Youth Poll',
     shortLabel: 'Polls',
@@ -175,6 +195,10 @@ export const MOVEMENT_TYPE_VALUES = MOVEMENT_TYPES.map((m) => m.value)
 
 export function isPollMovement(type: MovementType): boolean {
   return type === 'quick_youth_poll'
+}
+
+export function isPetitionMovementType(type: MovementType): boolean {
+  return type === 'youth_petition'
 }
 
 export type MovementFilter = 'All' | MovementType

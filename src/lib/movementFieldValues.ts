@@ -16,6 +16,12 @@ export interface MovementFieldValues {
   action_location: string
   action_purpose: string
   safety_note: string
+  petition_issue: string
+  petition_requested_change: string
+  petition_target_authority: string
+  petition_support_goal: string
+  petition_closing_date: string
+  petition_impact_note: string
 }
 
 export function emptyMovementFields(): MovementFieldValues {
@@ -37,5 +43,11 @@ export function emptyMovementFields(): MovementFieldValues {
     action_location: '',
     action_purpose: '',
     safety_note: '',
+    petition_issue: '',
+    petition_requested_change: '',
+    petition_target_authority: '',
+    petition_support_goal: '',
+    petition_closing_date: '',
+    petition_impact_note: '',
   }
 }

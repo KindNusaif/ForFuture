@@ -9,6 +9,8 @@ import { enhanceSupabaseError, isMissingColumn, isMissingRelation } from './supa
 import { enrichPostsWithPolls, insertPollOptions } from './polls'
 import { isPollMovement } from './movements'
 import { enrichPostsWithActions, fetchPostActionsForPosts } from './postActions'
+import { enrichPostsWithPetitionSignatures } from './petitionSignatures'
+import { isPetitionMovement } from './petitions'
 import { requireSupabase } from './supabase'
 import {
   DEFAULT_REQUEST_TIMEOUT_MS,
@@ -75,6 +77,13 @@ function mapPostRow(
     action_location: (row.action_location as string | null) ?? null,
     action_purpose: (row.action_purpose as string | null) ?? null,
     safety_note: (row.safety_note as string | null) ?? null,
+    petition_issue: (row.petition_issue as string | null) ?? null,
+    petition_requested_change: (row.petition_requested_change as string | null) ?? null,
+    petition_target_authority: (row.petition_target_authority as string | null) ?? null,
+    petition_support_goal:
+      row.petition_support_goal != null ? Number(row.petition_support_goal) : null,
+    petition_closing_date: (row.petition_closing_date as string | null) ?? null,
+    petition_impact_note: (row.petition_impact_note as string | null) ?? null,
     location_name: (row.location_name as string | null) ?? null,
     latitude: row.latitude != null ? Number(row.latitude) : null,
     longitude: row.longitude != null ? Number(row.longitude) : null,
@@ -205,16 +214,30 @@ export async function enrichPosts(rows: PostRowBase[], viewerUserId?: string): P
   if (rows.length === 0) return []
 
   const asPosts = rows as Post[]
-  const [withPolls, withSupport] = await Promise.all([
+  const [withPolls, withSupport, withPetitions] = await Promise.all([
     enrichPostsWithPolls(asPosts, viewerUserId),
     enrichPostsWithActions(asPosts, viewerUserId),
+    enrichPostsWithPetitionSignatures(asPosts, viewerUserId),
   ])
 
   const pollById = new Map(withPolls.map((p) => [p.id, p.poll]))
-  return withSupport.map((p) => ({
-    ...p,
-    poll: pollById.get(p.id) ?? p.poll,
-  }))
+  const petitionById = new Map(withPetitions.map((p) => [p.id, p]))
+
+  return withSupport.map((p) => {
+    const petitionOverlay = petitionById.get(p.id)
+    const merged =
+      isPetitionMovement(p.movement_type) && petitionOverlay
+        ? {
+            ...p,
+            support_count: petitionOverlay.support_count,
+            supported_by_me: petitionOverlay.supported_by_me,
+          }
+        : p
+    return {
+      ...merged,
+      poll: pollById.get(p.id) ?? merged.poll,
+    }
+  })
 }
 
 export async function fetchPostsPage(params: FetchPostsPageParams = {}): Promise<FetchPostsPageResult> {
@@ -362,6 +385,15 @@ function buildInsertRow(input: CreateMovementInput): Record<string, unknown> {
       row.action_location = loc
       row.action_purpose = trim(input.action_purpose)
       row.safety_note = trim(input.safety_note)
+      break
+    }
+    case 'youth_petition': {
+      row.petition_issue = trim(input.petition_issue)
+      row.petition_requested_change = trim(input.petition_requested_change)
+      row.petition_target_authority = trim(input.petition_target_authority)
+      row.petition_support_goal = input.petition_support_goal ?? null
+      row.petition_closing_date = trim(input.petition_closing_date)
+      row.petition_impact_note = trim(input.petition_impact_note)
       break
     }
   }

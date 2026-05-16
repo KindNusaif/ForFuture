@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { Flag, Heart, Sparkles, Vote, X } from 'lucide-react'
+import { Flag, Heart, ScrollText, Sparkles, Vote, X } from 'lucide-react'
 import type { JoinMovementModalVariant } from '../context/join-movement-context'
 
 interface JoinMovementModalProps {
@@ -21,6 +21,7 @@ export default function JoinMovementModal({
   onClose,
 }: JoinMovementModalProps) {
   const isReport = variant === 'report'
+  const isPetition = variant === 'petition'
   const dialogRef = useRef<HTMLDialogElement>(null)
 
   useEffect(() => {
@@ -62,6 +63,8 @@ export default function JoinMovementModal({
           >
             {isReport ? (
               <Flag className="h-6 w-6" aria-hidden />
+            ) : isPetition ? (
+              <ScrollText className="h-6 w-6" aria-hidden />
             ) : (
               <Sparkles className="h-6 w-6" aria-hidden />
             )}
@@ -73,10 +76,12 @@ export default function JoinMovementModal({
           <p id="join-movement-desc" className="mt-2 text-sm leading-relaxed text-slate-600">
             {isReport
               ? 'Create an account to help keep ForFuture safe and respectful.'
-              : 'Create an account to contribute, support ideas, vote in polls, and become part of ForFuture.'}
+              : isPetition
+                ? 'Create an account to support petitions and help youth voices drive change.'
+                : 'Create an account to contribute, support ideas, vote in polls, and become part of ForFuture.'}
           </p>
 
-          {!isReport && (
+          {!isReport && !isPetition && (
             <ul className="mt-5 space-y-2.5" aria-label="Member benefits">
               {benefits.map(({ icon: Icon, text }) => (
                 <li

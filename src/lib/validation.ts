@@ -59,6 +59,11 @@ export function validateCreatePost(input: {
   movementType: MovementType
   fundraising_goal_amount?: string
   fundraising_purpose?: string
+  petition_issue?: string
+  petition_requested_change?: string
+  petition_target_authority?: string
+  petition_support_goal?: string
+  petition_closing_date?: string
   pollOptions?: string[]
 }): CreatePostFieldErrors {
   const errors: CreatePostFieldErrors = {}
@@ -76,8 +81,15 @@ export function validateCreatePost(input: {
   }
 
   const isPoll = isPollMovement(input.movementType)
+  const isPetition = input.movementType === 'youth_petition'
 
-  if (!title) errors.title = isPoll ? 'Poll question is required.' : 'Title is required.'
+  if (!title) {
+    errors.title = isPoll
+      ? 'Poll question is required.'
+      : isPetition
+        ? 'Petition title is required.'
+        : 'Title is required.'
+  }
   else if (title.length < POST_LIMITS.titleMin)
     errors.title = isPoll
       ? `Question must be at least ${POST_LIMITS.titleMin} characters.`
@@ -87,7 +99,7 @@ export function validateCreatePost(input: {
       ? `Question must be under ${POST_LIMITS.titleMax} characters.`
       : `Title must be under ${POST_LIMITS.titleMax} characters.`
 
-  if (!isPoll) {
+  if (!isPoll && !isPetition) {
     if (!description) errors.description = 'Description is required.'
     else if (description.length < POST_LIMITS.descriptionMin)
       errors.description = `Description must be at least ${POST_LIMITS.descriptionMin} characters.`
@@ -116,6 +128,35 @@ export function validateCreatePost(input: {
     else if (goal <= 0) errors.fundraising_goal_amount = 'Goal must be greater than zero.'
     if (!input.fundraising_purpose?.trim())
       errors.fundraising_purpose = 'Fundraising purpose is required.'
+  }
+
+  if (isPetition) {
+    const issue = (input.petition_issue ?? '').trim()
+    const change = (input.petition_requested_change ?? '').trim()
+    const target = (input.petition_target_authority ?? '').trim()
+    if (!issue) errors.petition_issue = 'Explain the problem that needs attention.'
+    else if (issue.length < POST_LIMITS.descriptionMin) {
+      errors.petition_issue = `Issue must be at least ${POST_LIMITS.descriptionMin} characters.`
+    }
+    if (!change) errors.petition_requested_change = 'State the change you are requesting.'
+    else if (change.length < 10) {
+      errors.petition_requested_change = 'Requested change must be at least 10 characters.'
+    }
+    if (!target) errors.petition_target_authority = 'Who is this petition addressed to?'
+    const goalRaw = input.petition_support_goal?.trim()
+    if (goalRaw) {
+      const goal = parseInt(goalRaw, 10)
+      if (Number.isNaN(goal) || goal <= 0) {
+        errors.petition_support_goal = 'Support goal must be a positive whole number.'
+      }
+    }
+    const closing = input.petition_closing_date?.trim()
+    if (closing) {
+      const today = new Date().toISOString().slice(0, 10)
+      if (closing < today) {
+        errors.petition_closing_date = 'Closing date must be today or in the future.'
+      }
+    }
   }
 
   if (isPoll) {

@@ -35,6 +35,9 @@ export function getTrustedCampaignLabel(
   if (trustedType === 'civic_action' || movementType === 'peaceful_civic_action') {
     return 'Trusted Civic Campaign'
   }
+  if (trustedType === 'petition' || movementType === 'youth_petition') {
+    return 'Trusted Petition'
+  }
   return 'Trusted Campaign'
 }
 

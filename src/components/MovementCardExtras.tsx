@@ -2,6 +2,13 @@ import type { ReactNode } from 'react'
 import { Calendar, Clock, MapPin, Users } from 'lucide-react'
 import MapPreview from './MapPreview'
 import { formatCurrency, formatEventDate } from '../lib/movements'
+import {
+  formatPetitionSupporterCount,
+  getPetitionClosingLabel,
+  getPetitionProgressPercent,
+  isPetitionClosed,
+  PETITION_DISCLAIMER,
+} from '../lib/petitions'
 import { getMovementVisual } from '../lib/movementVisual'
 import { shouldShowTrustedCampaign, TRUST_TOOLTIPS } from '../lib/trust'
 import type { Post } from '../types'
@@ -159,6 +166,64 @@ export default function MovementCardExtras({ post }: MovementCardExtrasProps) {
               </p>
             </div>
           )}
+        </div>
+      )
+    }
+
+    case 'youth_petition': {
+      const issue = post.petition_issue
+      const change = post.petition_requested_change
+      const target = post.petition_target_authority
+      if (!issue && !change && !target) return null
+
+      const count = post.support_count ?? 0
+      const goal = post.petition_support_goal
+      const progress = getPetitionProgressPercent(count, goal)
+      const closed = isPetitionClosed(post)
+      const closingLabel = getPetitionClosingLabel(post.petition_closing_date)
+      const trusted = shouldShowTrustedCampaign(post)
+
+      return (
+        <div className={`mt-4 space-y-3 rounded-xl border p-4 ${panel}`}>
+          {trusted && (
+            <TrustedCampaignBadge
+              movementType="youth_petition"
+              trustedCampaignType={post.trusted_campaign_type}
+            />
+          )}
+          {closingLabel && (
+            <p
+              className={`text-xs font-semibold ${closed ? 'text-slate-500' : 'text-fuchsia-800'}`}
+            >
+              {closed ? 'Closed' : closingLabel}
+            </p>
+          )}
+          {issue && <Detail label="Issue" value={issue} />}
+          {change && <Detail label="Requested change" value={change} />}
+          {target && <Detail label="Addressed to" value={target} />}
+          {post.petition_impact_note && (
+            <Detail label="Why this matters" value={post.petition_impact_note} />
+          )}
+          {goal != null && goal > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-slate-600">
+                {formatPetitionSupporterCount(count, goal)}
+              </p>
+              <div
+                className="mt-2 h-2 overflow-hidden rounded-full bg-fuchsia-200/60"
+                role="progressbar"
+                aria-valuenow={progress ?? 0}
+                aria-valuemin={0}
+                aria-valuemax={100}
+              >
+                <div
+                  className="h-full rounded-full bg-linear-to-r from-fuchsia-500 to-accent-500"
+                  style={{ width: `${progress ?? 0}%` }}
+                />
+              </div>
+            </div>
+          )}
+          <p className="text-[11px] leading-relaxed text-slate-500">{PETITION_DISCLAIMER}</p>
         </div>
       )
     }
