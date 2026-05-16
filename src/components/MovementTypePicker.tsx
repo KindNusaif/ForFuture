@@ -1,4 +1,5 @@
-import { MOVEMENT_TYPES } from '../lib/movements'
+import { useTranslation } from 'react-i18next'
+import { useMovementTypes } from '../hooks/useMovementConfig'
 import type { MovementType } from '../types'
 
 interface MovementTypePickerProps {
@@ -12,14 +13,19 @@ export default function MovementTypePicker({
   onChange,
   disabled,
 }: MovementTypePickerProps) {
+  const { t } = useTranslation()
+  const movementTypes = useMovementTypes()
+
   return (
     <fieldset className="space-y-4" disabled={disabled}>
       <div>
-        <legend className="text-base font-bold text-slate-900">Choose how you want to create impact</legend>
-        <p className="mt-1 text-sm text-slate-600">Select a movement type to get started.</p>
+        <legend className="text-base font-bold text-slate-900">
+          {t('create.movementPickerTitle')}
+        </legend>
+        <p className="mt-1 text-sm text-slate-600">{t('create.movementPickerSubtitle')}</p>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
-        {MOVEMENT_TYPES.map((type) => {
+        {movementTypes.map((type) => {
           const selected = value === type.value
           const Icon = type.icon
           return (

@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import AuthForm, { FormField, inputClass, inputErrorClass } from '../components/AuthForm'
 import { signIn } from '../lib/auth'
 import { formatError } from '../lib/errors'
@@ -7,6 +8,7 @@ import { isSupabaseConfigured } from '../lib/supabase'
 import { validateLogin } from '../lib/validation'
 
 export default function Login() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? '/feed'
@@ -50,22 +52,22 @@ export default function Login() {
 
   return (
     <AuthForm
-      title="Welcome back"
-      subtitle="Welcome back. Continue building the future."
-      submitLabel="Log in"
+      title={t('auth.loginTitle')}
+      subtitle={t('auth.loginSubtitle')}
+      submitLabel={t('auth.loginButton')}
       loading={loading}
       error={error}
       onSubmit={handleSubmit}
       footer={
         <>
-          Don&apos;t have an account?{' '}
+          {t('auth.noAccount')}{' '}
           <Link to="/signup" className="font-semibold text-brand-600 hover:text-brand-700">
-            Sign up
+            {t('auth.signUpLink')}
           </Link>
         </>
       }
     >
-      <FormField label="Email" id="email" error={fieldErrors.email}>
+      <FormField label={t('auth.email')} id="email" error={fieldErrors.email}>
         <input
           id="email"
           name="email"
@@ -77,7 +79,7 @@ export default function Login() {
           placeholder="you@example.com"
         />
       </FormField>
-      <FormField label="Password" id="password" error={fieldErrors.password}>
+      <FormField label={t('auth.password')} id="password" error={fieldErrors.password}>
         <input
           id="password"
           name="password"

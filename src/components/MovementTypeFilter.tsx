@@ -1,3 +1,6 @@
+import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
+import { useMovementTypes } from '../hooks/useMovementConfig'
 import type { MovementFilter } from '../lib/movements'
 
 interface MovementTypeFilterProps {
@@ -6,21 +9,25 @@ interface MovementTypeFilterProps {
   compact?: boolean
 }
 
-const filters: { value: MovementFilter; label: string }[] = [
-  { value: 'All', label: 'All' },
-  { value: 'idea_for_change', label: 'Ideas' },
-  { value: 'raise_voice', label: 'Voices' },
-  { value: 'volunteer_drive', label: 'Volunteer' },
-  { value: 'fundraising', label: 'Fundraising' },
-  { value: 'peaceful_civic_action', label: 'Civic Action' },
-  { value: 'quick_youth_poll', label: 'Polls' },
-]
-
 export default function MovementTypeFilter({
   selected,
   onChange,
   compact = false,
 }: MovementTypeFilterProps) {
+  const { t } = useTranslation()
+  const movementTypes = useMovementTypes()
+
+  const filters = useMemo(
+    () => [
+      { value: 'All' as const, label: t('movements.all') },
+      ...movementTypes.map((m) => ({
+        value: m.value as MovementFilter,
+        label: m.shortLabel,
+      })),
+    ],
+    [movementTypes, t],
+  )
+
   const chipRowClass = compact
     ? 'flex gap-1.5 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
     : '-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0'
@@ -29,7 +36,7 @@ export default function MovementTypeFilter({
     <div className={compact ? '' : 'space-y-2'}>
       {!compact && (
         <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-          Movement type
+          {t('feed.movementType')}
         </p>
       )}
       <div className={chipRowClass}>

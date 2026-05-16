@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
 import { Menu, X } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import LanguageSwitcher from './LanguageSwitcher'
 import Logo from './Logo'
 import { useAuth } from '../hooks/useAuth'
 
@@ -10,20 +12,21 @@ const linkClass =
 export default function PublicNav() {
   const [open, setOpen] = useState(false)
   const { isMember, loading } = useAuth()
+  const { t } = useTranslation()
 
   const memberLinks = (
     <>
       <Link to="/feed" className={linkClass}>
-        My Feed
+        {t('nav.myFeed')}
       </Link>
       <Link to="/impact-map" className={linkClass}>
-        Impact Map
+        {t('nav.impactMap')}
       </Link>
       <Link to="/create" className={linkClass}>
-        Create
+        {t('nav.create')}
       </Link>
       <Link to="/profile" className={linkClass}>
-        Profile
+        {t('nav.profile')}
       </Link>
     </>
   )
@@ -31,22 +34,22 @@ export default function PublicNav() {
   const guestLinks = (
     <>
       <Link to="/" className={linkClass}>
-        Home
+        {t('nav.home')}
       </Link>
       <Link to="/explore" className={linkClass}>
-        Explore Youth Momentum
+        {t('nav.explore')}
       </Link>
       <Link to="/impact-map" className={linkClass}>
-        Impact Map
+        {t('nav.impactMap')}
       </Link>
       <a href="/#why-forfuture" className={linkClass}>
-        About
+        {t('nav.about')}
       </a>
       <Link to="/login" className={linkClass}>
-        Log in
+        {t('nav.login')}
       </Link>
       <Link to="/signup" className="btn-primary !min-h-[40px] !px-4 !py-2">
-        Join ForFuture
+        {t('nav.signup')}
       </Link>
     </>
   )
@@ -56,19 +59,23 @@ export default function PublicNav() {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <Logo to={isMember ? '/feed' : '/'} showTagline />
 
-        <nav className="hidden items-center gap-1 md:flex" aria-label="Main">
+        <nav className="hidden items-center gap-1 md:flex" aria-label={t('nav.appNav')}>
           {!loading && isMember ? memberLinks : guestLinks}
+          <LanguageSwitcher variant="landing" className="ml-1" />
         </nav>
 
-        <button
-          type="button"
-          className="rounded-xl p-2.5 text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50 md:hidden"
-          onClick={() => setOpen((o) => !o)}
-          aria-label="Menu"
-          aria-expanded={open}
-        >
-          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+        <div className="flex items-center gap-2 md:hidden">
+          <LanguageSwitcher variant="compact" />
+          <button
+            type="button"
+            className="rounded-xl p-2.5 text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"
+            onClick={() => setOpen((o) => !o)}
+            aria-label={t('nav.menu')}
+            aria-expanded={open}
+          >
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
 
       {open && (
@@ -80,28 +87,28 @@ export default function PublicNav() {
                 className="block rounded-lg px-3 py-2.5 text-sm font-medium"
                 onClick={() => setOpen(false)}
               >
-                My Feed
+                {t('nav.myFeed')}
               </Link>
               <Link
                 to="/impact-map"
                 className="block rounded-lg px-3 py-2.5 text-sm font-medium"
                 onClick={() => setOpen(false)}
               >
-                Impact Map
+                {t('nav.impactMap')}
               </Link>
               <Link
                 to="/create"
                 className="block rounded-lg px-3 py-2.5 text-sm font-medium"
                 onClick={() => setOpen(false)}
               >
-                Create
+                {t('nav.create')}
               </Link>
               <Link
                 to="/profile"
                 className="block rounded-lg px-3 py-2.5 text-sm font-medium"
                 onClick={() => setOpen(false)}
               >
-                Profile
+                {t('nav.profile')}
               </Link>
             </>
           ) : (
@@ -111,42 +118,42 @@ export default function PublicNav() {
                 className="block rounded-lg px-3 py-2.5 text-sm font-medium"
                 onClick={() => setOpen(false)}
               >
-                Home
+                {t('nav.home')}
               </Link>
               <Link
                 to="/explore"
                 className="block rounded-lg px-3 py-2.5 text-sm font-medium"
                 onClick={() => setOpen(false)}
               >
-                Explore Youth Momentum
+                {t('nav.explore')}
               </Link>
               <Link
                 to="/impact-map"
                 className="block rounded-lg px-3 py-2.5 text-sm font-medium"
                 onClick={() => setOpen(false)}
               >
-                Impact Map
+                {t('nav.impactMap')}
               </Link>
               <a
                 href="/#why-forfuture"
                 className="block rounded-lg px-3 py-2.5 text-sm font-medium"
                 onClick={() => setOpen(false)}
               >
-                About
+                {t('nav.about')}
               </a>
               <Link
                 to="/login"
                 className="block rounded-lg px-3 py-2.5 text-sm font-medium"
                 onClick={() => setOpen(false)}
               >
-                Log in
+                {t('nav.login')}
               </Link>
               <Link
                 to="/signup"
                 className="btn-primary mt-2 w-full"
                 onClick={() => setOpen(false)}
               >
-                Join ForFuture
+                {t('nav.signup')}
               </Link>
             </>
           )}

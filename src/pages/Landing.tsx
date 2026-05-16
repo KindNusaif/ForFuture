@@ -12,53 +12,47 @@ import {
   Users,
   Vote,
 } from 'lucide-react'
-
-const impactStats = [
-  { value: '10K+', label: 'Youth Voices Shared' },
-  { value: '500+', label: 'Movements Started' },
-  { value: '2K+', label: 'Volunteers Inspired' },
-  { value: '1K+', label: 'Community Polls Created' },
-]
-
-const features = [
-  {
-    icon: MessageCircle,
-    title: 'Speak Freely',
-    text: 'Use your profile or Youth Voice ID to share meaningful thoughts safely.',
-  },
-  {
-    icon: Lightbulb,
-    title: 'Turn Ideas into Action',
-    text: 'Create volunteer drives, fundraising campaigns, civic actions, and impact movements.',
-  },
-  {
-    icon: Vote,
-    title: 'Listen to the Community',
-    text: 'Use Quick Youth Polls to understand what young people care about.',
-  },
-  {
-    icon: Shield,
-    title: 'Build Trust',
-    text: 'Verified Organizations and Trusted Campaign badges help people act with confidence.',
-  },
-]
-
-const whyPoints = [
-  {
-    title: 'Ideas deserve a stage',
-    text: 'Youth often have strong ideas but fear judgment. ForFuture gives you a place to be heard.',
-  },
-  {
-    title: 'Identity on your terms',
-    text: 'Post with your profile or use a private Youth Voice ID when you need privacy.',
-  },
-  {
-    title: 'Voices become action',
-    text: 'Turn concerns into volunteer drives, polls, campaigns, and lawful peaceful civic participation.',
-  },
-]
+import { useTranslation } from 'react-i18next'
 
 export default function Landing() {
+  const { t } = useTranslation()
+
+  const impactStats = [
+    { value: '10K+', label: t('landing.statVoices') },
+    { value: '500+', label: t('landing.statMovements') },
+    { value: '2K+', label: t('landing.statVolunteers') },
+    { value: '1K+', label: t('landing.statPolls') },
+  ]
+
+  const features = [
+    {
+      icon: MessageCircle,
+      title: t('landing.featureSpeakTitle'),
+      text: t('landing.featureSpeakText'),
+    },
+    {
+      icon: Lightbulb,
+      title: t('landing.featureActionTitle'),
+      text: t('landing.featureActionText'),
+    },
+    {
+      icon: Vote,
+      title: t('landing.featurePollTitle'),
+      text: t('landing.featurePollText'),
+    },
+    {
+      icon: Shield,
+      title: t('landing.featureTrustTitle'),
+      text: t('landing.featureTrustText'),
+    },
+  ]
+
+  const whyPoints = [
+    { title: t('landing.whyIdeasTitle'), text: t('landing.whyIdeasText') },
+    { title: t('landing.whyIdentityTitle'), text: t('landing.whyIdentityText') },
+    { title: t('landing.whyActionTitle'), text: t('landing.whyActionText') },
+  ]
+
   return (
     <>
       <section className="relative overflow-hidden px-4 py-16 sm:py-24 lg:py-28">
@@ -69,26 +63,23 @@ export default function Landing() {
           <div className="text-center lg:text-left">
             <span className="eyebrow inline-flex items-center gap-2 rounded-full border border-accent-200/80 bg-accent-50 px-4 py-2 sm:text-xs">
               <Sparkles className="h-4 w-4" aria-hidden />
-              ForFuture — Youth Voices. Real Action. A Better Tomorrow.
+              {t('landing.eyebrow')}
             </span>
             <h1 className="mt-6 text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl sm:leading-[1.1] lg:text-[3.25rem]">
-              Empowering Youth to Speak, Organize, and Shape the Future.
+              {t('landing.heroTitle')}
             </h1>
             <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-slate-600 lg:mx-0">
-              Share ideas, raise your voice, join volunteer movements, support trusted campaigns, and
-              help build meaningful change.
+              {t('landing.heroSubtitle')}
             </p>
-            <p className="mt-3 text-sm font-medium text-accent-700">
-              Where youth voices become movements.
-            </p>
+            <p className="mt-3 text-sm font-medium text-accent-700">{t('landing.heroTagline')}</p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row lg:justify-start">
               <Link to="/signup" className="btn-primary w-full sm:w-auto">
-                Join ForFuture
+                {t('landing.joinCta')}
                 <ArrowRight className="h-5 w-5" />
               </Link>
               <Link to="/explore" className="btn-secondary w-full sm:w-auto">
                 <Compass className="h-5 w-5 text-accent-600" />
-                Explore Youth Momentum
+                {t('landing.exploreCta')}
               </Link>
             </div>
           </div>
@@ -102,7 +93,9 @@ export default function Landing() {
                     <Megaphone className="h-6 w-6" />
                   </span>
                   <div className="min-w-0 text-left">
-                    <p className="text-xs font-semibold uppercase text-accent-600">Raise Your Voice</p>
+                    <p className="text-xs font-semibold uppercase text-accent-600">
+                      {t('landing.previewRaiseVoice')}
+                    </p>
                     <p className="wrap-user-text text-sm font-medium text-slate-800">
                       Climate justice starts in our schools
                     </p>
@@ -113,7 +106,9 @@ export default function Landing() {
                     <Users className="h-6 w-6" />
                   </span>
                   <div className="min-w-0 text-left">
-                    <p className="text-xs font-semibold uppercase text-brand-700">Volunteer Drive</p>
+                    <p className="text-xs font-semibold uppercase text-brand-700">
+                      {t('landing.previewVolunteer')}
+                    </p>
                     <p className="text-sm font-medium text-slate-800">Weekend community cleanup</p>
                   </div>
                 </div>
@@ -122,7 +117,9 @@ export default function Landing() {
                     <BarChart3 className="h-6 w-6" />
                   </span>
                   <div className="min-w-0 text-left">
-                    <p className="text-xs font-semibold uppercase text-indigo-700">Quick Youth Poll</p>
+                    <p className="text-xs font-semibold uppercase text-indigo-700">
+                      {t('landing.previewPoll')}
+                    </p>
                     <p className="text-sm font-medium text-slate-800">What should we tackle first?</p>
                   </div>
                 </div>
@@ -145,11 +142,8 @@ export default function Landing() {
 
       <section className="mx-auto max-w-6xl px-4 py-20">
         <div className="mb-12 text-center">
-          <h2 className="text-3xl font-bold text-slate-900">Built for meaningful youth impact</h2>
-          <p className="mx-auto mt-3 max-w-2xl text-slate-600">
-            ForFuture empowers youth to share ideas, raise concerns, create movements, and turn
-            collective voices into meaningful change.
-          </p>
+          <h2 className="text-3xl font-bold text-slate-900">{t('landing.featuresTitle')}</h2>
+          <p className="mx-auto mt-3 max-w-2xl text-slate-600">{t('landing.featuresSubtitle')}</p>
         </div>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {features.map(({ icon: Icon, title, text }) => (
@@ -170,11 +164,11 @@ export default function Landing() {
       <section id="why-forfuture" className="scroll-mt-24 bg-slate-100/60 px-4 py-20">
         <div className="mx-auto max-w-6xl">
           <div className="mb-12 text-center">
-            <p className="eyebrow">Our purpose</p>
-            <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-slate-900">Why ForFuture?</h2>
-            <p className="mx-auto mt-3 max-w-xl text-slate-600">
-              Speak freely. Organize boldly. Build the future together.
-            </p>
+            <p className="eyebrow">{t('landing.whyEyebrow')}</p>
+            <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-slate-900">
+              {t('landing.whyTitle')}
+            </h2>
+            <p className="mx-auto mt-3 max-w-xl text-slate-600">{t('landing.whySubtitle')}</p>
           </div>
           <ul className="grid gap-6 md:grid-cols-3">
             {whyPoints.map(({ title, text }) => (
@@ -190,19 +184,14 @@ export default function Landing() {
 
       <section className="mx-4 mb-20 sm:mx-auto sm:max-w-4xl">
         <div className="overflow-hidden rounded-3xl bg-linear-to-br from-accent-600 via-accent-700 to-brand-700 px-8 py-14 text-center text-white shadow-2xl shadow-accent-900/20">
-          <h2 className="text-2xl font-bold sm:text-3xl">
-            Your voice can become tomorrow&apos;s movement.
-          </h2>
-          <p className="mx-auto mt-3 max-w-lg text-accent-100">
-            Join ForFuture to create movements, support youth-led change, or explore momentum as a
-            guest — no account required.
-          </p>
+          <h2 className="text-2xl font-bold sm:text-3xl">{t('landing.ctaTitle')}</h2>
+          <p className="mx-auto mt-3 max-w-lg text-accent-100">{t('landing.ctaSubtitle')}</p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
               to="/signup"
               className="inline-flex min-h-[48px] items-center gap-2 rounded-xl bg-white px-8 py-3.5 font-semibold text-accent-700 shadow-lg transition hover:bg-accent-50"
             >
-              Join ForFuture
+              {t('landing.joinCta')}
               <ArrowRight className="h-5 w-5" />
             </Link>
             <Link
@@ -210,7 +199,7 @@ export default function Landing() {
               className="inline-flex min-h-[48px] items-center gap-2 rounded-xl border-2 border-white/40 px-8 py-3.5 font-semibold text-white transition hover:bg-white/10"
             >
               <Compass className="h-5 w-5" />
-              Explore Youth Momentum
+              {t('landing.exploreCta')}
             </Link>
           </div>
         </div>

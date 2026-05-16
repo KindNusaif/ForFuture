@@ -1,7 +1,9 @@
 import type { ReactNode } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { Home, PlusCircle, User, BarChart3, LogOut, Map, Shield } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useIsAdmin } from '../hooks/useIsAdmin'
+import LanguageSwitcher from './LanguageSwitcher'
 import Logo from './Logo'
 import { useAuth } from '../hooks/useAuth'
 import { signOut } from '../lib/auth'
@@ -22,6 +24,7 @@ export default function AppShell({ children }: { children?: ReactNode }) {
   const { profile } = useAuth()
   const isAdmin = useIsAdmin()
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   async function handleLogout() {
     try {
@@ -36,45 +39,48 @@ export default function AppShell({ children }: { children?: ReactNode }) {
       <div className="mx-auto flex max-w-7xl gap-0 lg:gap-8 lg:px-6 lg:py-6">
         <aside className="hidden w-56 shrink-0 lg:block">
           <div className="sticky top-6 space-y-6">
-            <Logo to="/feed" />
-            <nav className="space-y-1" aria-label="App navigation">
+            <div className="flex items-center justify-between gap-2">
+              <Logo to="/feed" />
+              <LanguageSwitcher variant="compact" />
+            </div>
+            <nav className="space-y-1" aria-label={t('nav.appNav')}>
               <NavLink to="/feed" end className={navLinkClass}>
                 <Home className="h-5 w-5 shrink-0" aria-hidden />
-                Home
+                {t('nav.home')}
               </NavLink>
               <NavLink to="/impact-map" className={navLinkClass}>
                 <Map className="h-5 w-5 shrink-0" aria-hidden />
-                Impact Map
+                {t('nav.impactMap')}
               </NavLink>
               <NavLink to="/create" className={navLinkClass}>
                 <PlusCircle className="h-5 w-5 shrink-0" aria-hidden />
-                Create a Youth Movement
+                {t('nav.createMovement')}
               </NavLink>
               <NavLink to="/create?type=quick_youth_poll" className={navLinkClass}>
                 <BarChart3 className="h-5 w-5 shrink-0" aria-hidden />
-                Quick Polls
+                {t('nav.quickPolls')}
               </NavLink>
               <NavLink to="/profile" className={navLinkClass}>
                 <User className="h-5 w-5 shrink-0" aria-hidden />
-                My Profile
+                {t('nav.myProfile')}
               </NavLink>
               {isAdmin && (
                 <NavLink to="/admin/moderation" className={navLinkClass}>
                   <Shield className="h-5 w-5 shrink-0" aria-hidden />
-                  Moderation
+                  {t('nav.moderation')}
                 </NavLink>
               )}
             </nav>
             {profile && (
               <div className="rounded-2xl border border-accent-200/80 bg-linear-to-br from-accent-50/80 to-white p-4 shadow-sm">
                 <p className="text-[10px] font-bold uppercase tracking-wide text-accent-600">
-                  Your Youth Voice ID
+                  {t('voice.yourYouthVoiceId')}
                 </p>
                 <p className="mt-1.5 font-mono text-sm font-bold text-accent-900">
                   {profile.youth_voice_id ?? '—'}
                 </p>
                 <p className="mt-2 text-[11px] leading-relaxed text-slate-600">
-                  Speak publicly without revealing your profile identity.
+                  {t('voice.youthVoiceHint')}
                 </p>
               </div>
             )}
@@ -84,40 +90,43 @@ export default function AppShell({ children }: { children?: ReactNode }) {
               className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
             >
               <LogOut className="h-5 w-5 shrink-0" aria-hidden />
-              Log out
+              {t('nav.logout')}
             </button>
           </div>
         </aside>
 
         <main className="min-w-0 flex-1">
+          <div className="mb-4 flex justify-end px-4 pt-3 lg:hidden">
+            <LanguageSwitcher variant="compact" />
+          </div>
           {children ?? <Outlet />}
         </main>
       </div>
 
       <nav
         className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200/90 bg-white/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur-lg lg:hidden"
-        aria-label="Mobile navigation"
+        aria-label={t('nav.mobileNav')}
       >
         <div className="mx-auto flex max-w-lg justify-between">
           <NavLink to="/feed" end className={mobileLinkClass}>
             <Home className="h-5 w-5" />
-            Home
+            {t('nav.home')}
           </NavLink>
           <NavLink to="/impact-map" className={mobileLinkClass}>
             <Map className="h-5 w-5" />
-            Map
+            {t('nav.map')}
           </NavLink>
           <NavLink to="/create" className={mobileLinkClass}>
             <PlusCircle className="h-5 w-5" />
-            Create
+            {t('nav.create')}
           </NavLink>
           <NavLink to="/create?type=quick_youth_poll" className={mobileLinkClass}>
             <BarChart3 className="h-5 w-5" />
-            Polls
+            {t('nav.polls')}
           </NavLink>
           <NavLink to="/profile" className={mobileLinkClass}>
             <User className="h-5 w-5" />
-            Profile
+            {t('nav.profile')}
           </NavLink>
         </div>
       </nav>
