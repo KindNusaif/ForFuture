@@ -14,7 +14,7 @@ export const FEED_REQUEST_TIMEOUT_MS = 45_000
 export const FEED_ENRICH_TIMEOUT_MS = 25_000
 
 /** Auth bootstrap — do not block the app too aggressively. */
-export const AUTH_BOOTSTRAP_TIMEOUT_MS = 20_000
+export const AUTH_BOOTSTRAP_TIMEOUT_MS = 15_000
 
 /** One automatic retry before surfacing a hard error. */
 export const REQUEST_AUTO_RETRY_DELAY_MS = 900

@@ -12,6 +12,7 @@ export default function Login() {
   const navigate = useNavigate()
   const location = useLocation()
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? '/feed'
+  const resetSuccess = (location.state as { resetSuccess?: boolean })?.resetSuccess
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -56,8 +57,11 @@ export default function Login() {
       subtitle={t('auth.loginSubtitle')}
       submitLabel={t('auth.loginButton')}
       loading={loading}
-      error={error}
       onSubmit={handleSubmit}
+      success={
+        resetSuccess ? 'Your password was updated. Sign in with your new password.' : null
+      }
+      error={error}
       footer={
         <>
           {t('auth.noAccount')}{' '}

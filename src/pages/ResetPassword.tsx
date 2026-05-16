@@ -97,7 +97,12 @@ export default function ResetPassword() {
           <p className="mt-3 text-sm leading-relaxed text-slate-600">
             {t('auth.resetSuccessMessage')}
           </p>
-          <Link to="/login" className="btn-primary mt-8 inline-flex w-full justify-center">
+          <Link
+            to="/login"
+            replace
+            state={{ resetSuccess: true }}
+            className="btn-primary mt-8 inline-flex w-full justify-center"
+          >
             {t('auth.goToLogin')}
           </Link>
         </div>

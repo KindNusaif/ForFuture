@@ -226,7 +226,15 @@ function ProfileContent({ userId, email }: { userId: string; email?: string | nu
 }
 
 export default function Profile() {
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
+
+  if (loading) {
+    return (
+      <section className="mx-auto min-w-0 max-w-4xl px-4 py-8 sm:px-6">
+        <ProfileHeaderSkeleton />
+      </section>
+    )
+  }
 
   if (!user) return null
 

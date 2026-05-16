@@ -18,9 +18,19 @@ export default function PollVoteBlock({
   const poll = post.poll
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null)
 
-  if (!poll || poll.options.length === 0) {
+  if (!poll) {
     return (
-      <p className="mt-3 text-sm italic text-slate-500">Poll options are loading…</p>
+      <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600 ring-1 ring-slate-200/80">
+        Poll details could not be loaded. Try refreshing the page.
+      </p>
+    )
+  }
+
+  if (poll.options.length === 0) {
+    return (
+      <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600 ring-1 ring-slate-200/80">
+        This poll has no voting options yet.
+      </p>
     )
   }
 

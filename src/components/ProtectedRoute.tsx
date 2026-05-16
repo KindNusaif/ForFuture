@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Navigate, useLocation } from 'react-router-dom'
+import { Link, Navigate, useLocation } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import AsyncLoadHint from './AsyncLoadHint'
 import { useAuth } from '../hooks/useAuth'
@@ -37,6 +37,7 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
           showSlowHint={showSlowHint}
           showRecovery={showRecovery}
           slowMessage="Still connecting to ForFuture…"
+          onRetry={() => window.location.reload()}
         />
       </main>
     )
@@ -48,9 +49,18 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
         <div className="max-w-md rounded-2xl border border-red-200 bg-red-50 p-8 text-center">
           <h1 className="text-lg font-semibold text-slate-900">Could not connect</h1>
           <p className="mt-2 text-sm text-red-800">{authError}</p>
-          <a href="/login" className="mt-4 inline-block text-sm font-semibold text-brand-700 hover:underline">
-            Try logging in again
-          </a>
+          <div className="mt-4 flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
+            <Link to="/login" className="text-sm font-semibold text-brand-700 hover:underline">
+              Try logging in again
+            </Link>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="text-sm font-semibold text-slate-600 hover:text-slate-900"
+            >
+              Retry connection
+            </button>
+          </div>
         </div>
       </main>
     )

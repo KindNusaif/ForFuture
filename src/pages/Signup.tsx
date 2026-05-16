@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import AuthForm, { FormField, inputClass, inputErrorClass } from '../components/AuthForm'
 import { signUp } from '../lib/auth'
 import { formatError } from '../lib/errors'
@@ -8,6 +8,8 @@ import { validateSignup } from '../lib/validation'
 
 export default function Signup() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? '/feed'
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<{
@@ -45,7 +47,7 @@ export default function Signup() {
     setError(null)
     try {
       await signUp(email, password, name)
-      navigate('/feed', { replace: true })
+      navigate(from, { replace: true })
     } catch (err) {
       setError(formatError(err))
     } finally {

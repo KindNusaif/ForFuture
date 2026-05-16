@@ -13,7 +13,7 @@ export default function Explore() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:py-12">
+    <div className="mx-auto min-w-0 max-w-3xl px-4 py-8 sm:px-6 lg:max-w-4xl lg:py-12">
       <header className="card-surface mb-8 p-6 text-center sm:p-8">
         <span className="inline-flex items-center gap-2 rounded-full bg-accent-50 px-4 py-1.5 text-sm font-semibold text-accent-700 ring-1 ring-accent-200/80">
           <Compass className="h-4 w-4" aria-hidden />

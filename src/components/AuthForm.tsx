@@ -8,6 +8,7 @@ interface AuthFormProps {
   submitLabel: string
   loading: boolean
   error: string | null
+  success?: string | null
   onSubmit: (e: FormEvent<HTMLFormElement>) => void
   children: ReactNode
   footer: ReactNode
@@ -19,6 +20,7 @@ export default function AuthForm({
   submitLabel,
   loading,
   error,
+  success,
   onSubmit,
   children,
   footer,
@@ -39,6 +41,14 @@ export default function AuthForm({
         noValidate
         className="card-surface p-6 sm:p-8"
       >
+        {success && (
+          <div
+            className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800"
+            role="status"
+          >
+            {success}
+          </div>
+        )}
         {error && (
           <div
             className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
@@ -103,3 +113,4 @@ export const inputClass =
   'mt-1 w-full min-h-[44px] rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-slate-900 transition outline-none placeholder:text-slate-400 focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 aria-invalid:border-red-400'
 
 export const inputErrorClass = 'border-red-400 focus:border-red-500 focus:ring-red-500/20'
+

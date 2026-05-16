@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import ActionPathAI from '../components/actionpath/ActionPathAI'
 import { ArrowLeft, Loader2, Send } from 'lucide-react'
@@ -63,25 +63,12 @@ export default function CreatePost() {
   const typeFromUrl = searchParams.get('type')
 
   const [movementType, setMovementType] = useState<MovementType>(() => {
+    if (typeFromUrl === 'quick_youth_poll') return 'quick_youth_poll'
     if (typeFromUrl && MOVEMENT_TYPE_VALUES.includes(typeFromUrl as MovementType)) {
       return typeFromUrl as MovementType
     }
     return 'idea_for_change'
   })
-
-  useEffect(() => {
-    if (typeFromUrl === 'quick_youth_poll') {
-      setMovementType('quick_youth_poll')
-      return
-    }
-    if (typeFromUrl && MOVEMENT_TYPE_VALUES.includes(typeFromUrl as MovementType)) {
-      setMovementType(typeFromUrl as MovementType)
-      return
-    }
-    if (!typeFromUrl) {
-      setMovementType((prev) => (prev === 'quick_youth_poll' ? 'idea_for_change' : prev))
-    }
-  }, [typeFromUrl])
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [category, setCategory] = useState<Category | ''>('')
@@ -494,4 +481,11 @@ export default function CreatePost() {
       </form>
     </section>
   )
+}
+
+/** Remount form when sidebar switches between movement vs poll create links. */
+export function CreatePostRoute() {
+  const [searchParams] = useSearchParams()
+  const modeKey = searchParams.get('type') ?? 'movement'
+  return <CreatePost key={modeKey} />
 }

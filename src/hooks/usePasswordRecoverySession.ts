@@ -10,16 +10,15 @@ const RECOVERY_WAIT_MS = 10_000
  * Waits for Supabase to establish a PASSWORD_RECOVERY session from the email link hash.
  */
 export function usePasswordRecoverySession(): RecoverySessionStatus {
-  const [status, setStatus] = useState<RecoverySessionStatus>('loading')
+  const [status, setStatus] = useState<RecoverySessionStatus>(() =>
+    !isSupabaseConfigured || !supabase ? 'invalid' : 'loading',
+  )
 
   useEffect(() => {
-    if (!isSupabaseConfigured || !supabase) {
-      setStatus('invalid')
-      return
-    }
+    if (!isSupabaseConfigured || !supabase) return
 
     let settled = false
-    let timeoutId: number | undefined
+    const client = supabase
 
     function markReady() {
       if (settled) return
@@ -40,13 +39,11 @@ export function usePasswordRecoverySession(): RecoverySessionStatus {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    } = client.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY' && session) {
         markReady()
       }
     })
-
-    const client = supabase
 
     async function verifySession() {
       const { data, error } = await client.auth.getSession()
@@ -65,14 +62,14 @@ export function usePasswordRecoverySession(): RecoverySessionStatus {
 
     void verifySession()
 
-    timeoutId = window.setTimeout(() => {
+    const timeoutId = window.setTimeout(() => {
       if (!settled) markInvalid()
     }, RECOVERY_WAIT_MS)
 
     return () => {
       settled = true
       subscription.unsubscribe()
-      if (timeoutId) window.clearTimeout(timeoutId)
+      window.clearTimeout(timeoutId)
     }
   }, [])
 

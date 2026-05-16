@@ -17,7 +17,7 @@ import ResetPassword from './pages/ResetPassword'
 import Explore from './pages/Explore'
 import ImpactMap from './pages/ImpactMap'
 import Feed from './pages/Feed'
-import CreatePost from './pages/CreatePost'
+import { CreatePostRoute } from './pages/CreatePost'
 import Profile from './pages/Profile'
 import MovementDetail from './pages/MovementDetail'
 import AdminModeration from './pages/AdminModeration'
@@ -101,7 +101,7 @@ export default function App() {
                 <MovementDetail mode="member" backTo="/feed" backLabel="Back to feed" />
               }
             />
-            <Route path="create" element={<CreatePost />} />
+            <Route path="create" element={<CreatePostRoute />} />
             <Route path="profile" element={<Profile />} />
             <Route
               path="admin/moderation"
