@@ -115,6 +115,7 @@ function MovementDetailContent({
         user.id,
         post.movement_type,
         Boolean(post.supported_by_me),
+        post.donation_subtype,
       )
       setPost({
         ...post,

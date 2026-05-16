@@ -27,7 +27,7 @@ export interface MovementTypeConfig {
 }
 
 export const MOVEMENT_TO_ACTION_TYPE: Record<
-  Exclude<MovementType, 'quick_youth_poll' | 'youth_petition'>,
+  Exclude<MovementType, 'quick_youth_poll' | 'youth_petition' | 'donation_relief'>,
   PostActionType
 > = {
   idea_for_change: 'support_idea',
@@ -39,9 +39,17 @@ export const MOVEMENT_TO_ACTION_TYPE: Record<
 
 export const MOVEMENT_TYPE_VALUES = MOVEMENT_TYPES_BASE.map((m) => m.value)
 
-export function getActionTypeForMovement(type: MovementType): PostActionType {
+export function getActionTypeForMovement(
+  type: MovementType,
+  donationSubtype?: string | null,
+): PostActionType {
   if (type === 'quick_youth_poll' || type === 'youth_petition') return 'support_idea'
-  return MOVEMENT_TO_ACTION_TYPE[type]
+  if (type === 'donation_relief') {
+    if (donationSubtype === 'blood_donation') return 'offer_blood_donation'
+    if (donationSubtype === 'item_donation') return 'pledge_item_donation'
+    return 'volunteer_interest'
+  }
+  return MOVEMENT_TO_ACTION_TYPE[type as keyof typeof MOVEMENT_TO_ACTION_TYPE]
 }
 
 export function getMovementConfig(type: MovementType): MovementTypeConfig {
@@ -69,7 +77,7 @@ export function isPetitionMovementType(type: MovementType): boolean {
   return type === 'youth_petition'
 }
 
-export type MovementFilter = 'All' | MovementType
+export type MovementFilter = 'All' | MovementType | 'donation_relief_hub'
 
 export function formatEventDate(dateStr: string | null | undefined): string | null {
   if (!dateStr) return null

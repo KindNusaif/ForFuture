@@ -21,6 +21,9 @@ export type MovementType =
   | 'peaceful_civic_action'
   | 'quick_youth_poll'
   | 'youth_petition'
+  | 'donation_relief'
+
+export type DonationSubtype = 'blood_donation' | 'item_donation'
 
 /** Civic engagement stored in post_actions */
 export type PostActionType =
@@ -29,6 +32,8 @@ export type PostActionType =
   | 'volunteer_interest'
   | 'fundraising_support'
   | 'join_cause'
+  | 'offer_blood_donation'
+  | 'pledge_item_donation'
 
 export interface PollOption {
   id: string
@@ -141,6 +146,20 @@ export interface Post {
   location_name?: string | null
   latitude?: number | null
   longitude?: number | null
+  donation_subtype?: DonationSubtype | null
+  relief_status?: string | null
+  blood_group?: string | null
+  hospital_or_organizer?: string | null
+  urgency_level?: string | null
+  donors_needed?: number | null
+  needed_by_date?: string | null
+  item_category?: string | null
+  items_needed?: string | null
+  quantity_needed?: number | null
+  beneficiary_group?: string | null
+  collection_location?: string | null
+  relief_deadline?: string | null
+  organizer_transparency_note?: string | null
   review_status?: CampaignReviewStatus
   reviewed_campaign_type?: ReviewedCampaignType | null
   reviewed_at?: string | null
@@ -197,4 +216,18 @@ export interface CreateMovementInput {
   latitude?: number | null
   longitude?: number | null
   pollOptions?: string[]
+  donation_subtype?: DonationSubtype | null
+  relief_status?: string | null
+  blood_group?: string
+  hospital_or_organizer?: string
+  urgency_level?: string
+  donors_needed?: number | null
+  needed_by_date?: string
+  item_category?: string
+  items_needed?: string
+  quantity_needed?: number | null
+  beneficiary_group?: string
+  collection_location?: string
+  relief_deadline?: string
+  organizer_transparency_note?: string
 }

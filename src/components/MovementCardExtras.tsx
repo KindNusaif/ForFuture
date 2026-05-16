@@ -10,6 +10,8 @@ import {
   PETITION_DISCLAIMER,
 } from '../lib/petitions'
 import { getMovementVisual } from '../lib/movementVisual'
+import { isReliefPost } from '../lib/reliefHub'
+import ReliefHubExtras from './relief/ReliefHubExtras'
 import {
   shouldShowCampaignReview,
   shouldShowFundraisingNotReviewedMessage,
@@ -47,6 +49,10 @@ function EventMetaRow({
 }
 
 export default function MovementCardExtras({ post }: MovementCardExtrasProps) {
+  if (isReliefPost(post)) {
+    return <ReliefHubExtras post={post} />
+  }
+
   const panel = getMovementVisual(post.movement_type).sectionPanel
 
   switch (post.movement_type) {

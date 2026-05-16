@@ -20,6 +20,8 @@ import Profile from './pages/Profile'
 import MovementDetail from './pages/MovementDetail'
 import AdminModeration from './pages/AdminModeration'
 import AdminTrustReview from './pages/AdminTrustReview'
+import ReliefHub from './pages/ReliefHub'
+import CreateReliefPost from './pages/CreateReliefPost'
 
 export default function App() {
   return (
@@ -56,6 +58,7 @@ export default function App() {
           {/* Public guest explore — read only */}
           <Route element={<ExploreLayout />}>
             <Route path="explore" element={<Explore />} />
+            <Route path="explore/relief" element={<ReliefHub mode="guest" />} />
             <Route
               path="explore/:id"
               element={
@@ -77,6 +80,8 @@ export default function App() {
             }
           >
             <Route path="feed" element={<Feed />} />
+            <Route path="relief" element={<ReliefHub />} />
+            <Route path="relief/create" element={<CreateReliefPost />} />
             <Route
               path="feed/:id"
               element={

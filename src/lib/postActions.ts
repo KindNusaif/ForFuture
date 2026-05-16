@@ -94,6 +94,7 @@ async function insertAction(
   userId: string,
   movementType: MovementType,
   useLegacy: boolean,
+  donationSubtype?: string | null,
 ): Promise<void> {
   const client = requireSupabase()
 
@@ -110,7 +111,7 @@ async function insertAction(
     client.from(ACTIONS_TABLE).insert({
       post_id: postId,
       user_id: userId,
-      action_type: getActionTypeForMovement(movementType),
+      action_type: getActionTypeForMovement(movementType, donationSubtype),
     }),
     DEFAULT_REQUEST_TIMEOUT_MS,
   )
@@ -141,6 +142,7 @@ export async function togglePostAction(
   userId: string,
   movementType: MovementType,
   currentlyParticipating: boolean,
+  donationSubtype?: string | null,
 ): Promise<boolean> {
   if (currentlyParticipating) {
     try {
@@ -153,10 +155,10 @@ export async function togglePostAction(
   }
 
   try {
-    await insertAction(postId, userId, movementType, false)
+    await insertAction(postId, userId, movementType, false, donationSubtype)
   } catch (error) {
     if (!isMissingRelation(error)) throw enhanceSupabaseError(error)
-    await insertAction(postId, userId, movementType, true)
+    await insertAction(postId, userId, movementType, true, donationSubtype)
   }
   return true
 }

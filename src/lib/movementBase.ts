@@ -1,5 +1,6 @@
 import {
   BarChart3,
+  Droplet,
   HandHeart,
   Lightbulb,
   Megaphone,
@@ -66,6 +67,13 @@ export const MOVEMENT_TYPES_BASE: MovementTypeStaticConfig[] = [
     icon: BarChart3,
     badgeClass: 'bg-sky-50 text-sky-800 ring-sky-200',
     actionType: 'support_idea',
+    requiresProfileIdentity: false,
+  },
+  {
+    value: 'donation_relief',
+    icon: Droplet,
+    badgeClass: 'bg-rose-50 text-rose-900 ring-rose-200',
+    actionType: 'offer_blood_donation',
     requiresProfileIdentity: false,
   },
 ]

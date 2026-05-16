@@ -1,3 +1,5 @@
+import type { ReliefFieldValues } from './reliefFieldValues'
+import type { ReliefCreateSubtype } from './reliefHub'
 import type { Category, MovementType } from '../types'
 import { CATEGORIES } from '../types'
 import { isPollMovement, MOVEMENT_TYPE_VALUES } from './movements'
@@ -184,4 +186,67 @@ export function validateCreatePost(input: {
 
 export function hasFieldErrors(errors: CreatePostFieldErrors): boolean {
   return Object.keys(errors).length > 0
+}
+
+export function validateReliefCreate(input: {
+  title: string
+  description: string
+  category: string
+  authorName: string
+  postingIdentity?: 'profile' | 'youth_voice'
+  subtype: ReliefCreateSubtype
+  reliefFields: ReliefFieldValues
+}): CreatePostFieldErrors {
+  const movementType = input.subtype === 'fundraising' ? 'fundraising' : 'donation_relief'
+  const base = validateCreatePost({
+    title: input.title,
+    description: input.description,
+    category: input.category,
+    authorName: input.authorName,
+    postingIdentity: input.postingIdentity,
+    movementType,
+    fundraising_goal_amount: input.reliefFields.fundraising_goal_amount,
+    fundraising_purpose: input.reliefFields.fundraising_purpose,
+  })
+
+  const errors: CreatePostFieldErrors = { ...base }
+
+  if (input.subtype === 'blood_donation') {
+    if (!input.reliefFields.blood_group?.trim()) errors.blood_group = 'Blood group is required.'
+    if (!input.reliefFields.hospital_or_organizer?.trim()) {
+      errors.hospital_or_organizer = 'Hospital or organizer name is required.'
+    }
+    if (!input.reliefFields.donors_needed?.trim()) {
+      errors.donors_needed = 'Number of donors needed is required.'
+    } else if (parseInt(input.reliefFields.donors_needed, 10) <= 0) {
+      errors.donors_needed = 'Enter a valid number of donors.'
+    }
+    if (!input.reliefFields.contact_note?.trim()) {
+      errors.contact_note = 'Contact information is required.'
+    }
+  }
+
+  if (input.subtype === 'item_donation') {
+    if (!input.reliefFields.items_needed?.trim()) errors.items_needed = 'List the items needed.'
+    if (!input.reliefFields.beneficiary_group?.trim()) {
+      errors.beneficiary_group = 'Who will benefit is required.'
+    }
+    if (!input.reliefFields.collection_location?.trim()) {
+      errors.collection_location = 'Collection location is required.'
+    }
+    if (!input.reliefFields.contact_note?.trim()) {
+      errors.contact_note = 'Contact information is required.'
+    }
+  }
+
+  if (input.subtype === 'fundraising') {
+    if (!input.reliefFields.organizer_transparency_note?.trim()) {
+      errors.organizer_transparency_note = 'Organizer transparency note is required.'
+    }
+    if (!input.reliefFields.beneficiary_description?.trim()) {
+      errors.beneficiary_description = 'Beneficiary description is required.'
+    }
+  }
+
+  return errors
 }

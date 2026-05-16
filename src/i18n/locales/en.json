@@ -8,6 +8,7 @@
   },
   "nav": {
     "home": "Home",
+    "relief": "Donation & Relief",
     "myFeed": "My Feed",
     "impactMap": "Impact Map",
     "map": "Map",
@@ -213,6 +214,19 @@
       "emptyTitle": "No petitions yet",
       "emptyDescription": "Start a collective call for change."
     },
+    "donation_relief": {
+      "label": "Donation & Relief",
+      "shortLabel": "Relief",
+      "description": "Blood appeals, essential item drives, and relief fundraising.",
+      "cta": "Offer Support",
+      "ctaActive": "Supporting",
+      "ctaSupported": "You offered support",
+      "hint": "Respond to urgent community needs.",
+      "count_one": "{{count}} response",
+      "count_other": "{{count}} responses",
+      "emptyTitle": "No relief requests found",
+      "emptyDescription": "Try another filter or create a new support drive."
+    },
     "quick_youth_poll": {
       "label": "Quick Youth Poll",
       "shortLabel": "Polls",
@@ -351,6 +365,123 @@
     "retryNow": "Retry now",
     "loadFailed": "We could not load this content right now.",
     "checkConnection": "Please check your connection and try again."
+  },
+  "relief": {
+    "eyebrow": "Donation & Relief Hub",
+    "title": "Donation & Relief",
+    "subtitle": "Connect urgent needs with youth who are ready to help — through blood donation, essential items, and transparent fundraising.",
+    "filterChip": "Donation & Relief",
+    "filterLabel": "Relief type",
+    "filters": {
+      "all": "All Relief",
+      "blood_donation": "Blood Donation",
+      "item_donation": "Item Donation",
+      "fundraising": "Fundraising"
+    },
+    "createCta": "Create request",
+    "createTitle": "Create a Donation & Relief Request",
+    "createSubtitle": "Choose what kind of support you need, then share clear details so others can help responsibly.",
+    "chooseSubtype": "What kind of support do you need?",
+    "publish": "Publish request",
+    "publishSuccess": "Your relief request is live.",
+    "backToHub": "Back to Donation & Relief",
+    "fundraisingProfileRequired": "Fundraising campaigns must be posted with your public profile to support trust and transparency.",
+    "takeAction": "Take action",
+    "guestCtaHint": "Sign in to respond to this need",
+    "fundraisingDisclaimer": "Support interest only — payments are not processed on ForFuture yet.",
+    "bloodSafetyNote": "Please confirm eligibility and donation details directly with the listed hospital, blood bank, or organizer.",
+    "bloodNeeded": "blood needed",
+    "hospital": "Hospital / organizer",
+    "donorsNeeded": "{{count}} donors needed",
+    "neededBy": "Needed by",
+    "beneficiary": "Who benefits",
+    "deadline": "Deadline",
+    "transparencyTitle": "Campaign transparency",
+    "supportInterest": "support interest",
+    "goal": "Goal",
+    "landingTitle": "Donation & Relief",
+    "landingText": "Respond to urgent needs through blood donation appeals, essential item drives, and transparent fundraising campaigns.",
+    "landingCta": "Explore Relief Needs",
+    "subtypes": {
+      "blood_donation": {
+        "title": "Blood Donation Appeal",
+        "description": "Connect urgent blood needs or donation drives with willing donors.",
+        "badge": "Blood Donation Appeal",
+        "cta": "I Can Donate Blood",
+        "ctaActive": "Offered to Donate",
+        "count": "{{count}} donor offers"
+      },
+      "item_donation": {
+        "title": "Essential Item Donation",
+        "description": "Collect school supplies, food packs, clothes, books, or disaster-relief items.",
+        "badge": "Essential Item Donation",
+        "cta": "I Can Donate Items",
+        "ctaActive": "Pledged Items",
+        "count": "{{count}} item pledges"
+      },
+      "fundraising": {
+        "title": "Fundraising Campaign",
+        "description": "Raise transparent financial support for community causes and urgent needs.",
+        "badge": "Fundraising Campaign",
+        "cta": "I Want to Support",
+        "ctaActive": "Supporting",
+        "count": "{{count}} support expressions"
+      }
+    },
+    "urgency": {
+      "urgent_today": "Urgent Today",
+      "within_24_hours": "Within 24 Hours",
+      "scheduled_drive": "Scheduled Drive",
+      "general_awareness": "General Awareness Drive"
+    },
+    "bloodGroups": {
+      "aPositive": "A+",
+      "aNegative": "A-",
+      "bPositive": "B+",
+      "bNegative": "B-",
+      "abPositive": "AB+",
+      "abNegative": "AB-",
+      "oPositive": "O+",
+      "oNegative": "O-",
+      "any": "Any group"
+    },
+    "itemCategories": {
+      "school_supplies": "School Supplies",
+      "food_rations": "Food & Dry Rations",
+      "clothing": "Clothing",
+      "hygiene": "Hygiene Products",
+      "books": "Books",
+      "disaster_relief": "Disaster Relief Supplies",
+      "medical_supplies": "Medical Supplies (non-prescription)",
+      "other_essentials": "Other Essentials"
+    },
+    "fields": {
+      "bloodGroup": "Blood group needed",
+      "selectBloodGroup": "Select blood group",
+      "hospital": "Hospital / blood bank / organizer",
+      "hospitalPh": "e.g. Teaching Hospital Kandy",
+      "urgency": "Urgency level",
+      "donorsNeeded": "Number of donors needed",
+      "neededBy": "Needed by (optional)",
+      "contact": "Contact method / note",
+      "contactPh": "Phone, email, or how to reach the organizer",
+      "itemCategory": "Item category",
+      "itemsNeeded": "Items needed",
+      "itemsNeededPh": "List essential items clearly",
+      "quantity": "Quantity needed (optional)",
+      "beneficiary": "Who will benefit",
+      "beneficiaryPh": "e.g. flood-affected families in the district",
+      "collectionLocation": "Collection / delivery location",
+      "collectionPh": "Where donors can drop off items",
+      "deadline": "Deadline (optional)",
+      "purpose": "Purpose of funds",
+      "purposePh": "What will the funds support?",
+      "beneficiaryDesc": "Beneficiary description",
+      "beneficiaryDescPh": "Who benefits from this campaign?",
+      "goalAmount": "Goal amount (USD)",
+      "transparency": "Organizer transparency note",
+      "transparencyPh": "How will funds be used? Who is accountable?"
+    }
   },
   "common": {
     "close": "Close",

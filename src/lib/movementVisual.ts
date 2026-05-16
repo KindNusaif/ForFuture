@@ -51,6 +51,13 @@ export const MOVEMENT_VISUAL: Record<MovementType, MovementVisualStyle> = {
     sectionPanel: 'border-fuchsia-100/90 bg-fuchsia-50/40',
     actionZone: 'border-fuchsia-100/80 bg-linear-to-br from-fuchsia-50/30 to-white',
   },
+  donation_relief: {
+    accentBar: 'border-l-rose-500',
+    headerWash: 'from-rose-50/70 via-white to-white',
+    iconChip: 'bg-rose-100 text-rose-800 ring-rose-200/80',
+    sectionPanel: 'border-rose-100/90 bg-rose-50/40',
+    actionZone: 'border-rose-100/80 bg-linear-to-br from-rose-50/30 to-white',
+  },
   quick_youth_poll: {
     accentBar: 'border-l-cyan-500',
     headerWash: 'from-cyan-50/60 via-white to-white',

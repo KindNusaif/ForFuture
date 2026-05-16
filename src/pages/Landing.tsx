@@ -11,6 +11,7 @@ import {
   Sparkles,
   Users,
   Vote,
+  HeartHandshake,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
@@ -44,6 +45,13 @@ export default function Landing() {
       icon: Shield,
       title: t('landing.featureTrustTitle'),
       text: t('landing.featureTrustText'),
+    },
+    {
+      icon: HeartHandshake,
+      title: t('relief.landingTitle'),
+      text: t('relief.landingText'),
+      link: '/explore/relief',
+      linkLabel: t('relief.landingCta'),
     },
   ]
 
@@ -145,8 +153,8 @@ export default function Landing() {
           <h2 className="text-3xl font-bold text-slate-900">{t('landing.featuresTitle')}</h2>
           <p className="mx-auto mt-3 max-w-2xl text-slate-600">{t('landing.featuresSubtitle')}</p>
         </div>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {features.map(({ icon: Icon, title, text }) => (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          {features.map(({ icon: Icon, title, text, link, linkLabel }) => (
             <article
               key={title}
               className="card-surface group p-6 transition hover:border-accent-200 hover:shadow-lg"
@@ -156,6 +164,15 @@ export default function Landing() {
               </span>
               <h3 className="mt-4 text-lg font-semibold text-slate-900">{title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-slate-600">{text}</p>
+              {link && linkLabel && (
+                <Link
+                  to={link}
+                  className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-accent-600 hover:text-accent-700"
+                >
+                  {linkLabel}
+                  <ArrowRight className="h-4 w-4" aria-hidden />
+                </Link>
+              )}
             </article>
           ))}
         </div>

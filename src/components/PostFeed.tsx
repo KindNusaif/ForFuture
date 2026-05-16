@@ -26,6 +26,7 @@ import { isRequestAborted } from '../lib/supabaseRequest'
 import { getActionSuccessMessage } from '../lib/movements'
 import { togglePostAction } from '../lib/postActions'
 import { formatError } from '../lib/errors'
+import type { ReliefHubFilter } from '../lib/reliefHub'
 import type { Category, MovementType, Post } from '../types'
 
 export interface FeedToast {
@@ -40,10 +41,14 @@ interface PostFeedProps {
   toast?: FeedToast | null
   onToastDismiss?: () => void
   showCreateButton?: boolean
+  reliefHub?: boolean
+  reliefSubtype?: ReliefHubFilter
+  className?: string
 }
 
 function serverMovementType(filter: MovementFilter): MovementType | undefined {
-  return filter === 'All' ? undefined : filter
+  if (filter === 'All' || filter === 'donation_relief_hub') return undefined
+  return filter
 }
 
 function serverCategory(category: Category | 'All'): Category | undefined {
@@ -56,6 +61,9 @@ function PostFeedContent({
   toast: toastProp = null,
   onToastDismiss,
   showCreateButton = true,
+  reliefHub = false,
+  reliefSubtype = 'all',
+  className = '',
 }: PostFeedProps) {
   const { openJoinModal } = useJoinMovement()
   const isGuest = mode === 'guest'
@@ -99,12 +107,15 @@ function PostFeedContent({
       }
 
       try {
+        const hubActive = reliefHub || movementFilter === 'donation_relief_hub'
         const pageParams = {
           viewerUserId,
           offset,
           limit: DEFAULT_FEED_PAGE_SIZE,
-          movementType: serverMovementType(movementFilter),
+          movementType: hubActive ? undefined : serverMovementType(movementFilter),
           category: serverCategory(category),
+          reliefHub: hubActive,
+          reliefSubtype: hubActive ? (reliefHub ? reliefSubtype : 'all') : undefined,
         }
 
         const { rows, hasMore: more, nextOffset: next } = await withAutoRetry(
@@ -143,7 +154,7 @@ function PostFeedContent({
         }
       }
     },
-    [viewerUserId, movementFilter, category],
+    [viewerUserId, movementFilter, category, reliefHub, reliefSubtype],
   )
 
   useEffect(() => {
@@ -179,9 +190,21 @@ function PostFeedContent({
           : 'Try a different search or filter.',
       }
     }
-    if (movementFilter !== 'All') {
+    if (reliefHub) {
+      return {
+        title: 'No relief requests found',
+        description: 'Try another filter or create a new support drive.',
+      }
+    }
+    if (movementFilter !== 'All' && movementFilter !== 'donation_relief_hub') {
       const cfg = getMovementConfig(movementFilter)
       return { title: cfg.emptyTitle, description: cfg.emptyDescription }
+    }
+    if (movementFilter === 'donation_relief_hub') {
+      return {
+        title: 'No relief requests found',
+        description: 'Try another filter or explore other movement types.',
+      }
     }
     if (category !== 'All') {
       return {
@@ -195,7 +218,7 @@ function PostFeedContent({
         ? 'Check back soon — youth leaders are organizing action every day.'
         : 'Be the first to create a youth movement on ForFuture.',
     }
-  }, [search, movementFilter, category, isGuest, hasMore])
+  }, [search, movementFilter, category, isGuest, hasMore, reliefHub])
 
   function handleRestrictedAction(variant: 'default' | 'petition' = 'default') {
     openJoinModal(variant)
@@ -290,6 +313,7 @@ function PostFeedContent({
         userId,
         post.movement_type,
         Boolean(post.supported_by_me),
+        post.donation_subtype,
       )
       setPosts((prev) =>
         prev.map((p) => {
@@ -314,7 +338,7 @@ function PostFeedContent({
   }
 
   return (
-    <>
+    <div className={className}>
       {displayedToast && (
         <div className="mb-4">
           <Toast
@@ -326,17 +350,19 @@ function PostFeedContent({
         </div>
       )}
 
-      <FeedDiscoveryBar
-        search={search}
-        onSearchChange={setSearch}
-        movementFilter={movementFilter}
-        onMovementFilterChange={setMovementFilter}
-        category={category}
-        onCategoryChange={setCategory}
-        isGuest={isGuest}
-        showCreateButton={showCreateButton}
-        onGuestCreate={() => handleRestrictedAction()}
-      />
+      {!reliefHub && (
+        <FeedDiscoveryBar
+          search={search}
+          onSearchChange={setSearch}
+          movementFilter={movementFilter}
+          onMovementFilterChange={setMovementFilter}
+          category={category}
+          onCategoryChange={setCategory}
+          isGuest={isGuest}
+          showCreateButton={showCreateButton}
+          onGuestCreate={() => handleRestrictedAction()}
+        />
+      )}
 
       <AsyncLoadHint
         className="mt-4"
@@ -436,7 +462,7 @@ function PostFeedContent({
           )}
         </>
       )}
-    </>
+    </div>
   )
 }
 

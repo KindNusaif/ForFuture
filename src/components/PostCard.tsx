@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { getMovementConfig, isPollMovement } from '../lib/movements'
 import { isPetitionMovement } from '../lib/petitions'
 import { getMomentumLabel, getMovementVisual, shouldShowMomentumPill } from '../lib/movementVisual'
+import { getReliefDisplaySubtype, isReliefPost } from '../lib/reliefHub'
 import { getPostAuthorPresentation } from '../lib/postIdentity'
 import {
   shouldShowAuthorVerification,
@@ -16,6 +17,8 @@ import MovementActionButton from './MovementActionButton'
 import PetitionActionButton from './PetitionActionButton'
 import PostAuthor from './PostAuthor'
 import CampaignReviewBadge from './CampaignReviewBadge'
+import ReliefActionButton from './relief/ReliefActionButton'
+import ReliefSubtypeBadge from './relief/ReliefSubtypeBadge'
 import UnderReviewBadge from './UnderReviewBadge'
 import VerifiedOrganizerBadge from './VerifiedOrganizerBadge'
 import ReportContentButton from './ReportContentButton'
@@ -69,6 +72,8 @@ export default function PostCard({
   const isPoll = isPollMovement(post.movement_type)
   const isPetition = isPetitionMovement(post.movement_type)
   const { isAnonymous } = getPostAuthorPresentation(post)
+  const reliefSubtype = getReliefDisplaySubtype(post)
+  const isRelief = isReliefPost(post)
   const showReviewed = shouldShowCampaignReview(post)
   const showUnderReview = shouldShowUnderReviewLabel(post)
   const showAuthorVerified = shouldShowAuthorVerification(post)
@@ -123,13 +128,17 @@ export default function PostCard({
       <div className={`bg-linear-to-r px-4 pb-3 pt-4 sm:px-5 sm:pt-5 ${visual.headerWash}`}>
         <header className="flex flex-wrap items-start justify-between gap-2">
           <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
-            <MovementTypeBadge movementType={post.movement_type} />
+            {reliefSubtype ? (
+              <ReliefSubtypeBadge subtype={reliefSubtype} />
+            ) : (
+              <MovementTypeBadge movementType={post.movement_type} />
+            )}
             <span
               className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ring-1 ${badgeClass}`}
             >
               {post.category}
             </span>
-            {showReviewed && (
+            {showReviewed && !isRelief && (
               <CampaignReviewBadge
                 movementType={post.movement_type}
                 reviewedCampaignType={
@@ -233,6 +242,16 @@ export default function PostCard({
               guestMode={guestMode}
               showHint={showEngagementHint}
               onSign={() => onPetitionSign(post.id)}
+            />
+          ) : showSupport && onSupport && isRelief ? (
+            <ReliefActionButton
+              post={post}
+              count={actionCount}
+              active={participating}
+              loading={supporting}
+              guestMode={guestMode}
+              showHint={showEngagementHint}
+              onClick={() => onSupport(post.id)}
             />
           ) : showSupport && onSupport ? (
             <MovementActionButton

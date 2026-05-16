@@ -25,7 +25,8 @@ update private.posts set movement_type = 'idea_for_change'
        'fundraising',
        'peaceful_civic_action',
        'quick_youth_poll',
-       'youth_petition'
+       'youth_petition',
+       'donation_relief'
      );
 
 -- 3) Re-apply constraint with full allowed list

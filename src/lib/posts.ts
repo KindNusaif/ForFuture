@@ -19,6 +19,8 @@ import {
   withTimeout,
 } from './supabaseRequest'
 import { formatYouthVoiceLabel } from './youthVoiceId'
+import type { ReliefHubFilter } from './reliefHub'
+import { defaultReliefStatus } from './reliefHub'
 import type { Category, CreateMovementInput, MovementType, Post, PostingIdentity } from '../types'
 
 type PostRowBase = Omit<Post, 'support_count' | 'supported_by_me'>
@@ -34,6 +36,9 @@ export interface FetchPostsPageParams {
   offset?: number
   movementType?: MovementType
   category?: Category
+  /** Filter Donation & Relief hub (donation_relief + fundraising) */
+  reliefHub?: boolean
+  reliefSubtype?: ReliefHubFilter
 }
 
 export interface FetchPostsPageResult {
@@ -88,6 +93,20 @@ function mapPostRow(
     location_name: (row.location_name as string | null) ?? null,
     latitude: row.latitude != null ? Number(row.latitude) : null,
     longitude: row.longitude != null ? Number(row.longitude) : null,
+    donation_subtype: (row.donation_subtype as Post['donation_subtype']) ?? null,
+    relief_status: (row.relief_status as string | null) ?? null,
+    blood_group: (row.blood_group as string | null) ?? null,
+    hospital_or_organizer: (row.hospital_or_organizer as string | null) ?? null,
+    urgency_level: (row.urgency_level as string | null) ?? null,
+    donors_needed: row.donors_needed != null ? Number(row.donors_needed) : null,
+    needed_by_date: (row.needed_by_date as string | null) ?? null,
+    item_category: (row.item_category as string | null) ?? null,
+    items_needed: (row.items_needed as string | null) ?? null,
+    quantity_needed: row.quantity_needed != null ? Number(row.quantity_needed) : null,
+    beneficiary_group: (row.beneficiary_group as string | null) ?? null,
+    collection_location: (row.collection_location as string | null) ?? null,
+    relief_deadline: (row.relief_deadline as string | null) ?? null,
+    organizer_transparency_note: (row.organizer_transparency_note as string | null) ?? null,
     review_status:
       (row.review_status as Post['review_status']) ??
       (row.is_trusted_campaign ? 'reviewed' : 'unreviewed'),
@@ -149,10 +168,24 @@ export function sanitizePostForPublic(
 function applyFeedFilters<
   Q extends {
     eq: (column: string, value: string) => Q
+    or: (filters: string) => Q
   },
->(query: Q, params: Pick<FetchPostsPageParams, 'movementType' | 'category'>): Q {
+>(query: Q, params: Pick<FetchPostsPageParams, 'movementType' | 'category' | 'reliefHub' | 'reliefSubtype'>): Q {
   let q = query
-  if (params.movementType) q = q.eq('movement_type', params.movementType)
+  if (params.reliefHub) {
+    const sub = params.reliefSubtype ?? 'all'
+    if (sub === 'blood_donation') {
+      q = q.eq('movement_type', 'donation_relief').eq('donation_subtype', 'blood_donation')
+    } else if (sub === 'item_donation') {
+      q = q.eq('movement_type', 'donation_relief').eq('donation_subtype', 'item_donation')
+    } else if (sub === 'fundraising') {
+      q = q.eq('movement_type', 'fundraising')
+    } else {
+      q = q.or('movement_type.eq.donation_relief,movement_type.eq.fundraising')
+    }
+  } else if (params.movementType) {
+    q = q.eq('movement_type', params.movementType)
+  }
   if (params.category) q = q.eq('category', params.category)
   return q
 }
@@ -378,7 +411,8 @@ export async function fetchPostById(
 }
 
 function buildInsertRow(input: CreateMovementInput): Record<string, unknown> {
-  const postingIdentity = input.movementType === 'fundraising' ? 'profile' : input.postingIdentity
+  const postingIdentity =
+    input.movementType === 'fundraising' ? 'profile' : input.postingIdentity
 
   const authorName =
     postingIdentity === 'youth_voice'
@@ -454,8 +488,41 @@ function buildInsertRow(input: CreateMovementInput): Record<string, unknown> {
       row.fundraising_goal_amount = input.fundraising_goal_amount ?? null
       row.fundraising_purpose = trim(input.fundraising_purpose)
       row.beneficiary_description = trim(input.beneficiary_description)
+      row.organizer_transparency_note = trim(input.organizer_transparency_note)
+      row.relief_deadline = trim(input.relief_deadline)
       row.current_raised_amount = 0
+      row.relief_status = 'open'
       break
+    case 'donation_relief': {
+      const subtype = input.donation_subtype
+      row.donation_subtype = subtype
+      row.relief_status =
+        input.relief_status ??
+        defaultReliefStatus(
+          subtype === 'blood_donation' ? 'blood_donation' : 'item_donation',
+        )
+      row.contact_note = trim(input.contact_note)
+      if (subtype === 'blood_donation') {
+        row.blood_group = trim(input.blood_group)
+        row.hospital_or_organizer = trim(input.hospital_or_organizer)
+        row.urgency_level = trim(input.urgency_level)
+        row.donors_needed = input.donors_needed ?? null
+        row.needed_by_date = trim(input.needed_by_date)
+        const loc = applyMapLocation(input.location_name ?? input.location)
+        row.location = loc
+        row.hospital_or_organizer = trim(input.hospital_or_organizer) ?? row.hospital_or_organizer
+      } else if (subtype === 'item_donation') {
+        row.item_category = trim(input.item_category)
+        row.items_needed = trim(input.items_needed)
+        row.quantity_needed = input.quantity_needed ?? null
+        row.beneficiary_group = trim(input.beneficiary_group)
+        row.collection_location = trim(input.collection_location)
+        row.relief_deadline = trim(input.relief_deadline)
+        const loc = applyMapLocation(input.location_name ?? input.collection_location)
+        row.location = loc
+      }
+      break
+    }
     case 'peaceful_civic_action': {
       row.action_date = trim(input.action_date)
       row.action_time = trim(input.action_time)

@@ -20,6 +20,7 @@ export default function MovementTypeFilter({
   const filters = useMemo(
     () => [
       { value: 'All' as const, label: t('movements.all') },
+      { value: 'donation_relief_hub' as const, label: t('relief.filterChip') },
       ...movementTypes.map((m) => ({
         value: m.value as MovementFilter,
         label: m.shortLabel,
