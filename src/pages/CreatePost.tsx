@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import ActionPathAI from '../components/actionpath/ActionPathAI'
 import { ArrowLeft, Loader2, Send } from 'lucide-react'
 import CategoryPicker from '../components/CategoryPicker'
 import ChooseYourVoice from '../components/ChooseYourVoice'
@@ -22,6 +23,10 @@ import {
   validateCreatePost,
   type CreatePostFieldErrors,
 } from '../lib/validation'
+import {
+  buildActionPathApplyResult,
+  type ActionPathSuggestion,
+} from '../lib/actionPathAi'
 import type { Category, MovementType, PostingIdentity } from '../types'
 
 function CharCount({ current, max }: { current: number; max: number }) {
@@ -94,6 +99,57 @@ export default function CreatePost() {
 
   function updateMovementField(key: keyof MovementFieldValues, value: string) {
     setMovementFields((prev) => ({ ...prev, [key]: value }))
+  }
+
+  function applyActionPathSuggestion(
+    suggestion: ActionPathSuggestion,
+    mode: 'draft' | 'fields',
+  ) {
+    const result = buildActionPathApplyResult(suggestion)
+
+    if (result.reliefRedirect) {
+      navigate('/relief/create', {
+        state: {
+          actionPathDraft: result.reliefRedirect,
+        },
+      })
+      return
+    }
+
+    if (mode === 'draft') {
+      setMovementType(result.movementType)
+      setMovementFields({
+        ...emptyMovementFields(),
+        ...result.movementFieldUpdates,
+      })
+      setPollOptions(
+        result.pollOptions && result.pollOptions.length >= 2
+          ? result.pollOptions
+          : emptyPollOptions(),
+      )
+      setTitle(result.title)
+      setDescription(result.description)
+      if (getMovementConfig(result.movementType).requiresProfileIdentity) {
+        setPostingIdentity('profile')
+      }
+      setFieldErrors({})
+    } else {
+      if (result.movementType !== movementType) {
+        setMovementType(result.movementType)
+        setMovementFields({
+          ...emptyMovementFields(),
+          ...result.movementFieldUpdates,
+        })
+      } else {
+        setMovementFields((prev) => ({
+          ...prev,
+          ...result.movementFieldUpdates,
+        }))
+      }
+      if (result.pollOptions && result.pollOptions.length >= 2) {
+        setPollOptions(result.pollOptions)
+      }
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -221,10 +277,17 @@ export default function CreatePost() {
         <p className="mt-2 text-slate-600">Choose how you want to create impact.</p>
       </header>
 
+      <ActionPathAI
+        currentMovementType={movementType}
+        onApplyDraft={(s) => applyActionPathSuggestion(s, 'draft')}
+        onApplyFields={(s) => applyActionPathSuggestion(s, 'fields')}
+        formDisabled={loading}
+      />
+
       <form
         onSubmit={handleSubmit}
         noValidate
-        className="card-surface space-y-6 p-6 sm:p-8"
+        className="card-surface mt-8 space-y-6 p-6 sm:p-8"
       >
         {error && (
           <p

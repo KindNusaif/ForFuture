@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Loader2, Send } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import CategoryPicker from '../components/CategoryPicker'
@@ -24,21 +24,38 @@ import type { Category, PostingIdentity } from '../types'
 
 const SUBTYPES: ReliefCreateSubtype[] = ['blood_donation', 'item_donation', 'fundraising']
 
+interface ActionPathReliefDraft {
+  subtype: ReliefCreateSubtype
+  title: string
+  description: string
+  reliefHints?: Partial<Record<keyof ReliefFieldValues, string>>
+}
+
 export default function CreateReliefPost() {
   const { t } = useTranslation()
   const { user, profile } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams] = useSearchParams()
   const subtypeParam = searchParams.get('subtype') as ReliefCreateSubtype | null
+  const actionPathDraft = (location.state as { actionPathDraft?: ActionPathReliefDraft } | null)
+    ?.actionPathDraft
 
-  const [subtype, setSubtype] = useState<ReliefCreateSubtype | null>(
-    subtypeParam && SUBTYPES.includes(subtypeParam) ? subtypeParam : null,
-  )
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
+  const [subtype, setSubtype] = useState<ReliefCreateSubtype | null>(() => {
+    if (actionPathDraft?.subtype) return actionPathDraft.subtype
+    if (subtypeParam && SUBTYPES.includes(subtypeParam)) return subtypeParam
+    return null
+  })
+  const [title, setTitle] = useState(actionPathDraft?.title ?? '')
+  const [description, setDescription] = useState(actionPathDraft?.description ?? '')
   const [category, setCategory] = useState<Category | ''>('')
   const [postingIdentity, setPostingIdentity] = useState<PostingIdentity>('profile')
-  const [reliefFields, setReliefFields] = useState<ReliefFieldValues>(emptyReliefFields())
+  const [reliefFields, setReliefFields] = useState<ReliefFieldValues>(() => {
+    const base = emptyReliefFields()
+    const hints = actionPathDraft?.reliefHints
+    if (!hints) return base
+    return { ...base, ...hints }
+  })
   const [mapLocation, setMapLocation] = useState<MapLocation>({
     location_name: '',
     latitude: null,

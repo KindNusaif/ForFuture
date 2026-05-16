@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { Flag, Heart, ScrollText, Sparkles, Vote, X } from 'lucide-react'
+import { Flag, Heart, ScrollText, Sparkles, Vote, Wand2, X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { JoinMovementModalVariant } from '../context/join-movement-context'
 
 interface JoinMovementModalProps {
@@ -9,20 +10,22 @@ interface JoinMovementModalProps {
   onClose: () => void
 }
 
-const benefits = [
-  { icon: Heart, text: 'Support ideas and volunteer drives' },
-  { icon: Vote, text: 'Vote in Quick Youth Polls' },
-  { icon: Sparkles, text: 'Get your private Youth Voice ID' },
-]
-
 export default function JoinMovementModal({
   open,
   variant = 'default',
   onClose,
 }: JoinMovementModalProps) {
+  const { t } = useTranslation()
   const isReport = variant === 'report'
   const isPetition = variant === 'petition'
+  const isActionPath = variant === 'actionpath'
   const dialogRef = useRef<HTMLDialogElement>(null)
+
+  const benefits = [
+    { icon: Heart, text: t('joinModal.benefitSupport') },
+    { icon: Vote, text: t('joinModal.benefitPolls') },
+    { icon: Sparkles, text: t('joinModal.benefitVoice') },
+  ]
 
   useEffect(() => {
     const dialog = dialogRef.current
@@ -30,6 +33,18 @@ export default function JoinMovementModal({
     if (open && !dialog.open) dialog.showModal()
     if (!open && dialog.open) dialog.close()
   }, [open])
+
+  const title = isActionPath
+    ? t('actionPath.authTitle')
+    : t('joinModal.title')
+
+  const description = isReport
+    ? t('joinModal.descReport')
+    : isPetition
+      ? t('joinModal.descPetition')
+      : isActionPath
+        ? t('actionPath.authMessage')
+        : t('joinModal.descDefault')
 
   return (
     <dialog
@@ -49,7 +64,7 @@ export default function JoinMovementModal({
             type="button"
             onClick={onClose}
             className="absolute right-4 top-4 rounded-xl p-2 text-slate-400 transition hover:bg-white/80 hover:text-slate-700"
-            aria-label="Close"
+            aria-label={t('common.close')}
           >
             <X className="h-5 w-5" />
           </button>
@@ -65,24 +80,22 @@ export default function JoinMovementModal({
               <Flag className="h-6 w-6" aria-hidden />
             ) : isPetition ? (
               <ScrollText className="h-6 w-6" aria-hidden />
+            ) : isActionPath ? (
+              <Wand2 className="h-6 w-6" aria-hidden />
             ) : (
               <Sparkles className="h-6 w-6" aria-hidden />
             )}
           </span>
 
           <h2 id="join-movement-title" className="mt-5 text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">
-            Join the Movement
+            {title}
           </h2>
           <p id="join-movement-desc" className="mt-2 text-sm leading-relaxed text-slate-600">
-            {isReport
-              ? 'Create an account to help keep ForFuture safe and respectful.'
-              : isPetition
-                ? 'Create an account to support petitions and help youth voices drive change.'
-                : 'Create an account to contribute, support ideas, vote in polls, and become part of ForFuture.'}
+            {description}
           </p>
 
-          {!isReport && !isPetition && (
-            <ul className="mt-5 space-y-2.5" aria-label="Member benefits">
+          {!isReport && !isPetition && !isActionPath && (
+            <ul className="mt-5 space-y-2.5" aria-label={t('joinModal.benefitsAria')}>
               {benefits.map(({ icon: Icon, text }) => (
                 <li
                   key={text}
@@ -99,17 +112,17 @@ export default function JoinMovementModal({
 
           <div className="mt-6 flex flex-col gap-3">
             <Link to="/signup" onClick={onClose} className="btn-primary w-full">
-              Create Account
+              {t('joinModal.createAccount')}
             </Link>
             <Link to="/login" onClick={onClose} className="btn-secondary w-full">
-              Log In
+              {t('joinModal.logIn')}
             </Link>
             <button
               type="button"
               onClick={onClose}
               className="btn-ghost w-full text-slate-500"
             >
-              Close
+              {t('common.close')}
             </button>
           </div>
         </div>

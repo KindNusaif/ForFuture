@@ -1,6 +1,6 @@
 import { createContext } from 'react'
 
-export type JoinMovementModalVariant = 'default' | 'report' | 'petition'
+export type JoinMovementModalVariant = 'default' | 'report' | 'petition' | 'actionpath'
 
 export interface JoinMovementContextValue {
   openJoinModal: (variant?: JoinMovementModalVariant) => void
