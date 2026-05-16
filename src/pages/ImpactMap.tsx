@@ -1,13 +1,14 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Map, RefreshCw } from 'lucide-react'
+import { Map } from 'lucide-react'
 import ImpactMapCanvas from '../components/impact-map/ImpactMapCanvas'
 import ImpactMapDetail from '../components/impact-map/ImpactMapDetail'
 import ImpactMapFilters from '../components/impact-map/ImpactMapFilters'
 import ImpactMapList from '../components/impact-map/ImpactMapList'
 import ImpactMapStats from '../components/impact-map/ImpactMapStats'
 import EmptyState from '../components/EmptyState'
-import Toast from '../components/Toast'
+import AsyncLoadHint from '../components/AsyncLoadHint'
+import { useLoadingProgress } from '../hooks/useLoadingProgress'
 import { PostCardSkeleton } from '../components/Skeleton'
 import { useGeolocation } from '../hooks/useGeolocation'
 import { useImpactMapData } from '../hooks/useImpactMapData'
@@ -31,6 +32,7 @@ export default function ImpactMapPage() {
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [mobileListOpen, setMobileListOpen] = useState(true)
+  const { showSlowHint, showRecovery } = useLoadingProgress(loading)
   const [selectionFlyTo, setSelectionFlyTo] = useState<{
     lat: number
     lng: number
@@ -116,17 +118,14 @@ export default function ImpactMapPage() {
         />
       </div>
 
-      {error && (
-        <div className="mt-4 space-y-3">
-          <Toast variant="error" message={error} onDismiss={() => {}} />
-          <div className="text-center">
-            <button type="button" onClick={() => void reload()} className="btn-secondary">
-              <RefreshCw className="h-4 w-4" />
-              Try again
-            </button>
-          </div>
-        </div>
-      )}
+      <AsyncLoadHint
+        className="mt-4"
+        showSlowHint={loading && showSlowHint && !error}
+        showRecovery={loading && showRecovery && !error}
+        error={error}
+        onRetry={() => void reload()}
+        slowMessage="Loading map data…"
+      />
 
       {loading ? (
         <ul className="mt-6 space-y-4" aria-busy="true">

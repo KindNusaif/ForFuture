@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { BarChart3, FileText, Heart, Mic, Plus, RefreshCw, User } from 'lucide-react'
 import { getTotalPollVotesReceived } from '../lib/polls'
@@ -7,13 +7,15 @@ import EmptyState from '../components/EmptyState'
 import PostCard from '../components/PostCard'
 import StatCard from '../components/StatCard'
 import { PostCardSkeleton, ProfileHeaderSkeleton } from '../components/Skeleton'
-import Toast from '../components/Toast'
+import AsyncLoadHint from '../components/AsyncLoadHint'
 import MyReportsSection from '../components/MyReportsSection'
 import { MODERATION_FEATURE_BLURB } from '../lib/moderation'
 import { useAuth } from '../hooks/useAuth'
+import { useLoadingProgress } from '../hooks/useLoadingProgress'
 import { updateProfileBio } from '../lib/auth'
 import { fetchPostsByUser } from '../lib/posts'
 import { formatError } from '../lib/errors'
+import { isRequestAborted } from '../lib/supabaseRequest'
 import type { Post } from '../types'
 
 function ProfileContent({ userId, email }: { userId: string; email?: string | null }) {
@@ -22,6 +24,9 @@ function ProfileContent({ userId, email }: { userId: string; email?: string | nu
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const abortRef = useRef<AbortController | null>(null)
+  const requestIdRef = useRef(0)
+  const { showSlowHint, showRecovery } = useLoadingProgress(loading || refreshing)
   const [bioOverride, setBioOverride] = useState<string | null>(null)
   const [savingBio, setSavingBio] = useState(false)
 
@@ -41,37 +46,39 @@ function ProfileContent({ userId, email }: { userId: string; email?: string | nu
   }, [profile])
 
   const reload = useCallback(async (isRefresh = false) => {
+    abortRef.current?.abort()
+    const controller = new AbortController()
+    abortRef.current = controller
+    const requestId = ++requestIdRef.current
+
     if (isRefresh) setRefreshing(true)
+    else setLoading(true)
     setError(null)
+
     try {
-      const userPosts = await fetchPostsByUser(userId)
+      const userPosts = await fetchPostsByUser(userId, controller.signal)
+      if (requestId !== requestIdRef.current || controller.signal.aborted) return
       setPosts(userPosts)
     } catch (err) {
+      if (requestId !== requestIdRef.current || isRequestAborted(err)) return
       setError(formatError(err))
     } finally {
-      setLoading(false)
-      setRefreshing(false)
+      if (requestId === requestIdRef.current) {
+        setLoading(false)
+        setRefreshing(false)
+      }
     }
   }, [userId])
 
   useEffect(() => {
-    let cancelled = false
-
-    fetchPostsByUser(userId)
-      .then((userPosts) => {
-        if (!cancelled) setPosts(userPosts)
-      })
-      .catch((err) => {
-        if (!cancelled) setError(formatError(err))
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-
+    const timer = window.setTimeout(() => {
+      void reload(false)
+    }, 0)
     return () => {
-      cancelled = true
+      window.clearTimeout(timer)
+      abortRef.current?.abort()
     }
-  }, [userId])
+  }, [reload])
 
   const bioDraft = bioOverride ?? profile?.bio ?? ''
 
@@ -205,11 +212,14 @@ function ProfileContent({ userId, email }: { userId: string; email?: string | nu
         </header>
       )}
 
-      {error && (
-        <div className="mt-4">
-          <Toast variant="error" message={error} onDismiss={() => setError(null)} />
-        </div>
-      )}
+      <AsyncLoadHint
+        className="mt-4"
+        showSlowHint={(loading || refreshing) && showSlowHint && !error}
+        showRecovery={(loading || refreshing) && showRecovery && !error}
+        error={error}
+        onRetry={() => void reload(true)}
+        slowMessage="Loading your movements…"
+      />
 
       <details className="mt-8 rounded-xl border border-slate-200/80 bg-slate-50/50 px-4 py-3">
         <summary className="cursor-pointer text-sm font-semibold text-slate-800">

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Inbox, Loader2, Plus, RefreshCw } from 'lucide-react'
+import { Inbox, Loader2, Plus } from 'lucide-react'
 import EmptyState from './EmptyState'
 import FeedDiscoveryBar from './FeedDiscoveryBar'
 import PostCard from './PostCard'
@@ -13,7 +13,16 @@ import { isPollMovement } from '../lib/movements'
 import { isPetitionMovement } from '../lib/petitions'
 import { signPetition } from '../lib/petitionSignatures'
 import { castPollVote } from '../lib/polls'
-import { DEFAULT_FEED_PAGE_SIZE, fetchPostsPage } from '../lib/posts'
+import AsyncLoadHint from './AsyncLoadHint'
+import { useLoadingProgress } from '../hooks/useLoadingProgress'
+import {
+  DEFAULT_FEED_PAGE_SIZE,
+  enrichPosts,
+  fetchFeedRowsPage,
+  postsAsShell,
+} from '../lib/posts'
+import { withAutoRetry } from '../lib/supabaseRequest'
+import { isRequestAborted } from '../lib/supabaseRequest'
 import { getActionSuccessMessage } from '../lib/movements'
 import { togglePostAction } from '../lib/postActions'
 import { formatError } from '../lib/errors'
@@ -54,6 +63,7 @@ function PostFeedContent({
 
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
+  const [enriching, setEnriching] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
   const [hasMore, setHasMore] = useState(false)
   const [nextOffset, setNextOffset] = useState(0)
@@ -67,42 +77,68 @@ function PostFeedContent({
   const [actionToast, setActionToast] = useState<FeedToast | null>(null)
 
   const requestIdRef = useRef(0)
+  const abortRef = useRef<AbortController | null>(null)
 
   const displayedToast = actionToast ?? toastProp
+  const isRequestActive = loading || enriching || loadingMore
+  const { showSlowHint, showRecovery } = useLoadingProgress(isRequestActive)
 
   const loadPage = useCallback(
     async (offset: number, append: boolean) => {
+      abortRef.current?.abort()
+      const controller = new AbortController()
+      abortRef.current = controller
       const requestId = ++requestIdRef.current
 
       if (append) {
         setLoadingMore(true)
       } else {
         setLoading(true)
+        setEnriching(false)
         setError(null)
       }
 
       try {
-        const result = await fetchPostsPage({
+        const pageParams = {
           viewerUserId,
           offset,
           limit: DEFAULT_FEED_PAGE_SIZE,
           movementType: serverMovementType(movementFilter),
           category: serverCategory(category),
-        })
+        }
 
-        if (requestId !== requestIdRef.current) return
+        const { rows, hasMore: more, nextOffset: next } = await withAutoRetry(
+          () => fetchFeedRowsPage(pageParams, controller.signal),
+          { signal: controller.signal },
+        )
 
-        setPosts((prev) => (append ? [...prev, ...result.posts] : result.posts))
-        setHasMore(result.hasMore)
-        setNextOffset(result.nextOffset)
+        if (requestId !== requestIdRef.current || controller.signal.aborted) return
+
+        if (!append) {
+          setPosts(postsAsShell(rows))
+          setLoading(false)
+          setEnriching(true)
+        }
+
+        const enriched = await withAutoRetry(
+          () => enrichPosts(rows, viewerUserId, controller.signal),
+          { signal: controller.signal },
+        )
+
+        if (requestId !== requestIdRef.current || controller.signal.aborted) return
+
+        setPosts((prev) => (append ? [...prev, ...enriched] : enriched))
+        setHasMore(more)
+        setNextOffset(next)
         setError(null)
       } catch (err) {
-        if (requestId !== requestIdRef.current) return
+        if (requestId !== requestIdRef.current || isRequestAborted(err)) return
         setError(formatError(err))
         if (!append) setPosts([])
       } finally {
         if (requestId === requestIdRef.current) {
           setLoading(false)
+          setEnriching(false)
           setLoadingMore(false)
         }
       }
@@ -114,7 +150,10 @@ function PostFeedContent({
     const timer = window.setTimeout(() => {
       void loadPage(0, false)
     }, 0)
-    return () => window.clearTimeout(timer)
+    return () => {
+      window.clearTimeout(timer)
+      abortRef.current?.abort()
+    }
   }, [loadPage])
 
   const filtered = useMemo(() => {
@@ -299,17 +338,13 @@ function PostFeedContent({
         onGuestCreate={() => handleRestrictedAction()}
       />
 
-      {error && !displayedToast && (
-        <div className="mt-4 space-y-3">
-          <Toast variant="error" message={error} onDismiss={() => setError(null)} />
-          <div className="text-center">
-            <button type="button" onClick={handleRetry} className="btn-secondary">
-              <RefreshCw className="h-4 w-4" />
-              Try again
-            </button>
-          </div>
-        </div>
-      )}
+      <AsyncLoadHint
+        className="mt-4"
+        showSlowHint={isRequestActive && showSlowHint && !error}
+        showRecovery={isRequestActive && showRecovery && !error}
+        error={error && !displayedToast ? error : null}
+        onRetry={handleRetry}
+      />
 
       {loading ? (
         <ul className="mt-6 min-w-0 space-y-4" aria-busy="true" aria-label="Loading movements">
@@ -319,7 +354,7 @@ function PostFeedContent({
             </li>
           ))}
         </ul>
-      ) : filtered.length === 0 && !error ? (
+      ) : filtered.length === 0 && !error && !loading ? (
         <div className="mt-8">
           <EmptyState
             icon={Inbox}
@@ -351,6 +386,11 @@ function PostFeedContent({
         </div>
       ) : (
         <>
+          {enriching && (
+            <p className="mb-3 text-center text-xs font-medium text-slate-500" role="status">
+              Loading engagement counts…
+            </p>
+          )}
           <ul className="mt-4 min-w-0 space-y-4 sm:space-y-5">
             {filtered.map((post) => (
               <li key={post.id} className="min-w-0">

@@ -1,11 +1,14 @@
 import type { ReactNode } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
+import AsyncLoadHint from './AsyncLoadHint'
 import { useAuth } from '../hooks/useAuth'
+import { useLoadingProgress } from '../hooks/useLoadingProgress'
 
 export default function ProtectedRoute({ children }: { children: ReactNode }) {
   const { user, loading, configured, authError, profileError } = useAuth()
   const location = useLocation()
+  const { showSlowHint, showRecovery } = useLoadingProgress(loading && !authError)
 
   if (!configured) {
     return (
@@ -26,9 +29,15 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center gap-3 bg-slate-50">
+      <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-slate-50 px-4">
         <Loader2 className="h-10 w-10 animate-spin text-brand-600" aria-label="Loading" />
         <p className="text-sm text-slate-500">Loading your session…</p>
+        <AsyncLoadHint
+          className="w-full max-w-md"
+          showSlowHint={showSlowHint}
+          showRecovery={showRecovery}
+          slowMessage="Still connecting to ForFuture…"
+        />
       </main>
     )
   }

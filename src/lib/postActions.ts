@@ -2,6 +2,8 @@ import { getActionTypeForMovement } from './movements'
 import { enhanceSupabaseError, isMissingRelation } from './supabaseErrors'
 import { requireSupabase } from './supabase'
 import { chunkIds, DEFAULT_REQUEST_TIMEOUT_MS, withTimeout } from './supabaseRequest'
+import { isPollMovement } from './movements'
+import { isPetitionMovement } from './petitions'
 import type { MovementType, Post, PostActionType } from '../types'
 
 const ACTIONS_TABLE = 'post_actions' as const
@@ -70,7 +72,11 @@ export function attachActionCounts(posts: Post[], actions: PostActionRow[], user
 
 export async function enrichPostsWithActions(posts: Post[], userId?: string): Promise<Post[]> {
   if (posts.length === 0) return []
-  const actions = await fetchPostActionsForPosts(posts.map((p) => p.id))
+  const actionPostIds = posts
+    .filter((p) => !isPollMovement(p.movement_type) && !isPetitionMovement(p.movement_type))
+    .map((p) => p.id)
+  const actions =
+    actionPostIds.length > 0 ? await fetchPostActionsForPosts(actionPostIds) : []
   return attachActionCounts(posts, actions, userId)
 }
 

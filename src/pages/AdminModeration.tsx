@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, Loader2, RefreshCw, Shield } from 'lucide-react'
+import { ArrowLeft, RefreshCw, Shield } from 'lucide-react'
 import {
   ModerationPriorityBadge,
   ModerationStatusBadge,
 } from '../components/ModerationStatusBadge'
-import Toast from '../components/Toast'
+import AsyncLoadHint from '../components/AsyncLoadHint'
+import { PostCardSkeleton } from '../components/Skeleton'
+import { useLoadingProgress } from '../hooks/useLoadingProgress'
+import { withAutoRetry } from '../lib/supabaseRequest'
 import {
   fetchModerationQueue,
   updateModerationReport,
@@ -39,13 +42,14 @@ export default function AdminModeration() {
   const [error, setError] = useState<string | null>(null)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [adminNotes, setAdminNotes] = useState<Record<string, string>>({})
+  const { showSlowHint, showRecovery } = useLoadingProgress(loading || refreshing)
 
   const load = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true)
     else setLoading(true)
     setError(null)
     try {
-      const queue = await fetchModerationQueue()
+      const queue = await withAutoRetry(() => fetchModerationQueue())
       setItems(queue)
     } catch (err) {
       setError(formatError(err))
@@ -56,8 +60,10 @@ export default function AdminModeration() {
   }, [])
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- load moderation queue on mount
-    void load()
+    const timer = window.setTimeout(() => {
+      void load()
+    }, 0)
+    return () => window.clearTimeout(timer)
   }, [load])
 
   async function handleStatusUpdate(item: ModerationQueueItem, status: ContentReportStatus) {
@@ -108,17 +114,23 @@ export default function AdminModeration() {
         </div>
       </header>
 
-      {error && (
-        <div className="mt-4">
-          <Toast variant="error" message={error} onDismiss={() => setError(null)} />
-        </div>
-      )}
+      <AsyncLoadHint
+        className="mt-4"
+        showSlowHint={loading && showSlowHint && !error}
+        showRecovery={loading && showRecovery && !error}
+        error={error}
+        onRetry={() => void load(true)}
+        slowMessage="Loading moderation queue…"
+      />
 
       {loading ? (
-        <div className="mt-12 flex flex-col items-center gap-3">
-          <Loader2 className="h-10 w-10 animate-spin text-accent-600" />
-          <p className="text-sm text-slate-500">Loading moderation queue…</p>
-        </div>
+        <ul className="mt-6 space-y-4" aria-busy="true">
+          {[1, 2].map((i) => (
+            <li key={i}>
+              <PostCardSkeleton />
+            </li>
+          ))}
+        </ul>
       ) : items.length === 0 ? (
         <div className="card-surface mt-6 p-10 text-center">
           <p className="text-lg font-bold text-slate-900">No reports in the queue</p>

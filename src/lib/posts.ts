@@ -12,9 +12,10 @@ import { enrichPostsWithActions, fetchPostActionsForPosts } from './postActions'
 import { enrichPostsWithPetitionSignatures } from './petitionSignatures'
 import { isPetitionMovement } from './petitions'
 import { requireSupabase } from './supabase'
+import { FEED_ENRICH_TIMEOUT_MS, FEED_REQUEST_TIMEOUT_MS } from './requestConfig'
 import {
   DEFAULT_REQUEST_TIMEOUT_MS,
-  FEED_REQUEST_TIMEOUT_MS,
+  withAutoRetry,
   withTimeout,
 } from './supabaseRequest'
 import { formatYouthVoiceLabel } from './youthVoiceId'
@@ -209,15 +210,57 @@ async function fetchOwnPostRows(userId: string, limit = PROFILE_POSTS_LIMIT): Pr
   )
 }
 
-/** Poll + support enrichment in parallel (avoids sequential round-trips) */
-export async function enrichPosts(rows: PostRowBase[], viewerUserId?: string): Promise<Post[]> {
+/** Lightweight posts for progressive feed render (before enrichment). */
+export function postsAsShell(rows: PostRowBase[]): Post[] {
+  return rows.map((row) => ({
+    ...(row as Post),
+    support_count: 0,
+    supported_by_me: false,
+  }))
+}
+
+export interface FeedRowsPageResult {
+  rows: PostRowBase[]
+  hasMore: boolean
+  nextOffset: number
+}
+
+/** Fetch feed rows only — fast path for progressive loading. */
+export async function fetchFeedRowsPage(
+  params: FetchPostsPageParams = {},
+  signal?: AbortSignal,
+): Promise<FeedRowsPageResult> {
+  const offset = params.offset ?? 0
+  const limit = params.limit ?? DEFAULT_FEED_PAGE_SIZE
+
+  const { rows, hasMore } = await withTimeout(
+    fetchPublicFeedRows({ ...params, limit, offset }),
+    FEED_REQUEST_TIMEOUT_MS,
+    undefined,
+    signal,
+  )
+
+  return { rows, hasMore, nextOffset: offset + limit }
+}
+
+/** Poll + petition + action enrichment in parallel (only relevant tables per type). */
+export async function enrichPosts(
+  rows: PostRowBase[],
+  viewerUserId?: string,
+  signal?: AbortSignal,
+): Promise<Post[]> {
   if (rows.length === 0) return []
 
   const asPosts = rows as Post[]
   const [withPolls, withSupport, withPetitions] = await Promise.all([
-    enrichPostsWithPolls(asPosts, viewerUserId),
-    enrichPostsWithActions(asPosts, viewerUserId),
-    enrichPostsWithPetitionSignatures(asPosts, viewerUserId),
+    withTimeout(enrichPostsWithPolls(asPosts, viewerUserId), FEED_ENRICH_TIMEOUT_MS, undefined, signal),
+    withTimeout(enrichPostsWithActions(asPosts, viewerUserId), FEED_ENRICH_TIMEOUT_MS, undefined, signal),
+    withTimeout(
+      enrichPostsWithPetitionSignatures(asPosts, viewerUserId),
+      FEED_ENRICH_TIMEOUT_MS,
+      undefined,
+      signal,
+    ),
   ])
 
   const pollById = new Map(withPolls.map((p) => [p.id, p.poll]))
@@ -240,22 +283,18 @@ export async function enrichPosts(rows: PostRowBase[], viewerUserId?: string): P
   })
 }
 
-export async function fetchPostsPage(params: FetchPostsPageParams = {}): Promise<FetchPostsPageResult> {
-  const offset = params.offset ?? 0
-  const limit = params.limit ?? DEFAULT_FEED_PAGE_SIZE
-
-  const { rows, hasMore } = await withTimeout(
-    fetchPublicFeedRows({ ...params, limit, offset }),
-    FEED_REQUEST_TIMEOUT_MS,
+export async function fetchPostsPage(
+  params: FetchPostsPageParams = {},
+  signal?: AbortSignal,
+): Promise<FetchPostsPageResult> {
+  return withAutoRetry(
+    async () => {
+      const { rows, hasMore, nextOffset } = await fetchFeedRowsPage(params, signal)
+      const posts = await enrichPosts(rows, params.viewerUserId, signal)
+      return { posts, hasMore, nextOffset }
+    },
+    { signal },
   )
-
-  const posts = await withTimeout(enrichPosts(rows, params.viewerUserId), FEED_REQUEST_TIMEOUT_MS)
-
-  return {
-    posts,
-    hasMore,
-    nextOffset: offset + limit,
-  }
 }
 
 /** First page only — prefer fetchPostsPage for feeds */
@@ -267,36 +306,49 @@ export async function fetchPosts(viewerUserId?: string): Promise<Post[]> {
 export async function fetchPostById(
   postId: string,
   viewerUserId?: string,
+  signal?: AbortSignal,
 ): Promise<Post | null> {
-  const client = requireSupabase()
+  return withAutoRetry(
+    async () => {
+      const client = requireSupabase()
 
-  const fetchRow = async (columns: string) => {
-    const { data, error } = await client
-      .from(FEED_SOURCE)
-      .select(columns)
-      .eq('id', postId)
-      .maybeSingle()
-    if (error) throw error
-    return data
-  }
-
-  const row = await withTimeout(
-    (async () => {
-      try {
-        return await fetchRow(POST_PUBLIC_COLUMNS)
-      } catch (error) {
-        if (isMissingColumn(error)) return await fetchRow(POST_PUBLIC_COLUMNS_LEGACY)
-        throw error
+      const fetchRow = async (columns: string) => {
+        const { data, error } = await client
+          .from(FEED_SOURCE)
+          .select(columns)
+          .eq('id', postId)
+          .maybeSingle()
+        if (error) throw error
+        return data
       }
-    })(),
-    DEFAULT_REQUEST_TIMEOUT_MS,
+
+      const row = await withTimeout(
+        (async () => {
+          try {
+            return await fetchRow(POST_PUBLIC_COLUMNS)
+          } catch (error) {
+            if (isMissingColumn(error)) return await fetchRow(POST_PUBLIC_COLUMNS_LEGACY)
+            throw error
+          }
+        })(),
+        FEED_REQUEST_TIMEOUT_MS,
+        undefined,
+        signal,
+      )
+
+      if (!row) return null
+
+      const mapped = mapPostRow(row as unknown as Record<string, unknown>, { viewerUserId })
+      const [post] = await withTimeout(
+        enrichPosts([mapped], viewerUserId, signal),
+        FEED_ENRICH_TIMEOUT_MS,
+        undefined,
+        signal,
+      )
+      return post
+    },
+    { signal },
   )
-
-  if (!row) return null
-
-  const mapped = mapPostRow(row as unknown as Record<string, unknown>, { viewerUserId })
-  const [post] = await withTimeout(enrichPosts([mapped], viewerUserId), DEFAULT_REQUEST_TIMEOUT_MS)
-  return post
 }
 
 function buildInsertRow(input: CreateMovementInput): Record<string, unknown> {
@@ -428,9 +480,19 @@ export async function createPost(input: CreateMovementInput) {
   return post
 }
 
-export async function fetchPostsByUser(userId: string): Promise<Post[]> {
-  const rows = await withTimeout(fetchOwnPostRows(userId), FEED_REQUEST_TIMEOUT_MS)
-  return enrichPosts(rows, userId)
+export async function fetchPostsByUser(userId: string, signal?: AbortSignal): Promise<Post[]> {
+  return withAutoRetry(
+    async () => {
+      const rows = await withTimeout(
+        fetchOwnPostRows(userId),
+        FEED_REQUEST_TIMEOUT_MS,
+        undefined,
+        signal,
+      )
+      return enrichPosts(rows, userId, signal)
+    },
+    { signal },
+  )
 }
 
 /** Total supports received across a user's posts (lightweight aggregate) */

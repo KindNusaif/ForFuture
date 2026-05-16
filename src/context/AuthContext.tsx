@@ -6,7 +6,7 @@ import { isSupabaseConfigured, supabase } from '../lib/supabase'
 import type { Profile } from '../types'
 import { AuthContext, type AuthContextValue } from './auth-context'
 
-const AUTH_TIMEOUT_MS = 12_000
+import { AUTH_BOOTSTRAP_TIMEOUT_MS } from '../lib/requestConfig'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<AuthContextValue['session']>(null)
@@ -49,7 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let mounted = true
     const timeout = window.setTimeout(() => {
       if (mounted) finishLoading()
-    }, AUTH_TIMEOUT_MS)
+    }, AUTH_BOOTSTRAP_TIMEOUT_MS)
 
     async function init() {
       try {

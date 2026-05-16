@@ -12,6 +12,8 @@ import {
 } from '../lib/impactMap'
 import { DEFAULT_NEAR_RADIUS_KM } from '../lib/mapConfig'
 import { formatError } from '../lib/errors'
+import { withAutoRetry } from '../lib/supabaseRequest'
+import { isRequestAborted } from '../lib/supabaseRequest'
 import type { GeoPosition } from './useGeolocation'
 
 export function useImpactMapData(userLocation: GeoPosition | null) {
@@ -28,20 +30,28 @@ export function useImpactMapData(userLocation: GeoPosition | null) {
   const [search, setSearch] = useState('')
 
   const requestIdRef = useRef(0)
+  const abortRef = useRef<AbortController | null>(null)
 
   const load = useCallback(async () => {
+    abortRef.current?.abort()
+    const controller = new AbortController()
+    abortRef.current = controller
     const requestId = ++requestIdRef.current
     setLoading(true)
     setError(null)
 
     try {
-      const data = await fetchImpactMapEntries({
-        layerType: contentType !== 'all' ? contentType : undefined,
-      })
-      if (requestId !== requestIdRef.current) return
+      const data = await withAutoRetry(
+        () =>
+          fetchImpactMapEntries({
+            layerType: contentType !== 'all' ? contentType : undefined,
+          }),
+        { signal: controller.signal },
+      )
+      if (requestId !== requestIdRef.current || controller.signal.aborted) return
       setAllEntries(data)
     } catch (err) {
-      if (requestId !== requestIdRef.current) return
+      if (requestId !== requestIdRef.current || isRequestAborted(err)) return
       setError(formatError(err))
       setAllEntries([])
     } finally {
@@ -53,7 +63,10 @@ export function useImpactMapData(userLocation: GeoPosition | null) {
     const timer = window.setTimeout(() => {
       void load()
     }, 0)
-    return () => window.clearTimeout(timer)
+    return () => {
+      window.clearTimeout(timer)
+      abortRef.current?.abort()
+    }
   }, [load])
 
   const clientFilters: ImpactMapClientFilters = useMemo(

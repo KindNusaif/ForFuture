@@ -1,8 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import PostCard from '../components/PostCard'
 import Toast from '../components/Toast'
+import AsyncLoadHint from '../components/AsyncLoadHint'
+import { useLoadingProgress } from '../hooks/useLoadingProgress'
+import { isRequestAborted, withAutoRetry } from '../lib/supabaseRequest'
 import { useJoinMovement } from '../hooks/useJoinMovement'
 import { useAuthUser } from '../hooks/useAuthUser'
 import { fetchPostById } from '../lib/posts'
@@ -38,16 +41,28 @@ function MovementDetailContent({
   const [petitionSigning, setPetitionSigning] = useState(false)
   const [pollVoting, setPollVoting] = useState(false)
   const [actionMessage, setActionMessage] = useState<string | null>(null)
+  const abortRef = useRef<AbortController | null>(null)
+  const { showSlowHint, showRecovery } = useLoadingProgress(loading)
 
   useEffect(() => {
+    abortRef.current?.abort()
+    const controller = new AbortController()
+    abortRef.current = controller
     let cancelled = false
 
-    fetchPostById(id, isGuest ? undefined : user?.id)
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- load movement on route change
+    setLoading(true)
+    setError(null)
+
+    withAutoRetry(
+      () => fetchPostById(id, isGuest ? undefined : user?.id, controller.signal),
+      { signal: controller.signal },
+    )
       .then((data) => {
-        if (!cancelled) setPost(data)
+        if (!cancelled && !controller.signal.aborted) setPost(data)
       })
       .catch((err) => {
-        if (!cancelled) setError(formatError(err))
+        if (!cancelled && !isRequestAborted(err)) setError(formatError(err))
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -55,6 +70,7 @@ function MovementDetailContent({
 
     return () => {
       cancelled = true
+      controller.abort()
     }
   }, [id, isGuest, user?.id])
 
@@ -142,11 +158,20 @@ function MovementDetailContent({
         {backLabel}
       </button>
 
-      {error && (
-        <div className="mb-4">
-          <Toast variant="error" message={error} onDismiss={() => setError(null)} />
-        </div>
-      )}
+      <AsyncLoadHint
+        className="mb-4"
+        showSlowHint={loading && showSlowHint && !error}
+        showRecovery={loading && showRecovery && !error}
+        error={error}
+        onRetry={() => {
+          setLoading(true)
+          setError(null)
+          void fetchPostById(id, isGuest ? undefined : user?.id)
+            .then((data) => setPost(data))
+            .catch((err) => setError(formatError(err)))
+            .finally(() => setLoading(false))
+        }}
+      />
 
       {actionMessage && !error && (
         <div className="mb-4">
