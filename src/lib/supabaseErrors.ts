@@ -23,7 +23,7 @@ export function isMissingColumn(error: unknown): boolean {
 }
 
 const SCHEMA_FIX_HINT =
-  'Run supabase/fix_database.sql, supabase/trust_review_system.sql, supabase/donation_relief_hub.sql, supabase/movement_attachments.sql, and supabase/youth_impact_pulse.sql in the Supabase SQL Editor, then hard-refresh this page (Ctrl+Shift+R).'
+  'In Supabase → SQL Editor, run the entire file supabase/APPLY_ALL_MIGRATIONS.sql (one paste, one Run). New project? You can use supabase/00_fix_all.sql first, then the other scripts listed in that file’s header. Hard-refresh this page (Ctrl+Shift+R) when done.'
 
 export function enhanceSupabaseError(error: unknown): Error {
   if (!isPostgrestError(error)) {

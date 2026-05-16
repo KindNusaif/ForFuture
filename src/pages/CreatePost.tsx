@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import ActionPathAI from '../components/actionpath/ActionPathAI'
 import { ArrowLeft, Loader2, Send } from 'lucide-react'
@@ -31,6 +31,7 @@ import {
   buildActionPathApplyResult,
   type ActionPathSuggestion,
 } from '../lib/actionPathAi'
+import { useTranslation } from 'react-i18next'
 import type { Category, MovementType, PostingIdentity } from '../types'
 
 function CharCount({ current, max }: { current: number; max: number }) {
@@ -57,7 +58,9 @@ const MOVEMENT_TYPE_VALUES: MovementType[] = [
 ]
 
 export default function CreatePost() {
+  const { t } = useTranslation()
   const { user, profile } = useAuth()
+  const pollQuestionRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const typeFromUrl = searchParams.get('type')
@@ -103,6 +106,12 @@ export default function CreatePost() {
       setPostingIdentity('profile')
     }
   }
+
+  useEffect(() => {
+    if (!isPoll) return
+    const timer = window.setTimeout(() => pollQuestionRef.current?.focus(), 50)
+    return () => window.clearTimeout(timer)
+  }, [isPoll])
 
   function updateMovementField(key: keyof MovementFieldValues, value: string) {
     setMovementFields((prev) => ({ ...prev, [key]: value }))
@@ -306,11 +315,15 @@ export default function CreatePost() {
       </Link>
 
       <header className="mb-8">
-        <p className="text-sm font-semibold text-accent-600">Create a Youth Movement</p>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-          Start a Movement
+        <p className="text-sm font-semibold text-accent-600">
+          {isPoll ? t('create.pollEyebrow') : t('create.title')}
+        </p>
+        <h1 className="mt-1 text-2xl font-bold tracking-tight text-primary sm:text-3xl">
+          {isPoll ? t('create.pollPageTitle') : 'Start a Movement'}
         </h1>
-        <p className="mt-2 text-slate-600">Choose how you want to create impact.</p>
+        <p className="mt-2 text-secondary">
+          {isPoll ? t('create.pollPageSubtitle') : t('create.subtitle')}
+        </p>
       </header>
 
       <ActionPathAI
@@ -341,73 +354,111 @@ export default function CreatePost() {
             disabled={loading}
           />
 
-          {movementSupportsAttachments(movementType) && (
-            <MovementMediaUploader
-              files={pendingMedia.files}
-              remainingImages={pendingMedia.remainingImages}
-              remainingDocuments={pendingMedia.remainingDocuments}
-              onAddFiles={pendingMedia.addFiles}
-              onRemoveFile={pendingMedia.removeFile}
-              validationIssues={pendingMedia.allIssues}
-              disabled={loading}
-              uploading={uploadingMedia}
-            />
-          )}
-
-          <FormField
-            label={isPoll ? 'Poll question' : isPetition ? 'Petition title' : 'Title'}
-            id="title"
-            error={fieldErrors.title}
-          >
-            <input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              maxLength={POST_LIMITS.titleMax}
-              placeholder={
-                isPoll
-                  ? 'e.g. What issue should our community focus on first?'
-                  : isPetition
-                    ? 'e.g. Improve Pedestrian Safety Near Schools'
-                    : 'Give your movement a clear, compelling title'
-              }
-              aria-invalid={Boolean(fieldErrors.title)}
-              className={`${inputClass} ${fieldErrors.title ? inputErrorClass : ''}`}
-            />
-            <CharCount current={title.length} max={POST_LIMITS.titleMax} />
-          </FormField>
-
-          {isPoll && (
-            <PollFields
-              options={pollOptions}
-              onChange={setPollOptions}
-              errors={fieldErrors}
-              disabled={loading}
-            />
-          )}
-
-          {!isPetition && (
-            <FormField
-              label={isPoll ? 'Context (optional)' : 'Description'}
-              id="description"
-              error={fieldErrors.description}
+          {isPoll ? (
+            <section
+              className="space-y-5 rounded-2xl border-2 border-sky-200/90 bg-sky-50/50 p-5 dark:border-sky-800/60 dark:bg-sky-950/30"
+              aria-labelledby="poll-details-heading"
             >
-              <textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={isPoll ? 3 : 6}
-                maxLength={POST_LIMITS.descriptionMax}
-                placeholder={
-                  isPoll
-                    ? 'Add a short note to help voters understand the question (optional).'
-                    : 'Describe your movement, who it helps, and what you hope to achieve.'
-                }
-                aria-invalid={Boolean(fieldErrors.description)}
-                className={`${inputClass} resize-y min-h-[140px] ${fieldErrors.description ? inputErrorClass : ''}`}
+              <div>
+                <h2
+                  id="poll-details-heading"
+                  className="text-base font-bold text-sky-900 dark:text-sky-100"
+                >
+                  {t('create.pollSectionTitle')}
+                </h2>
+                <p className="mt-1 text-sm text-sky-800/90 dark:text-sky-200/80">
+                  {t('create.pollSectionSubtitle')}
+                </p>
+              </div>
+
+              <FormField label={t('polls.pollQuestion')} id="title" error={fieldErrors.title}>
+                <input
+                  ref={pollQuestionRef}
+                  id="title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  maxLength={POST_LIMITS.titleMax}
+                  placeholder="e.g. What issue should our community focus on first?"
+                  aria-invalid={Boolean(fieldErrors.title)}
+                  className={`${inputClass} ${fieldErrors.title ? inputErrorClass : ''}`}
+                />
+                <CharCount current={title.length} max={POST_LIMITS.titleMax} />
+              </FormField>
+
+              <PollFields
+                options={pollOptions}
+                onChange={setPollOptions}
+                errors={fieldErrors}
+                disabled={loading}
+                priority
               />
-              <CharCount current={description.length} max={POST_LIMITS.descriptionMax} />
-            </FormField>
+
+              <FormField label="Context (optional)" id="description" error={fieldErrors.description}>
+                <textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={3}
+                  maxLength={POST_LIMITS.descriptionMax}
+                  placeholder="Add a short note to help voters understand the question (optional)."
+                  aria-invalid={Boolean(fieldErrors.description)}
+                  className={`${inputClass} resize-y min-h-[88px] ${fieldErrors.description ? inputErrorClass : ''}`}
+                />
+                <CharCount current={description.length} max={POST_LIMITS.descriptionMax} />
+              </FormField>
+            </section>
+          ) : (
+            <>
+              {movementSupportsAttachments(movementType) && (
+                <MovementMediaUploader
+                  files={pendingMedia.files}
+                  remainingImages={pendingMedia.remainingImages}
+                  remainingDocuments={pendingMedia.remainingDocuments}
+                  onAddFiles={pendingMedia.addFiles}
+                  onRemoveFile={pendingMedia.removeFile}
+                  validationIssues={pendingMedia.allIssues}
+                  disabled={loading}
+                  uploading={uploadingMedia}
+                />
+              )}
+
+              <FormField
+                label={isPetition ? 'Petition title' : 'Title'}
+                id="title"
+                error={fieldErrors.title}
+              >
+                <input
+                  id="title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  maxLength={POST_LIMITS.titleMax}
+                  placeholder={
+                    isPetition
+                      ? 'e.g. Improve Pedestrian Safety Near Schools'
+                      : 'Give your movement a clear, compelling title'
+                  }
+                  aria-invalid={Boolean(fieldErrors.title)}
+                  className={`${inputClass} ${fieldErrors.title ? inputErrorClass : ''}`}
+                />
+                <CharCount current={title.length} max={POST_LIMITS.titleMax} />
+              </FormField>
+
+              {!isPetition && (
+                <FormField label="Description" id="description" error={fieldErrors.description}>
+                  <textarea
+                    id="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={6}
+                    maxLength={POST_LIMITS.descriptionMax}
+                    placeholder="Describe your movement, who it helps, and what you hope to achieve."
+                    aria-invalid={Boolean(fieldErrors.description)}
+                    className={`${inputClass} resize-y min-h-[140px] ${fieldErrors.description ? inputErrorClass : ''}`}
+                  />
+                  <CharCount current={description.length} max={POST_LIMITS.descriptionMax} />
+                </FormField>
+              )}
+            </>
           )}
 
           <MovementFields

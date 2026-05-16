@@ -19,8 +19,8 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
             Add <code className="rounded bg-white px-1">VITE_SUPABASE_URL</code> and{' '}
             <code className="rounded bg-white px-1">VITE_SUPABASE_ANON_KEY</code> to{' '}
             <code className="rounded bg-white px-1">.env</code>, then run{' '}
-            <code className="rounded bg-white px-1">supabase/fix_database.sql</code> in the Supabase
-            SQL Editor.
+            <code className="rounded bg-surface px-1">supabase/APPLY_ALL_MIGRATIONS.sql</code> in the
+            Supabase SQL Editor.
           </p>
         </div>
       </main>
@@ -75,7 +75,8 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
       {profileError && (
         <div
           className={`border-b px-4 py-3 text-center text-sm ${
-            profileError.includes('fix_database.sql')
+            profileError.includes('APPLY_ALL_MIGRATIONS') ||
+              profileError.includes('fix_database.sql')
               ? 'border-red-200 bg-red-50 text-red-900'
               : 'border-amber-200 bg-amber-50 text-amber-900'
           }`}

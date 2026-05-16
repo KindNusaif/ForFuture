@@ -156,7 +156,12 @@
     "descriptionLabel": "Description",
     "categoryLabel": "Category",
     "movementPickerTitle": "Choose how you want to create impact",
-    "movementPickerSubtitle": "Select a movement type to get started."
+    "movementPickerSubtitle": "Select a movement type to get started.",
+    "pollEyebrow": "Quick Youth Poll",
+    "pollPageTitle": "Create a community poll",
+    "pollPageSubtitle": "Ask a question and add choices for your community to vote on.",
+    "pollSectionTitle": "Poll details",
+    "pollSectionSubtitle": "Add your question first, then at least two answer options."
   },
   "categories": {
     "all": "All",

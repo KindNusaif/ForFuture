@@ -13,8 +13,9 @@ A web app where young people post initiatives for country development. Others ex
 2. **Set up Supabase**
 
    - Create a free project at [supabase.com](https://supabase.com)
-   - In **SQL Editor**, run **[`supabase/00_fix_all.sql`](supabase/00_fix_all.sql)** once (full schema, RLS, polls, trust badges)
-   - **Already have a database?** Run **[`supabase/fix_missing_features.sql`](supabase/fix_missing_features.sql)** to add polls + trust columns without resetting data
+   - In **SQL Editor**, run **[`supabase/APPLY_ALL_MIGRATIONS.sql`](supabase/APPLY_ALL_MIGRATIONS.sql)** once (full schema + trust + relief + attachments + impact pulse + appearance)
+   - **New empty project?** [`supabase/00_fix_all.sql`](supabase/00_fix_all.sql) is an alternative core bootstrap
+   - **Already have a database?** [`supabase/fix_missing_features.sql`](supabase/fix_missing_features.sql) patches polls + trust columns only
    - If the feed breaks after a migration, run [`supabase/recover_posts_api.sql`](supabase/recover_posts_api.sql) then `fix_missing_features.sql`
    - Under **Authentication → Providers → Email**, disable **Confirm email** for faster hackathon signup
    - Copy **Project URL** and **anon** / **publishable** key

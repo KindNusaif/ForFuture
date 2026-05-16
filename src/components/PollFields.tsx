@@ -9,9 +9,17 @@ interface PollFieldsProps {
   onChange: (options: string[]) => void
   errors: CreatePostFieldErrors
   disabled?: boolean
+  /** Emphasize poll options directly under the question (create flow). */
+  priority?: boolean
 }
 
-export default function PollFields({ options, onChange, errors, disabled }: PollFieldsProps) {
+export default function PollFields({
+  options,
+  onChange,
+  errors,
+  disabled,
+  priority,
+}: PollFieldsProps) {
   function updateOption(index: number, value: string) {
     const next = [...options]
     next[index] = value
@@ -29,7 +37,13 @@ export default function PollFields({ options, onChange, errors, disabled }: Poll
   }
 
   return (
-    <div className="space-y-4 rounded-xl border border-sky-100 bg-sky-50/40 p-4">
+    <div
+      className={`space-y-4 rounded-xl border p-4 ${
+        priority
+          ? 'border-sky-300/90 bg-white/80 dark:border-sky-700/60 dark:bg-sky-950/20'
+          : 'border-sky-100 bg-sky-50/40'
+      }`}
+    >
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-sky-800">
           Poll options

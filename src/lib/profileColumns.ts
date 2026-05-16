@@ -12,6 +12,11 @@ export const PROFILE_COLUMNS = [
   'organization_verification_type',
   'verified_at',
   'is_admin',
+].join(', ')
+
+/** Includes theme preferences (requires appearance_preferences.sql). */
+export const PROFILE_COLUMNS_WITH_APPEARANCE = [
+  ...PROFILE_COLUMNS.split(', '),
   'appearance_mode',
   'visual_comfort_enabled',
   'reduce_motion_enabled',

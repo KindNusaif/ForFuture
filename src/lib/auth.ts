@@ -3,6 +3,7 @@ import {
   PROFILE_COLUMNS,
   PROFILE_COLUMNS_LEGACY,
   PROFILE_COLUMNS_MINIMAL,
+  PROFILE_COLUMNS_WITH_APPEARANCE,
 } from './profileColumns'
 import { enhanceSupabaseError, isMissingColumn } from './supabaseErrors'
 import { requireSupabase } from './supabase'
@@ -194,7 +195,12 @@ export async function ensureYouthVoiceId(userId: string): Promise<Profile> {
 
 async function selectProfileRow(userId: string): Promise<Record<string, unknown> | null> {
   const client = requireSupabase()
-  const columnSets = [PROFILE_COLUMNS, PROFILE_COLUMNS_LEGACY, PROFILE_COLUMNS_MINIMAL]
+  const columnSets = [
+    PROFILE_COLUMNS_WITH_APPEARANCE,
+    PROFILE_COLUMNS,
+    PROFILE_COLUMNS_LEGACY,
+    PROFILE_COLUMNS_MINIMAL,
+  ]
 
   let lastError: unknown = null
 
