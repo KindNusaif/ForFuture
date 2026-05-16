@@ -18,6 +18,7 @@ function mapProfile(row: Record<string, unknown>): Profile {
     organization_verification_type:
       (row.organization_verification_type as Profile['organization_verification_type']) ?? null,
     verified_at: (row.verified_at as string | null) ?? null,
+    is_admin: Boolean(row.is_admin),
   }
 }
 

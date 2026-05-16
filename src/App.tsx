@@ -1,6 +1,8 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { JoinMovementProvider } from './context/JoinMovementContext'
+import { ReportContentProvider } from './context/ReportContentContext'
+import AdminRoute from './components/AdminRoute'
 import Layout from './components/Layout'
 import ExploreLayout from './components/ExploreLayout'
 import ImpactMapLayout from './components/ImpactMapLayout'
@@ -16,11 +18,13 @@ import Feed from './pages/Feed'
 import CreatePost from './pages/CreatePost'
 import Profile from './pages/Profile'
 import MovementDetail from './pages/MovementDetail'
+import AdminModeration from './pages/AdminModeration'
 
 export default function App() {
   return (
     <AuthProvider>
       <JoinMovementProvider>
+        <ReportContentProvider>
         <Routes>
           {/* Public marketing */}
           <Route element={<Layout />}>
@@ -80,10 +84,19 @@ export default function App() {
             />
             <Route path="create" element={<CreatePost />} />
             <Route path="profile" element={<Profile />} />
+            <Route
+              path="admin/moderation"
+              element={
+                <AdminRoute>
+                  <AdminModeration />
+                </AdminRoute>
+              }
+            />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </ReportContentProvider>
       </JoinMovementProvider>
     </AuthProvider>
   )

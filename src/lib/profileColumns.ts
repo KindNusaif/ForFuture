@@ -8,4 +8,5 @@ export const PROFILE_COLUMNS = [
   'is_verified_organization',
   'organization_verification_type',
   'verified_at',
+  'is_admin',
 ].join(', ')

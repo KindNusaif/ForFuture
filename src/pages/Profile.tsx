@@ -8,6 +8,8 @@ import PostCard from '../components/PostCard'
 import StatCard from '../components/StatCard'
 import { PostCardSkeleton, ProfileHeaderSkeleton } from '../components/Skeleton'
 import Toast from '../components/Toast'
+import MyReportsSection from '../components/MyReportsSection'
+import { MODERATION_FEATURE_BLURB } from '../lib/moderation'
 import { useAuth } from '../hooks/useAuth'
 import { updateProfileBio } from '../lib/auth'
 import { fetchPostsByUser } from '../lib/posts'
@@ -203,6 +205,15 @@ function ProfileContent({ userId, email }: { userId: string; email?: string | nu
           <Toast variant="error" message={error} onDismiss={() => setError(null)} />
         </div>
       )}
+
+      <details className="mt-8 rounded-xl border border-slate-200/80 bg-slate-50/50 px-4 py-3">
+        <summary className="cursor-pointer text-sm font-semibold text-slate-800">
+          Safe Reporting &amp; Fair Moderation
+        </summary>
+        <p className="mt-2 text-xs leading-relaxed text-slate-600">{MODERATION_FEATURE_BLURB}</p>
+      </details>
+
+      <MyReportsSection userId={userId} />
 
       <div className="mb-4 mt-10 flex items-center justify-between">
         <h3 className="text-lg font-semibold text-slate-900">My Movements</h3>

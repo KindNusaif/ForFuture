@@ -103,14 +103,17 @@ export default function MapPicker({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- map initializes once per mount
   }, [mapsEnabled, disabled])
 
+  const latitude = value.latitude
+  const longitude = value.longitude
+
   useEffect(() => {
     if (!mapReady || !markerRef.current || !mapInstance.current) return
-    if (!hasValidCoordinates(value)) return
-    const pos = { lat: value.latitude, lng: value.longitude }
+    if (latitude == null || longitude == null) return
+    const pos = { lat: latitude, lng: longitude }
     markerRef.current.setPosition(pos)
     mapInstance.current.panTo(pos)
     mapInstance.current.setZoom(SELECTED_MAP_ZOOM)
-  }, [value.latitude, value.longitude, mapReady])
+  }, [latitude, longitude, mapReady])
 
   if (!mapsEnabled) {
     return (

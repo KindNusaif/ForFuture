@@ -11,6 +11,7 @@ import MovementActionButton from './MovementActionButton'
 import PostAuthor from './PostAuthor'
 import TrustedCampaignBadge from './TrustedCampaignBadge'
 import VerifiedOrganizationBadge from './VerifiedOrganizationBadge'
+import ReportContentButton from './ReportContentButton'
 import type { Post } from '../types'
 
 const PREVIEW_CHAR_THRESHOLD = 180
@@ -130,9 +131,12 @@ export default function PostCard({
               </span>
             )}
           </div>
-          <time className="shrink-0 text-xs font-medium text-slate-400" dateTime={post.created_at}>
-            {date}
-          </time>
+          <div className="flex shrink-0 items-center gap-1">
+            <ReportContentButton post={post} />
+            <time className="text-xs font-medium text-slate-400" dateTime={post.created_at}>
+              {date}
+            </time>
+          </div>
         </header>
       </div>
 

@@ -66,6 +66,8 @@ export interface Profile {
   is_verified_organization?: boolean
   organization_verification_type?: OrganizationVerificationType | null
   verified_at?: string | null
+  /** Platform moderation access — set only via Supabase SQL by administrators */
+  is_admin?: boolean
 }
 
 export interface Post {

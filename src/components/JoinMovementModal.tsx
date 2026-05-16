@@ -1,9 +1,11 @@
 import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { Heart, Sparkles, Vote, X } from 'lucide-react'
+import { Flag, Heart, Sparkles, Vote, X } from 'lucide-react'
+import type { JoinMovementModalVariant } from '../context/join-movement-context'
 
 interface JoinMovementModalProps {
   open: boolean
+  variant?: JoinMovementModalVariant
   onClose: () => void
 }
 
@@ -13,7 +15,12 @@ const benefits = [
   { icon: Sparkles, text: 'Get your private Youth Voice ID' },
 ]
 
-export default function JoinMovementModal({ open, onClose }: JoinMovementModalProps) {
+export default function JoinMovementModal({
+  open,
+  variant = 'default',
+  onClose,
+}: JoinMovementModalProps) {
+  const isReport = variant === 'report'
   const dialogRef = useRef<HTMLDialogElement>(null)
 
   useEffect(() => {
@@ -46,31 +53,44 @@ export default function JoinMovementModal({ open, onClose }: JoinMovementModalPr
             <X className="h-5 w-5" />
           </button>
 
-          <span className="inline-flex rounded-2xl bg-accent-600 p-3 text-white shadow-lg shadow-accent-600/30">
-            <Sparkles className="h-6 w-6" aria-hidden />
+          <span
+            className={`inline-flex rounded-2xl p-3 text-white shadow-lg ${
+              isReport
+                ? 'bg-slate-800 shadow-slate-900/25'
+                : 'bg-accent-600 shadow-accent-600/30'
+            }`}
+          >
+            {isReport ? (
+              <Flag className="h-6 w-6" aria-hidden />
+            ) : (
+              <Sparkles className="h-6 w-6" aria-hidden />
+            )}
           </span>
 
           <h2 id="join-movement-title" className="mt-5 text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">
             Join the Movement
           </h2>
           <p id="join-movement-desc" className="mt-2 text-sm leading-relaxed text-slate-600">
-            Create an account to contribute, support ideas, vote in polls, and become part of
-            ForFuture.
+            {isReport
+              ? 'Create an account to help keep ForFuture safe and respectful.'
+              : 'Create an account to contribute, support ideas, vote in polls, and become part of ForFuture.'}
           </p>
 
-          <ul className="mt-5 space-y-2.5" aria-label="Member benefits">
-            {benefits.map(({ icon: Icon, text }) => (
-              <li
-                key={text}
-                className="flex items-center gap-3 rounded-xl border border-white/80 bg-white/70 px-3 py-2.5 text-sm text-slate-700 shadow-sm"
-              >
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent-100 text-accent-600">
-                  <Icon className="h-4 w-4" aria-hidden />
-                </span>
-                {text}
-              </li>
-            ))}
-          </ul>
+          {!isReport && (
+            <ul className="mt-5 space-y-2.5" aria-label="Member benefits">
+              {benefits.map(({ icon: Icon, text }) => (
+                <li
+                  key={text}
+                  className="flex items-center gap-3 rounded-xl border border-white/80 bg-white/70 px-3 py-2.5 text-sm text-slate-700 shadow-sm"
+                >
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent-100 text-accent-600">
+                    <Icon className="h-4 w-4" aria-hidden />
+                  </span>
+                  {text}
+                </li>
+              ))}
+            </ul>
+          )}
 
           <div className="mt-6 flex flex-col gap-3">
             <Link to="/signup" onClick={onClose} className="btn-primary w-full">

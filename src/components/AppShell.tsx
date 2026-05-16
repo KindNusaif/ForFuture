@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { Home, PlusCircle, User, BarChart3, LogOut, Map } from 'lucide-react'
+import { Home, PlusCircle, User, BarChart3, LogOut, Map, Shield } from 'lucide-react'
+import { useIsAdmin } from '../hooks/useIsAdmin'
 import Logo from './Logo'
 import { useAuth } from '../hooks/useAuth'
 import { signOut } from '../lib/auth'
@@ -19,6 +20,7 @@ const mobileLinkClass = ({ isActive }: { isActive: boolean }) =>
 
 export default function AppShell({ children }: { children?: ReactNode }) {
   const { profile } = useAuth()
+  const isAdmin = useIsAdmin()
   const navigate = useNavigate()
 
   async function handleLogout() {
@@ -56,6 +58,12 @@ export default function AppShell({ children }: { children?: ReactNode }) {
                 <User className="h-5 w-5 shrink-0" aria-hidden />
                 My Profile
               </NavLink>
+              {isAdmin && (
+                <NavLink to="/admin/moderation" className={navLinkClass}>
+                  <Shield className="h-5 w-5 shrink-0" aria-hidden />
+                  Moderation
+                </NavLink>
+              )}
             </nav>
             {profile && (
               <div className="rounded-2xl border border-accent-200/80 bg-linear-to-br from-accent-50/80 to-white p-4 shadow-sm">

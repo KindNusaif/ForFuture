@@ -1,0 +1,243 @@
+import { useCallback, useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { ArrowLeft, Loader2, RefreshCw, Shield } from 'lucide-react'
+import {
+  ModerationPriorityBadge,
+  ModerationStatusBadge,
+} from '../components/ModerationStatusBadge'
+import Toast from '../components/Toast'
+import {
+  fetchModerationQueue,
+  updateModerationReport,
+  type ModerationQueueItem,
+} from '../lib/contentReports'
+import { CONTENT_REPORT_REASONS } from '../lib/moderation'
+import type { ContentReportReason, ContentReportStatus } from '../lib/moderation'
+import { formatError } from '../lib/errors'
+
+const REASON_LABELS = Object.fromEntries(
+  CONTENT_REPORT_REASONS.map((r) => [r.value, r.label]),
+) as Record<ContentReportReason, string>
+
+const ADMIN_ACTIONS: { status: ContentReportStatus; label: string }[] = [
+  { status: 'under_review', label: 'Mark Under Review' },
+  { status: 'action_taken', label: 'Mark Action Taken' },
+  { status: 'no_violation_found', label: 'Mark No Violation Found' },
+  { status: 'dismissed', label: 'Dismiss Report' },
+]
+
+function contentTypeLabel(type: string) {
+  if (type === 'poll') return 'Quick Youth Poll'
+  if (type === 'comment') return 'Comment'
+  return 'Movement'
+}
+
+export default function AdminModeration() {
+  const [items, setItems] = useState<ModerationQueueItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [updatingId, setUpdatingId] = useState<string | null>(null)
+  const [adminNotes, setAdminNotes] = useState<Record<string, string>>({})
+
+  const load = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true)
+    else setLoading(true)
+    setError(null)
+    try {
+      const queue = await fetchModerationQueue()
+      setItems(queue)
+    } catch (err) {
+      setError(formatError(err))
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- load moderation queue on mount
+    void load()
+  }, [load])
+
+  async function handleStatusUpdate(item: ModerationQueueItem, status: ContentReportStatus) {
+    setUpdatingId(item.id)
+    setError(null)
+    try {
+      await updateModerationReport(item.id, status, adminNotes[item.id])
+      await load(true)
+    } catch (err) {
+      setError(formatError(err))
+    } finally {
+      setUpdatingId(null)
+    }
+  }
+
+  return (
+    <section className="mx-auto min-w-0 max-w-5xl px-4 py-8 sm:px-6">
+      <Link to="/feed" className="btn-ghost mb-6 !min-h-[40px] !px-0">
+        <ArrowLeft className="h-4 w-4" />
+        Back to feed
+      </Link>
+
+      <header className="card-surface overflow-hidden border border-slate-200/80 bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 p-6 text-white sm:p-8">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-slate-300">
+              <Shield className="h-4 w-4" aria-hidden />
+              Internal moderation only
+            </p>
+            <h1 className="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">
+              Safe Reporting &amp; Fair Moderation
+            </h1>
+            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-300">
+              Review reported content fairly. Reports do not automatically remove posts. Use
+              status updates to track decisions — content removal requires explicit future
+              moderation tools.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => void load(true)}
+            disabled={loading || refreshing}
+            className="inline-flex min-h-[40px] items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/15 disabled:opacity-50"
+          >
+            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            Refresh
+          </button>
+        </div>
+      </header>
+
+      {error && (
+        <div className="mt-4">
+          <Toast variant="error" message={error} onDismiss={() => setError(null)} />
+        </div>
+      )}
+
+      {loading ? (
+        <div className="mt-12 flex flex-col items-center gap-3">
+          <Loader2 className="h-10 w-10 animate-spin text-accent-600" />
+          <p className="text-sm text-slate-500">Loading moderation queue…</p>
+        </div>
+      ) : items.length === 0 ? (
+        <div className="card-surface mt-6 p-10 text-center">
+          <p className="text-lg font-bold text-slate-900">No reports in the queue</p>
+          <p className="mt-2 text-sm text-slate-600">
+            New community reports will appear here for review.
+          </p>
+        </div>
+      ) : (
+        <ul className="mt-6 space-y-4">
+          {items.map((item) => (
+            <li key={item.id} className="card-surface overflow-hidden">
+              <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 bg-slate-50/80 px-4 py-3 sm:px-5">
+                <ModerationPriorityBadge priority={item.priority} />
+                <ModerationStatusBadge status={item.status} />
+                <span className="text-xs font-medium text-slate-500">
+                  {contentTypeLabel(item.content_type)}
+                </span>
+                {item.content_report_count > 1 && (
+                  <span className="rounded-full bg-slate-200/80 px-2 py-0.5 text-[11px] font-semibold text-slate-700">
+                    {item.content_report_count} reports on this content
+                  </span>
+                )}
+                {item.high_priority_report_count > 0 && (
+                  <span className="rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-semibold text-red-800">
+                    {item.high_priority_report_count} high priority
+                  </span>
+                )}
+                <time className="ml-auto text-xs text-slate-500" dateTime={item.created_at}>
+                  {new Date(item.created_at).toLocaleString()}
+                </time>
+              </div>
+
+              <div className="space-y-4 p-4 sm:p-5">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                    Report reason
+                  </p>
+                  <p className="mt-1 text-sm font-semibold text-slate-900">
+                    {REASON_LABELS[item.report_reason] ?? item.report_reason}
+                  </p>
+                  {item.report_note && (
+                    <p className="wrap-user-text mt-2 text-sm text-slate-600">{item.report_note}</p>
+                  )}
+                </div>
+
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                    Content preview
+                  </p>
+                  <p className="mt-1 text-base font-bold text-slate-900">
+                    {item.content_title || 'Untitled content'}
+                  </p>
+                  {item.content_description && (
+                    <p className="wrap-user-text mt-1 line-clamp-3 text-sm text-slate-600">
+                      {item.content_description}
+                    </p>
+                  )}
+                  <p className="mt-2 text-xs text-slate-500">
+                    Public view:{' '}
+                    {item.content_posting_identity === 'youth_voice'
+                      ? `Youth Voice ${item.content_youth_voice_id ?? 'ID'}`
+                      : 'Public profile'}
+                    {item.content_movement_type && ` · ${item.content_movement_type}`}
+                  </p>
+                </div>
+
+                <div className="rounded-xl border border-amber-200/80 bg-amber-50/60 px-4 py-3">
+                  <p className="text-xs font-bold uppercase tracking-wide text-amber-900">
+                    Internal moderation only
+                  </p>
+                  <dl className="mt-2 grid gap-1 text-xs text-amber-950/90 sm:grid-cols-2">
+                    <div>
+                      <dt className="font-medium text-amber-800">Owner user ID</dt>
+                      <dd className="font-mono">{item.internal_owner_user_id ?? '—'}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-medium text-amber-800">Owner display name</dt>
+                      <dd>{item.internal_owner_display_name ?? '—'}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-medium text-amber-800">Owner Youth Voice ID</dt>
+                      <dd className="font-mono">{item.internal_owner_youth_voice_id ?? '—'}</dd>
+                    </div>
+                  </dl>
+                </div>
+
+                <label className="block">
+                  <span className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                    Internal admin note
+                  </span>
+                  <textarea
+                    value={adminNotes[item.id] ?? item.admin_note ?? ''}
+                    onChange={(e) =>
+                      setAdminNotes((prev) => ({ ...prev, [item.id]: e.target.value }))
+                    }
+                    rows={2}
+                    placeholder="Optional note for your team (not shown publicly)"
+                    className="wrap-user-text mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+                  />
+                </label>
+
+                <div className="flex flex-wrap gap-2">
+                  {ADMIN_ACTIONS.map((action) => (
+                    <button
+                      key={action.status}
+                      type="button"
+                      disabled={updatingId === item.id || item.status === action.status}
+                      onClick={() => void handleStatusUpdate(item, action.status)}
+                      className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-accent-300 hover:bg-accent-50 disabled:opacity-50"
+                    >
+                      {updatingId === item.id ? 'Updating…' : action.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  )
+}
