@@ -79,6 +79,8 @@ export type TrustedCampaignType =
   | ReviewedCampaignType
   | 'civic_action'
 
+export type AppearanceMode = 'light' | 'dark' | 'system'
+
 export interface Profile {
   id: string
   display_name: string
@@ -86,6 +88,9 @@ export interface Profile {
   bio?: string | null
   avatar_url?: string | null
   created_at: string
+  appearance_mode?: AppearanceMode
+  visual_comfort_enabled?: boolean
+  reduce_motion_enabled?: boolean
   is_verified_organizer?: boolean
   organizer_verification_type?: OrganizerVerificationType | null
   organizer_verified_at?: string | null

@@ -3,6 +3,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Home, PlusCircle, User, BarChart3, LogOut, Map, Shield, BadgeCheck, HeartHandshake, Activity } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useIsAdmin } from '../hooks/useIsAdmin'
+import ThemeQuickToggle from './appearance/ThemeQuickToggle'
 import LanguageSwitcher from './LanguageSwitcher'
 import Logo from './Logo'
 import { useAuth } from '../hooks/useAuth'
@@ -43,6 +44,7 @@ export default function AppShell({ children }: { children?: ReactNode }) {
           <div className="sticky top-6 space-y-6">
             <div className="flex items-center justify-between gap-2">
               <Logo to="/feed" />
+              <ThemeQuickToggle variant="compact" />
               <LanguageSwitcher variant="compact" />
             </div>
             <nav className="space-y-1" aria-label={t('nav.appNav')}>
@@ -130,7 +132,7 @@ export default function AppShell({ children }: { children?: ReactNode }) {
       </div>
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200/90 bg-white/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur-lg lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-default bg-nav px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur-lg lg:hidden"
         aria-label={t('nav.mobileNav')}
       >
         <div className="mx-auto flex max-w-lg justify-between">

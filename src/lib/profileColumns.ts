@@ -12,6 +12,9 @@ export const PROFILE_COLUMNS = [
   'organization_verification_type',
   'verified_at',
   'is_admin',
+  'appearance_mode',
+  'visual_comfort_enabled',
+  'reduce_motion_enabled',
 ].join(', ')
 
 /** Without moderation / verification columns (older databases). */

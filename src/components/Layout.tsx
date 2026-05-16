@@ -11,7 +11,7 @@ export default function Layout() {
       <main className="min-w-0 flex-1">
         <Outlet />
       </main>
-      <footer className="border-t border-slate-200/80 bg-white py-10">
+      <footer className="border-t border-default bg-nav py-10">
         <div className="mx-auto max-w-7xl px-4 text-center sm:px-6">
           <p className="text-sm font-semibold text-accent-800">{t('landing.eyebrow')}</p>
           <p className="mt-2 text-sm text-slate-500">{t('landing.whySubtitle')}</p>

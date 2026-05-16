@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import AsyncLoadHint from '../components/AsyncLoadHint'
 import Toast from '../components/Toast'
 import MyReportsSection from '../components/MyReportsSection'
+import AppearanceSettings from '../components/appearance/AppearanceSettings'
 import DeleteMovementDialog from '../components/profile/DeleteMovementDialog'
 import MyMovementsSection from '../components/profile/MyMovementsSection'
 import ProfileDashboardHeader, {
@@ -203,7 +204,9 @@ function ProfileContent({ userId, email }: { userId: string; email?: string | nu
         onDelete={setDeleteTarget}
       />
 
-      <details className="mt-10 rounded-xl border border-slate-200/80 bg-slate-50/50 px-4 py-3">
+      <AppearanceSettings />
+
+      <details className="mt-10 rounded-xl border border-default bg-muted/50 px-4 py-3">
         <summary className="cursor-pointer text-sm font-semibold text-slate-800">
           Safe Reporting &amp; Fair Moderation
         </summary>

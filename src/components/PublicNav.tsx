@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { Menu, X } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import ThemeQuickToggle from './appearance/ThemeQuickToggle'
 import LanguageSwitcher from './LanguageSwitcher'
 import Logo from './Logo'
 import { useAuth } from '../hooks/useAuth'
@@ -61,20 +62,22 @@ export default function PublicNav() {
   )
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200/70 bg-white/90 backdrop-blur-xl">
+    <header className="nav-shell">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <Logo to={isMember ? '/feed' : '/'} showTagline />
 
         <nav className="hidden items-center gap-1 md:flex" aria-label={t('nav.appNav')}>
           {!loading && isMember ? memberLinks : guestLinks}
+          <ThemeQuickToggle variant="compact" className="ml-1" />
           <LanguageSwitcher variant="landing" className="ml-1" />
         </nav>
 
         <div className="flex items-center gap-2 md:hidden">
+          <ThemeQuickToggle variant="compact" />
           <LanguageSwitcher variant="compact" />
           <button
             type="button"
-            className="rounded-xl p-2.5 text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"
+            className="rounded-xl p-2.5 text-secondary ring-1 ring-default hover:bg-muted"
             onClick={() => setOpen((o) => !o)}
             aria-label={t('nav.menu')}
             aria-expanded={open}

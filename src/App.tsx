@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
+import { ThemeProvider } from './context/ThemeContext'
 import { JoinMovementProvider } from './context/JoinMovementContext'
 import { ReportContentProvider } from './context/ReportContentContext'
 import AdminRoute from './components/AdminRoute'
@@ -29,6 +30,7 @@ import YouthImpactPulse from './pages/YouthImpactPulse'
 export default function App() {
   return (
     <AuthProvider>
+      <ThemeProvider>
       <JoinMovementProvider>
         <ReportContentProvider>
         <Routes>
@@ -125,6 +127,7 @@ export default function App() {
         </Routes>
         </ReportContentProvider>
       </JoinMovementProvider>
+      </ThemeProvider>
     </AuthProvider>
   )
 }

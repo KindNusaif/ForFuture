@@ -9,6 +9,7 @@ import { requireSupabase } from './supabase'
 import { DEFAULT_REQUEST_TIMEOUT_MS, withTimeout } from './supabaseRequest'
 import { getPasswordResetRedirectUrl } from './appUrl'
 import { generateYouthVoiceIdCandidate } from './youthVoiceId'
+import { isAppearanceMode } from './theme/types'
 import type { Profile } from '../types'
 
 function mapProfile(row: Record<string, unknown>): Profile {
@@ -42,6 +43,11 @@ function mapProfile(row: Record<string, unknown>): Profile {
       (row.verified_at as string | null) ??
       null,
     is_admin: Boolean(row.is_admin),
+    appearance_mode: isAppearanceMode(row.appearance_mode) ? row.appearance_mode : undefined,
+    visual_comfort_enabled:
+      row.visual_comfort_enabled == null ? undefined : Boolean(row.visual_comfort_enabled),
+    reduce_motion_enabled:
+      row.reduce_motion_enabled == null ? undefined : Boolean(row.reduce_motion_enabled),
   }
 }
 

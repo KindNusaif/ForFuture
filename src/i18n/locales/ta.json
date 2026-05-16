@@ -354,6 +354,20 @@
     "viewPdf": "பார்க்க",
     "imageFailed": "படம் கிடைக்கவில்லை"
   },
+  "appearance": {
+    "title": "Appearance & Comfort",
+    "subtitle": "Personalize how ForFuture looks and feels for you.",
+    "themeLabel": "Theme",
+    "themeHelper": "Choose light, dark, or match your device setting.",
+    "light": "Light Mode",
+    "dark": "Dark Mode",
+    "system": "System Default",
+    "comfortLabel": "Visual Comfort Mode",
+    "comfortHelper": "Use softer surfaces and gentler contrast for longer reading sessions.",
+    "motionLabel": "Reduce Motion",
+    "motionHelper": "Minimize non-essential animations and transitions.",
+    "quickToggle": "Appearance: {{mode}}. Click to change theme."
+  },
   "profile": {
     "title": "என் சுயவிவரம்",
     "myMovements": "என் இயக்கங்கள்",

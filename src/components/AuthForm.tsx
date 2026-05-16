@@ -77,7 +77,7 @@ export default function AuthForm({
           {loading ? (
             <span className="inline-flex items-center justify-center gap-2">
               <span
-                className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"
+                className="motion-essential h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"
                 aria-hidden
               />
               {loadingLabel ?? 'Please wait…'}
@@ -129,7 +129,7 @@ export function FormField({
 }
 
 export const inputClass =
-  'mt-1 w-full min-h-[44px] rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-slate-900 transition outline-none placeholder:text-slate-400 focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 aria-invalid:border-red-400'
+  'mt-1 w-full min-h-[44px] rounded-xl border border-default bg-surface px-3 py-2.5 text-primary transition outline-none placeholder:text-muted focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 aria-invalid:border-red-400'
 
 export const inputErrorClass = 'border-red-400 focus:border-red-500 focus:ring-red-500/20'
 
