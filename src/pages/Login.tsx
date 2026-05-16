@@ -1,0 +1,94 @@
+import { useState, type FormEvent } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import AuthForm, { FormField, inputClass, inputErrorClass } from '../components/AuthForm'
+import { signIn } from '../lib/auth'
+import { formatError } from '../lib/errors'
+import { isSupabaseConfigured } from '../lib/supabase'
+import { validateLogin } from '../lib/validation'
+
+export default function Login() {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? '/feed'
+
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({})
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setFieldErrors({})
+
+    if (!isSupabaseConfigured) {
+      setError('Supabase is not configured. Check your .env file.')
+      return
+    }
+
+    const form = new FormData(e.currentTarget)
+    const email = String(form.get('email') ?? '').trim()
+    const password = String(form.get('password') ?? '')
+
+    const validationError = validateLogin(email, password)
+    if (validationError) {
+      if (!email.trim()) setFieldErrors({ email: 'Email is required.' })
+      else if (!password) setFieldErrors({ password: 'Password is required.' })
+      else setError(validationError)
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+    try {
+      await signIn(email, password)
+      navigate(from, { replace: true })
+    } catch (err) {
+      setError(formatError(err))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <AuthForm
+      title="Welcome back"
+      subtitle="Welcome back. Continue building the future."
+      submitLabel="Log in"
+      loading={loading}
+      error={error}
+      onSubmit={handleSubmit}
+      footer={
+        <>
+          Don&apos;t have an account?{' '}
+          <Link to="/signup" className="font-semibold text-brand-600 hover:text-brand-700">
+            Sign up
+          </Link>
+        </>
+      }
+    >
+      <FormField label="Email" id="email" error={fieldErrors.email}>
+        <input
+          id="email"
+          name="email"
+          type="email"
+          required
+          autoComplete="email"
+          aria-invalid={Boolean(fieldErrors.email)}
+          className={`${inputClass} ${fieldErrors.email ? inputErrorClass : ''}`}
+          placeholder="you@example.com"
+        />
+      </FormField>
+      <FormField label="Password" id="password" error={fieldErrors.password}>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          required
+          autoComplete="current-password"
+          aria-invalid={Boolean(fieldErrors.password)}
+          className={`${inputClass} ${fieldErrors.password ? inputErrorClass : ''}`}
+          placeholder="••••••••"
+        />
+      </FormField>
+    </AuthForm>
+  )
+}

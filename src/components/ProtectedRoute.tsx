@@ -1,0 +1,64 @@
+import type { ReactNode } from 'react'
+import { Navigate, useLocation } from 'react-router-dom'
+import { Loader2 } from 'lucide-react'
+import { useAuth } from '../hooks/useAuth'
+
+export default function ProtectedRoute({ children }: { children: ReactNode }) {
+  const { user, loading, configured, authError, profileError } = useAuth()
+  const location = useLocation()
+
+  if (!configured) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-4">
+        <div className="max-w-md rounded-2xl border border-amber-200 bg-amber-50 p-8 text-center">
+          <h1 className="text-lg font-semibold text-slate-900">Setup required</h1>
+          <p className="mt-2 text-sm text-slate-600">
+            Add <code className="rounded bg-white px-1">VITE_SUPABASE_URL</code> and{' '}
+            <code className="rounded bg-white px-1">VITE_SUPABASE_ANON_KEY</code> to{' '}
+            <code className="rounded bg-white px-1">.env</code>, then run{' '}
+            <code className="rounded bg-white px-1">supabase/fix_missing_features.sql</code> in the
+            Supabase SQL Editor.
+          </p>
+        </div>
+      </main>
+    )
+  }
+
+  if (loading) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center gap-3 bg-slate-50">
+        <Loader2 className="h-10 w-10 animate-spin text-brand-600" aria-label="Loading" />
+        <p className="text-sm text-slate-500">Loading your session…</p>
+      </main>
+    )
+  }
+
+  if (authError) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-4">
+        <div className="max-w-md rounded-2xl border border-red-200 bg-red-50 p-8 text-center">
+          <h1 className="text-lg font-semibold text-slate-900">Could not connect</h1>
+          <p className="mt-2 text-sm text-red-800">{authError}</p>
+          <a href="/login" className="mt-4 inline-block text-sm font-semibold text-brand-700 hover:underline">
+            Try logging in again
+          </a>
+        </div>
+      </main>
+    )
+  }
+
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location }} replace />
+  }
+
+  return (
+    <>
+      {profileError && (
+        <div className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-center text-sm text-amber-900">
+          {profileError}
+        </div>
+      )}
+      {children}
+    </>
+  )
+}
