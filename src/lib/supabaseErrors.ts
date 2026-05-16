@@ -23,7 +23,7 @@ export function isMissingColumn(error: unknown): boolean {
 }
 
 const SCHEMA_FIX_HINT =
-  'Run supabase/fix_publish_movement.sql in the Supabase SQL Editor, then refresh this page. For polls/trust extras, also run supabase/fix_missing_features.sql.'
+  'Run the entire file supabase/fix_database.sql in the Supabase SQL Editor, then hard-refresh this page (Ctrl+Shift+R).'
 
 export function enhanceSupabaseError(error: unknown): Error {
   if (!isPostgrestError(error)) {

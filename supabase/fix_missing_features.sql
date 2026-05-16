@@ -6,7 +6,7 @@
 --
 -- If publishing a movement fails, run FIRST: supabase/fix_publish_movement.sql
 -- For civic action buttons on posts, run: supabase/post_actions.sql
--- For a fresh project or full reset, prefer: supabase/00_fix_all.sql
+-- For a one-shot repair, prefer: supabase/fix_database.sql
 
 create schema if not exists private;
 
@@ -54,7 +54,7 @@ alter table private.posts drop constraint if exists posts_movement_type_check;
 alter table private.posts add constraint posts_movement_type_check check (
   movement_type in (
     'idea_for_change', 'raise_voice', 'volunteer_drive', 'fundraising',
-    'peaceful_civic_action', 'quick_youth_poll'
+    'peaceful_civic_action', 'quick_youth_poll', 'youth_petition'
   )
 );
 

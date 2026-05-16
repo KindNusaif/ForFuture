@@ -1,5 +1,9 @@
 import type { Session, User } from '@supabase/supabase-js'
-import { PROFILE_COLUMNS } from './profileColumns'
+import {
+  PROFILE_COLUMNS,
+  PROFILE_COLUMNS_LEGACY,
+  PROFILE_COLUMNS_MINIMAL,
+} from './profileColumns'
 import { enhanceSupabaseError, isMissingColumn } from './supabaseErrors'
 import { requireSupabase } from './supabase'
 import { DEFAULT_REQUEST_TIMEOUT_MS, withTimeout } from './supabaseRequest'
@@ -128,14 +132,27 @@ export async function ensureYouthVoiceId(userId: string): Promise<Profile> {
   return mapProfile(data as unknown as Record<string, unknown>)
 }
 
-export async function getProfile(userId: string): Promise<Profile | null> {
+async function selectProfileRow(userId: string): Promise<Record<string, unknown> | null> {
   const client = requireSupabase()
-  const { data, error } = await withTimeout(
-    client.from('profiles').select(PROFILE_COLUMNS).eq('id', userId).maybeSingle(),
-    DEFAULT_REQUEST_TIMEOUT_MS,
-  )
+  const columnSets = [PROFILE_COLUMNS, PROFILE_COLUMNS_LEGACY, PROFILE_COLUMNS_MINIMAL]
 
-  if (error) throw enhanceSupabaseError(error)
+  let lastError: unknown = null
+
+  for (const columns of columnSets) {
+    const { data, error } = await withTimeout(
+      client.from('profiles').select(columns).eq('id', userId).maybeSingle(),
+      DEFAULT_REQUEST_TIMEOUT_MS,
+    )
+    if (!error) return data as Record<string, unknown> | null
+    lastError = error
+    if (!isMissingColumn(error)) throw enhanceSupabaseError(error)
+  }
+
+  throw enhanceSupabaseError(lastError)
+}
+
+export async function getProfile(userId: string): Promise<Profile | null> {
+  const data = await selectProfileRow(userId)
   if (!data) return null
 
   const profile = mapProfile(data as unknown as Record<string, unknown>)

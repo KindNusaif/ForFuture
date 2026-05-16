@@ -6,7 +6,7 @@
 --   • profiles missing youth_voice_id
 --   • public.posts facade + posts_public_safe views out of date
 --
--- After this, polls/trust extras: run supabase/fix_missing_features.sql
+-- Prefer one-shot repair: supabase/fix_database.sql (includes polls, trust, petitions)
 
 create schema if not exists private;
 
@@ -172,7 +172,7 @@ alter table private.posts drop constraint if exists posts_movement_type_check;
 alter table private.posts add constraint posts_movement_type_check check (
   movement_type in (
     'idea_for_change', 'raise_voice', 'volunteer_drive', 'fundraising',
-    'peaceful_civic_action', 'quick_youth_poll'
+    'peaceful_civic_action', 'quick_youth_poll', 'youth_petition'
   )
 );
 
