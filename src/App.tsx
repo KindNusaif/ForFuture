@@ -12,6 +12,8 @@ import GuestRoute from './components/GuestRoute'
 import Landing from './pages/Landing'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 import Explore from './pages/Explore'
 import ImpactMap from './pages/ImpactMap'
 import Feed from './pages/Feed'
@@ -49,6 +51,15 @@ export default function App() {
                 </GuestRoute>
               }
             />
+            <Route
+              path="forgot-password"
+              element={
+                <GuestRoute>
+                  <ForgotPassword />
+                </GuestRoute>
+              }
+            />
+            <Route path="reset-password" element={<ResetPassword />} />
           </Route>
 
           {/* Impact Map — members keep app shell; guests use public nav */}

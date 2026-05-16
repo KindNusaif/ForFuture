@@ -90,6 +90,14 @@ export default function Login() {
           className={`${inputClass} ${fieldErrors.password ? inputErrorClass : ''}`}
           placeholder="••••••••"
         />
+        <p className="mt-2 text-right">
+          <Link
+            to="/forgot-password"
+            className="text-sm font-medium text-brand-600 hover:text-brand-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+          >
+            {t('auth.forgotPassword')}
+          </Link>
+        </p>
       </FormField>
     </AuthForm>
   )

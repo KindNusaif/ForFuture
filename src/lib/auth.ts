@@ -7,6 +7,7 @@ import {
 import { enhanceSupabaseError, isMissingColumn } from './supabaseErrors'
 import { requireSupabase } from './supabase'
 import { DEFAULT_REQUEST_TIMEOUT_MS, withTimeout } from './supabaseRequest'
+import { getPasswordResetRedirectUrl } from './appUrl'
 import { generateYouthVoiceIdCandidate } from './youthVoiceId'
 import type { Profile } from '../types'
 
@@ -127,6 +128,41 @@ export async function signOut(): Promise<void> {
   const client = requireSupabase()
   const { error } = await client.auth.signOut()
   if (error) throw error
+}
+
+/** Send password reset email (always resolve; caller shows privacy-safe copy). */
+export async function requestPasswordReset(email: string): Promise<void> {
+  const client = requireSupabase()
+  const { error } = await withTimeout(
+    client.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: getPasswordResetRedirectUrl(),
+    }),
+    DEFAULT_REQUEST_TIMEOUT_MS,
+  )
+  if (error) throw error
+}
+
+/** Set a new password during an active recovery session. */
+export async function updatePassword(newPassword: string): Promise<void> {
+  const client = requireSupabase()
+  const { error } = await withTimeout(
+    client.auth.updateUser({ password: newPassword }),
+    DEFAULT_REQUEST_TIMEOUT_MS,
+  )
+  if (error) throw error
+}
+
+export function parseAuthHashType(): string | null {
+  if (typeof window === 'undefined') return null
+  const hash = window.location.hash.replace(/^#/, '')
+  if (!hash) return null
+  return new URLSearchParams(hash).get('type')
+}
+
+export function clearAuthHashFromUrl(): void {
+  if (typeof window === 'undefined') return
+  const path = window.location.pathname + window.location.search
+  window.history.replaceState(null, '', path)
 }
 
 export async function ensureYouthVoiceId(userId: string): Promise<Profile> {

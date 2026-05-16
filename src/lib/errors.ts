@@ -25,6 +25,19 @@ export function formatError(error: unknown): string {
     if (error.message.includes('Email not confirmed')) {
       return 'Please confirm your email, or disable email confirmation in Supabase.'
     }
+    if (
+      error.message.includes('Auth session missing') ||
+      error.message.includes('JWT expired') ||
+      error.message.includes('invalid claim')
+    ) {
+      return 'This reset link is invalid or has expired. Please request a new one.'
+    }
+    if (error.message.includes('same_password')) {
+      return 'Choose a password that is different from your current one.'
+    }
+    if (error.message.includes('over_email_send_rate_limit')) {
+      return 'Too many requests. Please wait a few minutes before trying again.'
+    }
     if (error.message.includes('Supabase is not configured')) {
       return error.message
     }

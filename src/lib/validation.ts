@@ -41,6 +41,30 @@ export function validateSignup(
   return null
 }
 
+export const PASSWORD_MIN_LENGTH = 6
+
+export function validatePasswordReset(password: string, confirm: string): {
+  password?: string
+  confirm?: string
+} {
+  const errors: { password?: string; confirm?: string } = {}
+  if (!password) {
+    errors.password = 'Password is required.'
+  } else if (password.length < PASSWORD_MIN_LENGTH) {
+    errors.password = `Password must be at least ${PASSWORD_MIN_LENGTH} characters.`
+  }
+  if (!confirm) {
+    errors.confirm = 'Please confirm your password.'
+  } else if (password && confirm !== password) {
+    errors.confirm = 'Passwords do not match.'
+  }
+  return errors
+}
+
+export function hasPasswordResetErrors(errors: { password?: string; confirm?: string }): boolean {
+  return Boolean(errors.password || errors.confirm)
+}
+
 export interface CreatePostFieldErrors {
   title?: string
   description?: string
