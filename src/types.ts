@@ -45,18 +45,34 @@ export interface PollVoteState {
   myVoteOptionId: string | null
 }
 
-export type OrganizationVerificationType =
+export type OrganizerVerificationType =
+  | 'organization'
   | 'ngo'
   | 'student_society'
   | 'community_partner'
+
+/** @deprecated Use OrganizerVerificationType */
+export type OrganizationVerificationType =
+  | OrganizerVerificationType
   | 'official_organization'
 
-export type TrustedCampaignType =
+export type CampaignReviewStatus =
+  | 'unreviewed'
+  | 'under_review'
+  | 'reviewed'
+  | 'rejected'
+
+export type ReviewedCampaignType =
   | 'fundraising'
   | 'volunteer_drive'
-  | 'civic_action'
-  | 'general_campaign'
+  | 'civic_campaign'
   | 'petition'
+  | 'general_campaign'
+
+/** @deprecated Use ReviewedCampaignType; civic_action kept for legacy view rows */
+export type TrustedCampaignType =
+  | ReviewedCampaignType
+  | 'civic_action'
 
 export interface Profile {
   id: string
@@ -65,8 +81,14 @@ export interface Profile {
   bio?: string | null
   avatar_url?: string | null
   created_at: string
+  is_verified_organizer?: boolean
+  organizer_verification_type?: OrganizerVerificationType | null
+  organizer_verified_at?: string | null
+  /** @deprecated Use is_verified_organizer */
   is_verified_organization?: boolean
+  /** @deprecated Use organizer_verification_type */
   organization_verification_type?: OrganizationVerificationType | null
+  /** @deprecated Use organizer_verified_at */
   verified_at?: string | null
   /** Platform moderation access — set only via Supabase SQL by administrators */
   is_admin?: boolean
@@ -119,10 +141,20 @@ export interface Post {
   location_name?: string | null
   latitude?: number | null
   longitude?: number | null
+  review_status?: CampaignReviewStatus
+  reviewed_campaign_type?: ReviewedCampaignType | null
+  reviewed_at?: string | null
+  /** @deprecated Derived from review_status === 'reviewed' */
   is_trusted_campaign?: boolean
+  /** @deprecated Use reviewed_campaign_type */
   trusted_campaign_type?: TrustedCampaignType | null
+  /** @deprecated Use reviewed_at */
   trusted_at?: string | null
+  author_is_verified_organizer?: boolean
+  author_organizer_verification_type?: OrganizerVerificationType | null
+  /** @deprecated Use author_is_verified_organizer */
   author_is_verified_organization?: boolean
+  /** @deprecated Use author_organizer_verification_type */
   author_organization_verification_type?: OrganizationVerificationType | null
   /** Populated for quick_youth_poll movements */
   poll?: PollVoteState | null

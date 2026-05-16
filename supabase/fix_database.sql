@@ -171,6 +171,25 @@ alter table private.posts add column if not exists trusted_at timestamptz;
 update private.posts set movement_type = 'idea_for_change' where movement_type is null;
 update private.posts set posting_identity = 'profile' where posting_identity is null;
 
+-- Normalize legacy/invalid movement_type values before check constraint (avoids 23514)
+update private.posts set movement_type = 'youth_petition'
+  where movement_type in ('petition', 'youth petition');
+update private.posts set movement_type = 'quick_youth_poll'
+  where movement_type in ('poll', 'quick_poll', 'youth_poll');
+update private.posts set movement_type = 'peaceful_civic_action'
+  where movement_type in ('civic_action', 'peaceful_action', 'civic');
+update private.posts set movement_type = 'idea_for_change'
+  where trim(coalesce(movement_type, '')) = ''
+     or movement_type not in (
+       'idea_for_change',
+       'raise_voice',
+       'volunteer_drive',
+       'fundraising',
+       'peaceful_civic_action',
+       'quick_youth_poll',
+       'youth_petition'
+     );
+
 alter table private.posts drop constraint if exists posts_posting_identity_check;
 alter table private.posts add constraint posts_posting_identity_check
   check (posting_identity in ('profile', 'youth_voice'));
@@ -178,8 +197,13 @@ alter table private.posts add constraint posts_posting_identity_check
 alter table private.posts drop constraint if exists posts_movement_type_check;
 alter table private.posts add constraint posts_movement_type_check check (
   movement_type in (
-    'idea_for_change', 'raise_voice', 'volunteer_drive', 'fundraising',
-    'peaceful_civic_action', 'quick_youth_poll'
+    'idea_for_change',
+    'raise_voice',
+    'volunteer_drive',
+    'fundraising',
+    'peaceful_civic_action',
+    'quick_youth_poll',
+    'youth_petition'
   )
 );
 
@@ -416,14 +440,37 @@ alter table private.posts add constraint posts_trusted_campaign_type_check check
 );
 
 -- =============================================================================
--- 2. Movement type constraint (includes quick_youth_poll)
+-- 2. Movement type constraint (all movement types)
 -- =============================================================================
+
+update private.posts set movement_type = 'youth_petition'
+  where movement_type in ('petition', 'youth petition');
+update private.posts set movement_type = 'quick_youth_poll'
+  where movement_type in ('poll', 'quick_poll', 'youth_poll');
+update private.posts set movement_type = 'peaceful_civic_action'
+  where movement_type in ('civic_action', 'peaceful_action', 'civic');
+update private.posts set movement_type = 'idea_for_change'
+  where trim(coalesce(movement_type, '')) = ''
+     or movement_type not in (
+       'idea_for_change',
+       'raise_voice',
+       'volunteer_drive',
+       'fundraising',
+       'peaceful_civic_action',
+       'quick_youth_poll',
+       'youth_petition'
+     );
 
 alter table private.posts drop constraint if exists posts_movement_type_check;
 alter table private.posts add constraint posts_movement_type_check check (
   movement_type in (
-    'idea_for_change', 'raise_voice', 'volunteer_drive', 'fundraising',
-    'peaceful_civic_action', 'quick_youth_poll'
+    'idea_for_change',
+    'raise_voice',
+    'volunteer_drive',
+    'fundraising',
+    'peaceful_civic_action',
+    'quick_youth_poll',
+    'youth_petition'
   )
 );
 

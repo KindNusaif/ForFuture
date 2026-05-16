@@ -18,10 +18,28 @@ function mapProfile(row: Record<string, unknown>): Profile {
     bio: (row.bio as string | null) ?? null,
     avatar_url: (row.avatar_url as string | null) ?? null,
     created_at: row.created_at as string,
-    is_verified_organization: Boolean(row.is_verified_organization),
+    is_verified_organizer: Boolean(
+      row.is_verified_organizer ?? row.is_verified_organization,
+    ),
+    organizer_verification_type:
+      (row.organizer_verification_type as Profile['organizer_verification_type']) ??
+      (row.organization_verification_type === 'official_organization'
+        ? 'organization'
+        : (row.organization_verification_type as Profile['organizer_verification_type'])) ??
+      null,
+    organizer_verified_at:
+      (row.organizer_verified_at as string | null) ??
+      (row.verified_at as string | null) ??
+      null,
+    is_verified_organization: Boolean(
+      row.is_verified_organizer ?? row.is_verified_organization,
+    ),
     organization_verification_type:
       (row.organization_verification_type as Profile['organization_verification_type']) ?? null,
-    verified_at: (row.verified_at as string | null) ?? null,
+    verified_at:
+      (row.organizer_verified_at as string | null) ??
+      (row.verified_at as string | null) ??
+      null,
     is_admin: Boolean(row.is_admin),
   }
 }

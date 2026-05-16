@@ -88,11 +88,35 @@ function mapPostRow(
     location_name: (row.location_name as string | null) ?? null,
     latitude: row.latitude != null ? Number(row.latitude) : null,
     longitude: row.longitude != null ? Number(row.longitude) : null,
-    is_trusted_campaign: Boolean(row.is_trusted_campaign),
+    review_status:
+      (row.review_status as Post['review_status']) ??
+      (row.is_trusted_campaign ? 'reviewed' : 'unreviewed'),
+    reviewed_campaign_type:
+      (row.reviewed_campaign_type as Post['reviewed_campaign_type']) ??
+      (row.trusted_campaign_type === 'civic_action'
+        ? 'civic_campaign'
+        : (row.trusted_campaign_type as Post['reviewed_campaign_type'])) ??
+      null,
+    reviewed_at: (row.reviewed_at as string | null) ?? (row.trusted_at as string | null) ?? null,
+    is_trusted_campaign:
+      row.review_status != null
+        ? row.review_status === 'reviewed'
+        : Boolean(row.is_trusted_campaign),
     trusted_campaign_type:
       (row.trusted_campaign_type as Post['trusted_campaign_type']) ?? null,
     trusted_at: (row.trusted_at as string | null) ?? null,
-    author_is_verified_organization: Boolean(row.author_is_verified_organization),
+    author_is_verified_organizer: Boolean(
+      row.author_is_verified_organizer ?? row.author_is_verified_organization,
+    ),
+    author_organizer_verification_type:
+      (row.author_organizer_verification_type as Post['author_organizer_verification_type']) ??
+      (row.author_organization_verification_type === 'official_organization'
+        ? 'organization'
+        : (row.author_organization_verification_type as Post['author_organizer_verification_type'])) ??
+      null,
+    author_is_verified_organization: Boolean(
+      row.author_is_verified_organizer ?? row.author_is_verified_organization,
+    ),
     author_organization_verification_type:
       (row.author_organization_verification_type as Post['author_organization_verification_type']) ??
       null,
@@ -115,6 +139,8 @@ export function sanitizePostForPublic(
     author_name: displayName,
     youth_voice_id: youthVoiceId,
     user_id: isOwner ? post.user_id : null,
+    author_is_verified_organizer: false,
+    author_organizer_verification_type: null,
     author_is_verified_organization: false,
     author_organization_verification_type: null,
   }

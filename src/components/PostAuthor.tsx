@@ -1,7 +1,7 @@
 import { Shield } from 'lucide-react'
 import { getPostAuthorPresentation } from '../lib/postIdentity'
 import { shouldShowAuthorVerification } from '../lib/trust'
-import VerifiedOrganizationBadge from './VerifiedOrganizationBadge'
+import VerifiedOrganizerBadge from './VerifiedOrganizerBadge'
 import type { Post } from '../types'
 
 interface PostAuthorProps {
@@ -10,7 +10,9 @@ interface PostAuthorProps {
     | 'author_name'
     | 'posting_identity'
     | 'youth_voice_id'
+    | 'author_is_verified_organizer'
     | 'author_is_verified_organization'
+    | 'author_organizer_verification_type'
     | 'author_organization_verification_type'
   >
   className?: string
@@ -55,8 +57,11 @@ export default function PostAuthor({ post, className = '', compact = false }: Po
         </div>
       </div>
       {showVerified && (
-        <VerifiedOrganizationBadge
-          verificationType={post.author_organization_verification_type}
+        <VerifiedOrganizerBadge
+          verificationType={
+            post.author_organizer_verification_type ??
+            post.author_organization_verification_type
+          }
           size="sm"
         />
       )}

@@ -3,7 +3,11 @@ import { getMovementConfig, isPollMovement } from '../lib/movements'
 import { isPetitionMovement } from '../lib/petitions'
 import { getMomentumLabel, getMovementVisual, shouldShowMomentumPill } from '../lib/movementVisual'
 import { getPostAuthorPresentation } from '../lib/postIdentity'
-import { shouldShowAuthorVerification, shouldShowTrustedCampaign } from '../lib/trust'
+import {
+  shouldShowAuthorVerification,
+  shouldShowCampaignReview,
+  shouldShowUnderReviewLabel,
+} from '../lib/trust'
 import ProtectedVoicePill from './ProtectedVoicePill'
 import MovementCardExtras from './MovementCardExtras'
 import MovementTypeBadge from './MovementTypeBadge'
@@ -11,8 +15,9 @@ import PollVoteBlock from './PollVoteBlock'
 import MovementActionButton from './MovementActionButton'
 import PetitionActionButton from './PetitionActionButton'
 import PostAuthor from './PostAuthor'
-import TrustedCampaignBadge from './TrustedCampaignBadge'
-import VerifiedOrganizationBadge from './VerifiedOrganizationBadge'
+import CampaignReviewBadge from './CampaignReviewBadge'
+import UnderReviewBadge from './UnderReviewBadge'
+import VerifiedOrganizerBadge from './VerifiedOrganizerBadge'
 import ReportContentButton from './ReportContentButton'
 import type { Post } from '../types'
 
@@ -64,7 +69,8 @@ export default function PostCard({
   const isPoll = isPollMovement(post.movement_type)
   const isPetition = isPetitionMovement(post.movement_type)
   const { isAnonymous } = getPostAuthorPresentation(post)
-  const showTrusted = shouldShowTrustedCampaign(post)
+  const showReviewed = shouldShowCampaignReview(post)
+  const showUnderReview = shouldShowUnderReviewLabel(post)
   const showAuthorVerified = shouldShowAuthorVerification(post)
   const badgeClass = categoryColors[post.category] ?? categoryColors.Other
   const date = new Date(post.created_at).toLocaleDateString(undefined, {
@@ -123,15 +129,21 @@ export default function PostCard({
             >
               {post.category}
             </span>
-            {showTrusted && post.movement_type !== 'fundraising' && (
-              <TrustedCampaignBadge
+            {showReviewed && (
+              <CampaignReviewBadge
                 movementType={post.movement_type}
-                trustedCampaignType={post.trusted_campaign_type}
+                reviewedCampaignType={
+                  post.reviewed_campaign_type ?? post.trusted_campaign_type
+                }
               />
             )}
+            {showUnderReview && <UnderReviewBadge />}
             {showAuthorVerified && (
-              <VerifiedOrganizationBadge
-                verificationType={post.author_organization_verification_type}
+              <VerifiedOrganizerBadge
+                verificationType={
+                  post.author_organizer_verification_type ??
+                  post.author_organization_verification_type
+                }
                 size="sm"
               />
             )}

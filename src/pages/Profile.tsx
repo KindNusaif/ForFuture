@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { BarChart3, FileText, Heart, Mic, Plus, RefreshCw, User } from 'lucide-react'
 import { getTotalPollVotesReceived } from '../lib/polls'
-import VerifiedOrganizationBadge from '../components/VerifiedOrganizationBadge'
+import VerifiedOrganizerBadge from '../components/VerifiedOrganizerBadge'
 import EmptyState from '../components/EmptyState'
 import PostCard from '../components/PostCard'
 import StatCard from '../components/StatCard'
@@ -142,10 +142,14 @@ function ProfileContent({ userId, email }: { userId: string; email?: string | nu
               <div className="min-w-0 flex-1">
                 <div className="flex min-w-0 flex-wrap items-center gap-2">
                   <h2 className="truncate text-2xl font-bold text-slate-900">{displayName}</h2>
-                  {profile?.is_verified_organization && (
-                    <VerifiedOrganizationBadge
-                      verificationType={profile.organization_verification_type}
+                  {(profile?.is_verified_organizer ?? profile?.is_verified_organization) && (
+                    <VerifiedOrganizerBadge
+                      verificationType={
+                        profile.organizer_verification_type ??
+                        profile.organization_verification_type
+                      }
                       size="md"
+                      prominent
                     />
                   )}
                 </div>
@@ -174,6 +178,17 @@ function ProfileContent({ userId, email }: { userId: string; email?: string | nu
                 </div>
                 {memberSince && (
                   <p className="mt-1 text-xs text-slate-500">Member since {memberSince}</p>
+                )}
+                {(profile?.is_verified_organizer ?? profile?.is_verified_organization) && (
+                  <div className="mt-4 rounded-xl border border-emerald-200/80 bg-emerald-50/40 px-4 py-4">
+                    <p className="text-xs font-bold uppercase tracking-wide text-emerald-800">
+                      Verification status
+                    </p>
+                    <p className="mt-2 text-sm text-slate-700">
+                      Your public profile is verified as an organizer on ForFuture. Campaigns you
+                      post are still reviewed separately before they receive a trust badge.
+                    </p>
+                  </div>
                 )}
                 {profile?.youth_voice_id && (
                   <div className="mt-4 rounded-xl border border-accent-200 bg-white/90 px-4 py-4 shadow-sm">

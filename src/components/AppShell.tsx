@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { Home, PlusCircle, User, BarChart3, LogOut, Map, Shield } from 'lucide-react'
+import { Home, PlusCircle, User, BarChart3, LogOut, Map, Shield, BadgeCheck } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useIsAdmin } from '../hooks/useIsAdmin'
 import LanguageSwitcher from './LanguageSwitcher'
@@ -65,10 +65,16 @@ export default function AppShell({ children }: { children?: ReactNode }) {
                 {t('nav.myProfile')}
               </NavLink>
               {isAdmin && (
-                <NavLink to="/admin/moderation" className={navLinkClass}>
-                  <Shield className="h-5 w-5 shrink-0" aria-hidden />
-                  {t('nav.moderation')}
-                </NavLink>
+                <>
+                  <NavLink to="/admin/moderation" className={navLinkClass}>
+                    <Shield className="h-5 w-5 shrink-0" aria-hidden />
+                    {t('nav.moderation')}
+                  </NavLink>
+                  <NavLink to="/admin/trust-review" className={navLinkClass}>
+                    <BadgeCheck className="h-5 w-5 shrink-0" aria-hidden />
+                    Trust review
+                  </NavLink>
+                </>
               )}
             </nav>
             {profile && (

@@ -10,9 +10,13 @@ import {
   PETITION_DISCLAIMER,
 } from '../lib/petitions'
 import { getMovementVisual } from '../lib/movementVisual'
-import { shouldShowTrustedCampaign, TRUST_TOOLTIPS } from '../lib/trust'
+import {
+  shouldShowCampaignReview,
+  shouldShowFundraisingNotReviewedMessage,
+  TRUST_TOOLTIPS,
+} from '../lib/trust'
 import type { Post } from '../types'
-import TrustedCampaignBadge from './TrustedCampaignBadge'
+import CampaignReviewBadge from './CampaignReviewBadge'
 
 interface MovementCardExtrasProps {
   post: Post
@@ -119,20 +123,23 @@ export default function MovementCardExtras({ post }: MovementCardExtrasProps) {
       const goal = post.fundraising_goal_amount ?? 0
       const raised = post.current_raised_amount ?? 0
       const pct = goal > 0 ? Math.min(100, Math.round((raised / goal) * 100)) : 0
-      const trusted = shouldShowTrustedCampaign(post)
+      const reviewed = shouldShowCampaignReview(post)
+      const showNotReviewed = shouldShowFundraisingNotReviewedMessage(post)
       return (
         <div className={`mt-4 rounded-xl border p-4 ${panel}`}>
-          {trusted ? (
+          {reviewed ? (
             <div className="mb-3">
-              <TrustedCampaignBadge
+              <CampaignReviewBadge
                 movementType="fundraising"
-                trustedCampaignType={post.trusted_campaign_type}
+                reviewedCampaignType={
+                  post.reviewed_campaign_type ?? post.trusted_campaign_type
+                }
                 prominent
               />
             </div>
-          ) : (
+          ) : showNotReviewed ? (
             <p className="mb-3 text-xs text-slate-500">{TRUST_TOOLTIPS.fundraisingNotReviewed}</p>
-          )}
+          ) : null}
           {post.fundraising_purpose && (
             <p className="wrap-user-text text-sm font-semibold text-slate-800">
               {post.fundraising_purpose}
@@ -181,14 +188,16 @@ export default function MovementCardExtras({ post }: MovementCardExtrasProps) {
       const progress = getPetitionProgressPercent(count, goal)
       const closed = isPetitionClosed(post)
       const closingLabel = getPetitionClosingLabel(post.petition_closing_date)
-      const trusted = shouldShowTrustedCampaign(post)
+      const reviewed = shouldShowCampaignReview(post)
 
       return (
         <div className={`mt-4 space-y-3 rounded-xl border p-4 ${panel}`}>
-          {trusted && (
-            <TrustedCampaignBadge
+          {reviewed && (
+            <CampaignReviewBadge
               movementType="youth_petition"
-              trustedCampaignType={post.trusted_campaign_type}
+              reviewedCampaignType={
+                post.reviewed_campaign_type ?? post.trusted_campaign_type
+              }
             />
           )}
           {closingLabel && (
