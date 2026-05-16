@@ -7,6 +7,7 @@ import { Skeleton } from '../Skeleton'
 interface Props {
   journey: JourneyData
   loading?: boolean
+  unavailable?: boolean
 }
 
 const STAGE_KEYS = [
@@ -17,8 +18,9 @@ const STAGE_KEYS = [
   { key: 'trusted', field: 'trusted_reviewed' as const, icon: BadgeCheck },
 ]
 
-export default function ImpactPulseJourney({ journey, loading }: Props) {
+export default function ImpactPulseJourney({ journey, loading, unavailable }: Props) {
   const { t } = useTranslation()
+  const maxCount = Math.max(...STAGE_KEYS.map((s) => journey[s.field]), 1)
 
   return (
     <SectionShell
@@ -31,33 +33,64 @@ export default function ImpactPulseJourney({ journey, loading }: Props) {
           {t('impactPulse.journey.explainer')}
         </p>
 
-        <ol className="mt-8 flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-2">
+        <ol
+          className="relative mt-8 flex flex-col gap-3 lg:flex-row lg:items-stretch lg:gap-0"
+          aria-label={t('impactPulse.journey.aria')}
+        >
+          <div
+            className="pointer-events-none absolute left-5 top-10 bottom-10 w-px bg-white/15 lg:left-[10%] lg:right-[10%] lg:top-[3.25rem] lg:bottom-auto lg:h-px lg:w-auto"
+            aria-hidden
+          />
+
           {STAGE_KEYS.map((stage, index) => {
             const Icon = stage.icon
             const count = journey[stage.field]
+            const fill = unavailable ? 0 : Math.max(12, Math.round((count / maxCount) * 100))
+
             return (
-              <li key={stage.key} className="flex min-w-0 flex-1 flex-col lg:flex-row lg:items-center">
-                <div className="flex min-w-0 flex-1 flex-col rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-accent-200">
-                    <Icon className="h-5 w-5" aria-hidden />
-                  </span>
+              <li key={stage.key} className="relative flex min-w-0 flex-1 flex-col lg:px-1">
+                <div className="flex min-w-0 flex-1 flex-col rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm lg:mx-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-accent-300/90">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-accent-200">
+                      <Icon className="h-4 w-4" aria-hidden />
+                    </span>
+                  </div>
+
                   {loading ? (
                     <Skeleton className="mt-3 h-7 w-16 rounded-lg bg-white/20" />
+                  ) : unavailable ? (
+                    <p className="mt-3 text-2xl font-extrabold text-white/40">—</p>
                   ) : (
-                    <p className="mt-3 text-2xl font-extrabold tabular-nums">
-                      {formatImpactCountFull(count)}
-                    </p>
+                    <p className="mt-3 text-2xl font-extrabold tabular-nums">{formatImpactCountFull(count)}</p>
                   )}
-                  <p className="mt-1 text-sm font-semibold text-white/90">
+
+                  <p className="mt-1 text-sm font-semibold leading-snug text-white/90">
                     {t(`impactPulse.journey.stages.${stage.key}`)}
                   </p>
+
+                  {!loading && !unavailable && (
+                    <div
+                      className="mt-3 h-1 overflow-hidden rounded-full bg-white/10"
+                      role="presentation"
+                      aria-hidden
+                    >
+                      <div
+                        className="h-full rounded-full bg-linear-to-r from-accent-400 to-brand-400 transition-all duration-700"
+                        style={{ width: `${fill}%` }}
+                      />
+                    </div>
+                  )}
                 </div>
+
                 {index < STAGE_KEYS.length - 1 && (
                   <span
-                    className="mx-auto my-1 flex h-8 items-center justify-center text-white/40 lg:mx-0 lg:my-0 lg:h-auto lg:w-8 lg:shrink-0"
+                    className="mx-auto my-1 flex h-6 items-center justify-center text-white/35 lg:hidden"
                     aria-hidden
                   >
-                    <ArrowRight className="h-5 w-5 rotate-90 lg:rotate-0" />
+                    <ArrowRight className="h-4 w-4 rotate-90" />
                   </span>
                 )}
               </li>

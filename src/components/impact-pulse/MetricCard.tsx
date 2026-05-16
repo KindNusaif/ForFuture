@@ -8,6 +8,8 @@ interface MetricCardProps {
   value: number
   hint?: string
   loading?: boolean
+  unavailable?: boolean
+  compact?: boolean
   accent?: 'brand' | 'accent' | 'teal'
 }
 
@@ -23,29 +25,47 @@ export default function MetricCard({
   value,
   hint,
   loading,
+  unavailable = false,
+  compact = false,
   accent = 'accent',
 }: MetricCardProps) {
+  const pad = compact ? 'p-4' : 'p-5'
+  const valueClass = compact ? 'text-2xl' : 'text-3xl'
+
   return (
-    <article className="card-surface group relative min-w-0 overflow-hidden p-5 transition hover:border-accent-200/80 hover:shadow-md">
+    <article
+      className={`card-surface group relative min-w-0 overflow-hidden ${pad} transition hover:border-accent-200/80 hover:shadow-md ${
+        unavailable ? 'opacity-80' : ''
+      }`}
+    >
       <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-linear-to-br from-accent-100/40 to-transparent opacity-0 transition group-hover:opacity-100" />
       <div className="relative flex items-start gap-3">
         <span
-          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-linear-to-br ${accentRing[accent]} shadow-inner`}
+          className={`flex shrink-0 items-center justify-center rounded-xl bg-linear-to-br ${accentRing[accent]} shadow-inner ${
+            compact ? 'h-9 w-9' : 'h-11 w-11'
+          }`}
         >
-          <Icon className="h-5 w-5" aria-hidden />
+          <Icon className={compact ? 'h-4 w-4' : 'h-5 w-5'} aria-hidden />
         </span>
         <div className="min-w-0 flex-1">
           {loading ? (
-            <Skeleton className="h-8 w-20 rounded-lg" />
+            <Skeleton className={`${compact ? 'h-7' : 'h-8'} w-20 rounded-lg`} />
+          ) : unavailable ? (
+            <p
+              className={`${valueClass} font-extrabold tracking-tight text-slate-400`}
+              aria-label={label}
+            >
+              —
+            </p>
           ) : (
-            <p className="text-3xl font-extrabold tracking-tight text-slate-900 tabular-nums">
+            <p className={`${valueClass} font-extrabold tracking-tight text-slate-900 tabular-nums`}>
               {formatImpactCountFull(value)}
             </p>
           )}
           <p className="mt-1 text-sm font-semibold text-slate-800 [overflow-wrap:anywhere]">{label}</p>
           {hint && <p className="mt-1 text-xs leading-relaxed text-slate-500">{hint}</p>}
         </div>
-      </div>
+        </div>
     </article>
   )
 }

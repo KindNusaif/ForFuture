@@ -494,6 +494,15 @@
     "heroSubtitle": "Track the ideas, movements, petitions, volunteer efforts, relief support, and civic momentum growing across ForFuture.",
     "migrationTitle": "Dashboard metrics are not available yet",
     "migrationBody": "Run supabase/youth_impact_pulse.sql in the Supabase SQL Editor, then refresh this page to load live aggregates.",
+    "metricsUnavailable": "Live metrics will appear here once the dashboard database setup is complete.",
+    "liveUpdated": "Live platform data · refreshed {{time}}",
+    "story": {
+      "aria": "How youth impact flows on ForFuture",
+      "voice": "Voice",
+      "momentum": "Momentum",
+      "action": "Action",
+      "trust": "Trust"
+    },
     "glance": {
       "title": "Impact at a Glance",
       "subtitle": "Platform-wide counts from real youth-led activity — updated when you open this page.",
@@ -502,12 +511,21 @@
       "petitions": "Petitions Started",
       "volunteer": "Volunteer Drives",
       "relief": "Relief & Fundraising Causes",
-      "pollVotes": "Poll Votes Cast"
+      "pollVotes": "Poll Votes Cast",
+      "hints": {
+        "voices": "Raise Your Voice posts shared",
+        "movements": "All youth-led movements except polls",
+        "petitions": "Youth Petition campaigns started",
+        "volunteer": "Volunteer drives organized",
+        "relief": "Fundraising & Donation & Relief causes",
+        "polls": "Votes cast across Quick Youth Polls"
+      }
     },
     "journey": {
       "title": "Voice-to-Action Journey",
       "subtitle": "How participation grows from speaking up to trusted community impact.",
       "explainer": "Every movement begins with a voice. ForFuture helps turn concerns into collective civic action.",
+      "aria": "Voice to action journey stages",
       "stages": {
         "voices": "Voices Raised",
         "petitions": "Petitions Created",
@@ -525,7 +543,8 @@
       "topType": "Most Active Movement Type",
       "topCategory": "Most Engaged Category",
       "supportCount": "{{count}} supports & engagements",
-      "weekSignatures": "{{count}} signatures in the last 7 days"
+      "weekSignatures": "{{count}} signatures in the last 7 days",
+      "noPickYet": "Building this week — check back soon."
     },
     "themes": {
       "title": "Most Active Impact Themes",
@@ -544,13 +563,15 @@
       "pollVotes": "Poll Votes Cast",
       "signatures": "Petition Signatures",
       "volunteer": "Volunteer Responses",
-      "relief": "Relief Support Interests",
+      "relief": "Relief Responses",
+      "reliefHint": "Blood offers & item pledges",
       "supports": "Movement Supports",
       "fundraising": "Fundraising Support Interests"
     },
     "trust": {
       "title": "Trust & Safety Snapshot",
       "subtitle": "Public-safe aggregates that show how credibility and moderation work together.",
+      "panelTitle": "Built for expression and safety together",
       "note": "Freedom of expression and community safety grow together through transparent moderation and trust systems.",
       "verified": "Verified Organizers",
       "reviewed": "Reviewed Campaigns",
@@ -560,6 +581,8 @@
     },
     "spotlight": {
       "title": "Movement in the Spotlight",
+      "subtitle": "The movement drawing the strongest community engagement right now.",
+      "eyebrow": "Spotlight",
       "empty": "Your next movement could appear here.",
       "engagement": "{{count}} people engaged",
       "cta": "View Movement"

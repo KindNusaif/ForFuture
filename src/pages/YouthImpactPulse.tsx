@@ -1,4 +1,5 @@
 import { Activity, RefreshCw } from 'lucide-react'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import AsyncLoadHint from '../components/AsyncLoadHint'
 import ImpactPulseCta from '../components/impact-pulse/ImpactPulseCta'
@@ -7,12 +8,25 @@ import ImpactPulseGlance from '../components/impact-pulse/ImpactPulseGlance'
 import ImpactPulseJourney from '../components/impact-pulse/ImpactPulseJourney'
 import ImpactPulseParticipation from '../components/impact-pulse/ImpactPulseParticipation'
 import ImpactPulseSpotlight from '../components/impact-pulse/ImpactPulseSpotlight'
+import ImpactPulseStoryRibbon from '../components/impact-pulse/ImpactPulseStoryRibbon'
 import ImpactPulseThemes from '../components/impact-pulse/ImpactPulseThemes'
 import ImpactPulseTrust from '../components/impact-pulse/ImpactPulseTrust'
 import ImpactPulseWeekly from '../components/impact-pulse/ImpactPulseWeekly'
 import { useAuth } from '../hooks/useAuth'
 import { useImpactPulseData } from '../hooks/useImpactPulseData'
 import { useLoadingProgress } from '../hooks/useLoadingProgress'
+import i18n from '../i18n'
+
+function formatLiveUpdated(iso: string): string {
+  try {
+    return new Intl.DateTimeFormat(i18n.language, {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(new Date(iso))
+  } catch {
+    return ''
+  }
+}
 
 export default function YouthImpactPulse() {
   const { t } = useTranslation()
@@ -20,6 +34,13 @@ export default function YouthImpactPulse() {
   const { data, loading, error, needsMigration, reload } = useImpactPulseData()
   const { showSlowHint, showRecovery } = useLoadingProgress(loading)
   const detailBase = isMember ? '/feed' : '/explore'
+  const unavailable = needsMigration
+
+  const liveUpdatedLabel = useMemo(() => {
+    if (unavailable || loading || !data.generated_at) return null
+    const when = formatLiveUpdated(data.generated_at)
+    return when ? t('impactPulse.liveUpdated', { time: when }) : null
+  }, [unavailable, loading, data.generated_at, t])
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:py-10">
@@ -40,6 +61,13 @@ export default function YouthImpactPulse() {
           <p className="mt-2 text-xs font-medium uppercase tracking-wider text-accent-200/90">
             {t('impactPulse.tagline')}
           </p>
+          <ImpactPulseStoryRibbon />
+          {liveUpdatedLabel && (
+            <p className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-medium text-accent-100">
+              <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" aria-hidden />
+              {liveUpdatedLabel}
+            </p>
+          )}
         </div>
       </header>
 
@@ -69,16 +97,25 @@ export default function YouthImpactPulse() {
       <AsyncLoadHint showSlowHint={showSlowHint} showRecovery={showRecovery} onRetry={() => void reload()} />
 
       <div className="space-y-14 sm:space-y-16 lg:space-y-20">
-        <ImpactPulseGlance glance={data.glance} loading={loading} />
-        <ImpactPulseJourney journey={data.journey} loading={loading} />
-        <ImpactPulseWeekly weekly={data.weekly} loading={loading} />
+        <ImpactPulseGlance glance={data.glance} loading={loading} unavailable={unavailable} />
+        <ImpactPulseJourney journey={data.journey} loading={loading} unavailable={unavailable} />
+        <ImpactPulseWeekly weekly={data.weekly} loading={loading} unavailable={unavailable} />
         <div className="grid gap-14 lg:grid-cols-2 lg:gap-8 xl:gap-12">
-          <ImpactPulseThemes categories={data.categories} loading={loading} />
-          <ImpactPulseDistricts districts={data.districts} loading={loading} />
+          <ImpactPulseThemes categories={data.categories} loading={loading} unavailable={unavailable} />
+          <ImpactPulseDistricts districts={data.districts} loading={loading} unavailable={unavailable} />
         </div>
-        <ImpactPulseParticipation participation={data.participation} loading={loading} />
-        <ImpactPulseTrust trust={data.trust} loading={loading} />
-        <ImpactPulseSpotlight spotlight={data.spotlight} detailBase={detailBase} loading={loading} />
+        <ImpactPulseParticipation
+          participation={data.participation}
+          loading={loading}
+          unavailable={unavailable}
+        />
+        <ImpactPulseSpotlight
+          spotlight={data.spotlight}
+          detailBase={detailBase}
+          loading={loading}
+          unavailable={unavailable}
+        />
+        <ImpactPulseTrust trust={data.trust} loading={loading} unavailable={unavailable} />
         <ImpactPulseCta isMember={isMember} />
       </div>
     </div>

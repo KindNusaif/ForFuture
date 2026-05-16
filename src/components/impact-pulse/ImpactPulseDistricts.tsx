@@ -8,10 +8,25 @@ import { Skeleton } from '../Skeleton'
 interface Props {
   districts: ImpactPulseDistrictRow[]
   loading?: boolean
+  unavailable?: boolean
 }
 
-export default function ImpactPulseDistricts({ districts, loading }: Props) {
+export default function ImpactPulseDistricts({ districts, loading, unavailable }: Props) {
   const { t } = useTranslation()
+
+  if (unavailable && !loading) {
+    return (
+      <SectionShell
+        id="district-energy"
+        title={t('impactPulse.districts.title')}
+        subtitle={t('impactPulse.districts.subtitle')}
+      >
+        <p className="card-surface border-dashed px-6 py-10 text-center text-sm text-slate-600">
+          {t('impactPulse.metricsUnavailable')}
+        </p>
+      </SectionShell>
+    )
+  }
 
   return (
     <SectionShell
@@ -35,10 +50,24 @@ export default function ImpactPulseDistricts({ districts, loading }: Props) {
               )
             }
             const item = row as ImpactPulseDistrictRow
+            const rank = index + 1
             return (
-              <li key={item.district} className="card-surface flex min-w-0 items-center gap-3 p-4">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-100 text-brand-700">
-                  <MapPin className="h-5 w-5" aria-hidden />
+              <li
+                key={item.district}
+                className={`card-surface flex min-w-0 items-center gap-3 p-4 ${
+                  rank === 1 ? 'ring-2 ring-brand-200/80' : ''
+                }`}
+              >
+                <span
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+                    rank <= 3 ? 'bg-brand-100 text-brand-700' : 'bg-slate-100 text-slate-600'
+                  }`}
+                >
+                  {rank <= 3 ? (
+                    <span className="text-sm font-extrabold">{rank}</span>
+                  ) : (
+                    <MapPin className="h-5 w-5" aria-hidden />
+                  )}
                 </span>
                 <div className="min-w-0">
                   <p className="font-bold text-slate-900 [overflow-wrap:anywhere]">{item.district}</p>

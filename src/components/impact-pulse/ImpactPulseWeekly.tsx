@@ -10,16 +10,32 @@ import { Skeleton } from '../Skeleton'
 interface Props {
   weekly: ImpactPulseDashboard['weekly']
   loading?: boolean
+  unavailable?: boolean
 }
 
-export default function ImpactPulseWeekly({ weekly, loading }: Props) {
+export default function ImpactPulseWeekly({ weekly, loading, unavailable }: Props) {
   const { t } = useTranslation()
 
   const hasWeekly =
-    weekly.most_supported ||
-    weekly.fastest_petition ||
-    weekly.top_movement_type ||
-    weekly.top_category
+    !unavailable &&
+    (weekly.most_supported ||
+      weekly.fastest_petition ||
+      weekly.top_movement_type ||
+      weekly.top_category)
+
+  if (unavailable && !loading) {
+    return (
+      <SectionShell
+        id="weekly-momentum"
+        title={t('impactPulse.weekly.title')}
+        subtitle={t('impactPulse.weekly.subtitle')}
+      >
+        <p className="card-surface border-dashed px-6 py-10 text-center text-sm text-slate-600">
+          {t('impactPulse.metricsUnavailable')}
+        </p>
+      </SectionShell>
+    )
+  }
 
   return (
     <SectionShell
@@ -38,6 +54,7 @@ export default function ImpactPulseWeekly({ weekly, loading }: Props) {
             icon={TrendingUp}
             label={t('impactPulse.weekly.mostSupported')}
             loading={loading}
+            featured={Boolean(weekly.most_supported)}
           >
             {weekly.most_supported ? (
               <>
@@ -54,11 +71,16 @@ export default function ImpactPulseWeekly({ weekly, loading }: Props) {
                 </span>
               </>
             ) : (
-              <p className="text-sm text-slate-500">—</p>
+              <p className="text-sm text-slate-500">{t('impactPulse.weekly.noPickYet')}</p>
             )}
           </WeeklyCard>
 
-          <WeeklyCard icon={Flame} label={t('impactPulse.weekly.fastestPetition')} loading={loading}>
+          <WeeklyCard
+            icon={Flame}
+            label={t('impactPulse.weekly.fastestPetition')}
+            loading={loading}
+            featured={Boolean(weekly.fastest_petition)}
+          >
             {weekly.fastest_petition ? (
               <>
                 <p className="text-lg font-bold text-slate-900 [overflow-wrap:anywhere] [word-break:break-word]">
@@ -71,27 +93,37 @@ export default function ImpactPulseWeekly({ weekly, loading }: Props) {
                 </p>
               </>
             ) : (
-              <p className="text-sm text-slate-500">—</p>
+              <p className="text-sm text-slate-500">{t('impactPulse.weekly.noPickYet')}</p>
             )}
           </WeeklyCard>
 
-          <WeeklyCard icon={Layers} label={t('impactPulse.weekly.topType')} loading={loading}>
+          <WeeklyCard
+            icon={Layers}
+            label={t('impactPulse.weekly.topType')}
+            loading={loading}
+            featured={Boolean(weekly.top_movement_type)}
+          >
             {weekly.top_movement_type ? (
               <p className="text-lg font-bold text-slate-900">
                 {buildMovementConfig(weekly.top_movement_type, t).label}
               </p>
             ) : (
-              <p className="text-sm text-slate-500">—</p>
+              <p className="text-sm text-slate-500">{t('impactPulse.weekly.noPickYet')}</p>
             )}
           </WeeklyCard>
 
-          <WeeklyCard icon={Tag} label={t('impactPulse.weekly.topCategory')} loading={loading}>
+          <WeeklyCard
+            icon={Tag}
+            label={t('impactPulse.weekly.topCategory')}
+            loading={loading}
+            featured={Boolean(weekly.top_category)}
+          >
             {weekly.top_category ? (
               <p className="text-lg font-bold text-slate-900">
                 {t(`categories.${weekly.top_category}`, { defaultValue: weekly.top_category })}
               </p>
             ) : (
-              <p className="text-sm text-slate-500">—</p>
+              <p className="text-sm text-slate-500">{t('impactPulse.weekly.noPickYet')}</p>
             )}
           </WeeklyCard>
         </div>
@@ -105,16 +137,22 @@ function WeeklyCard({
   label,
   children,
   loading,
+  featured,
 }: {
   icon: typeof TrendingUp
   label: string
   children: ReactNode
   loading?: boolean
+  featured?: boolean
 }) {
   return (
-    <article className="card-surface min-w-0 p-5">
+    <article
+      className={`card-surface min-w-0 p-5 transition ${
+        featured ? 'ring-2 ring-accent-200/90 shadow-md shadow-accent-900/5' : ''
+      }`}
+    >
       <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-accent-600">
-        <Icon className="h-4 w-4" aria-hidden />
+        <Icon className="h-4 w-4 shrink-0" aria-hidden />
         {label}
       </div>
       <div className="mt-4 min-w-0">
