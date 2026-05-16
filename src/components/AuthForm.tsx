@@ -12,6 +12,10 @@ interface AuthFormProps {
   onSubmit: (e: FormEvent<HTMLFormElement>) => void
   children: ReactNode
   footer: ReactNode
+  /** Shown on the submit button while loading (defaults to pleaseWait). */
+  loadingLabel?: string
+  /** Optional block between signup footer and “Back to home”. */
+  belowFooter?: ReactNode
 }
 
 export default function AuthForm({
@@ -24,6 +28,8 @@ export default function AuthForm({
   onSubmit,
   children,
   footer,
+  loadingLabel,
+  belowFooter,
 }: AuthFormProps) {
   return (
     <main className="mx-auto flex min-h-[calc(100vh-12rem)] max-w-md flex-col justify-center px-4 py-12">
@@ -62,11 +68,19 @@ export default function AuthForm({
           {children}
         </fieldset>
 
-        <button type="submit" disabled={loading} className="btn-primary mt-6 w-full">
+        <button
+          type="submit"
+          disabled={loading}
+          aria-busy={loading}
+          className="btn-primary mt-6 w-full"
+        >
           {loading ? (
-            <span className="inline-flex items-center gap-2">
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-              Please wait…
+            <span className="inline-flex items-center justify-center gap-2">
+              <span
+                className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"
+                aria-hidden
+              />
+              {loadingLabel ?? 'Please wait…'}
             </span>
           ) : (
             submitLabel
@@ -76,8 +90,13 @@ export default function AuthForm({
 
       <p className="mt-6 text-center text-sm text-slate-600">{footer}</p>
 
-      <p className="mt-4 text-center">
-        <Link to="/" className="text-sm text-slate-500 hover:text-accent-600">
+      {belowFooter}
+
+      <p className="mt-5 text-center">
+        <Link
+          to="/"
+          className="text-sm text-slate-500 transition hover:text-accent-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+        >
           ← Back to home
         </Link>
       </p>
