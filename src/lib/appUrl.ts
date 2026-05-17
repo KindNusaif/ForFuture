@@ -10,7 +10,7 @@ export function getAppOrigin(): string {
   if (typeof window !== 'undefined' && window.location?.origin) {
     return window.location.origin
   }
-  return 'http://localhost:5173'
+  return 'http://localhost:5175'
 }
 
 export function getPasswordResetRedirectUrl(): string {

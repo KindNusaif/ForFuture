@@ -601,7 +601,8 @@
     "retry": "Retry",
     "retryNow": "Retry now",
     "loadFailed": "We could not load this content right now.",
-    "checkConnection": "Please check your connection and try again."
+    "checkConnection": "Please check your connection and try again.",
+    "databaseSetupHint": "If you operate this site: run the public beta SQL bundle in your Supabase project (see supabase/RUN_PUBLIC_BETA_IN_SUPABASE.sql in the repo), then redeploy."
   },
   "map": {
     "pickerLabel": "Location on map",

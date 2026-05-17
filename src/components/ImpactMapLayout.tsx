@@ -1,15 +1,14 @@
-import { Outlet } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
-import AppShell from './AppShell'
+import { Outlet } from 'react-router-dom'
 import ExploreLayout from './ExploreLayout'
 import { useAuth } from '../hooks/useAuth'
 
 /**
- * Keeps members inside AppShell (session + nav) while guests use public explore chrome.
- * Prevents the “logged out” feeling when opening Impact Map from the feed sidebar.
+ * Impact Map and Youth Impact Pulse use the same public layout as localhost,
+ * whether the visitor is signed in or not (avoids AppShell vs Explore mismatch on Netlify).
  */
 export default function ImpactMapLayout() {
-  const { isMember, loading, configured } = useAuth()
+  const { loading, configured } = useAuth()
 
   if (!configured) {
     return (
@@ -23,16 +22,8 @@ export default function ImpactMapLayout() {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center gap-3 bg-muted">
         <Loader2 className="h-10 w-10 animate-spin text-accent-600" aria-label="Loading" />
-        <p className="text-sm text-muted">Loading Impact Map…</p>
+        <p className="text-sm text-muted">Loading…</p>
       </main>
-    )
-  }
-
-  if (isMember) {
-    return (
-      <AppShell>
-        <Outlet />
-      </AppShell>
     )
   }
 

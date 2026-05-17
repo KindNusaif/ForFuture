@@ -6,6 +6,7 @@ import ThemeQuickToggle from './appearance/ThemeQuickToggle'
 import LanguageSwitcher from './LanguageSwitcher'
 import Logo from './Logo'
 import { useAuth } from '../hooks/useAuth'
+import { isPublicMarketingRoute } from '../lib/publicRoutes'
 
 const inactiveClass = 'public-nav-link'
 const activeClass = 'public-nav-link public-nav-link-active'
@@ -28,10 +29,10 @@ export default function PublicNav() {
   const { t } = useTranslation()
   const location = useLocation()
   const aboutActive = isAboutActive(location.pathname, location.hash)
-  /** Home page always uses marketing nav so localhost and Netlify match when logged in. */
-  const isMarketingHome = location.pathname === '/'
-  const showMarketingCenterNav = !loading && (!isMember || isMarketingHome)
-  const showAppQuickLinks = !loading && isMember && !isMarketingHome
+  /** Public marketing pages keep the same nav when signed in (localhost ↔ Netlify parity). */
+  const isMarketingRoute = isPublicMarketingRoute(location.pathname)
+  const showMarketingCenterNav = !loading && (!isMember || isMarketingRoute)
+  const showAppQuickLinks = !loading && isMember && !isMarketingRoute
 
   const marketingMobileLinks = (
     <>
@@ -116,7 +117,7 @@ export default function PublicNav() {
   return (
     <header className="nav-shell">
       <div className="relative mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <Logo to={isMember && !isMarketingHome ? '/feed' : '/'} showTagline={!isMember || isMarketingHome} />
+        <Logo to={isMember && !isMarketingRoute ? '/feed' : '/'} showTagline={!isMember || isMarketingRoute} />
 
         {showMarketingCenterNav && (
           <nav
@@ -146,7 +147,7 @@ export default function PublicNav() {
                 {t('nav.profile')}
               </Link>
             </>
-          ) : isMember && isMarketingHome ? (
+          ) : isMember && isMarketingRoute ? (
             <>
               <Link to="/feed" className="btn-primary min-h-10! px-4! py-2!">
                 {t('nav.myFeed')}
@@ -177,7 +178,7 @@ export default function PublicNav() {
         </nav>
 
         <div className="ml-auto flex items-center gap-2 md:hidden">
-          {!loading && (!isMember || isMarketingHome) && (
+          {!loading && (!isMember || isMarketingRoute) && (
             <Link
               to="/movements"
               className="rounded-lg p-2 text-secondary ring-1 ring-default hover:bg-muted"
@@ -220,7 +221,7 @@ export default function PublicNav() {
                 {t('nav.profile')}
               </Link>
             </>
-          ) : !loading && isMember && isMarketingHome ? (
+          ) : !loading && isMember && isMarketingRoute ? (
             memberMarketingMobileLinks
           ) : (
             guestMobileLinks

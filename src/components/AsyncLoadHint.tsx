@@ -34,6 +34,11 @@ export default function AsyncLoadHint({
             <p className="mt-2 text-xs text-red-700/80 dark:text-red-300/80">
               {t('loading.checkConnection')}
             </p>
+            {/database/i.test(error) && (
+              <p className="mt-2 text-xs text-red-700/80 dark:text-red-300/80">
+                {t('loading.databaseSetupHint')}
+              </p>
+            )}
             {onRetry && (
               <button type="button" onClick={onRetry} className="btn-secondary mt-4">
                 <RefreshCw className="h-4 w-4" />
