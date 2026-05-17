@@ -9,7 +9,7 @@ export default function DeployConfigBanner() {
   if (configured || !import.meta.env.PROD) return null
 
   return (
-    <div className="alert-warning border-b border-default px-4 py-2.5 text-center text-sm" role="status">
+    <div className="alert-warning relative z-50 border-b border-default px-4 py-3 text-center text-sm" role="alert">
       <strong>{t('deploy.missingEnvTitle')}</strong> {t('deploy.missingEnvBody')}
     </div>
   )

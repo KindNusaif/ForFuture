@@ -1,0 +1,10 @@
+# Always fetch fresh HTML so production matches the latest deploy (previews use new URLs, so they look "correct").
+/index.html
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/
+  Cache-Control: no-cache, no-store, must-revalidate
+
+# Hashed Vite assets are safe to cache long-term
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
