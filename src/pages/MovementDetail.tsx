@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import PostCard from '../components/PostCard'
 import Toast from '../components/Toast'
 import AsyncLoadHint from '../components/AsyncLoadHint'
-import { useLoadingProgress } from '../hooks/useLoadingProgress'
-import { isRequestAborted, withAutoRetry } from '../lib/supabaseRequest'
+import { useAsyncLoad } from '../hooks/useAsyncLoad'
+import { withAutoRetry } from '../lib/supabaseRequest'
 import { useJoinMovement } from '../hooks/useJoinMovement'
 import { useAuthUser } from '../hooks/useAuthUser'
 import { fetchPostById } from '../lib/posts'
@@ -35,44 +35,37 @@ function MovementDetailContent({
   const isGuest = mode === 'guest'
 
   const [post, setPost] = useState<Post | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [supporting, setSupporting] = useState(false)
   const [petitionSigning, setPetitionSigning] = useState(false)
   const [pollVoting, setPollVoting] = useState(false)
   const [actionMessage, setActionMessage] = useState<string | null>(null)
-  const abortRef = useRef<AbortController | null>(null)
-  const { showSlowHint, showRecovery } = useLoadingProgress(loading)
+  const [actionError, setActionError] = useState<string | null>(null)
 
-  useEffect(() => {
-    abortRef.current?.abort()
-    const controller = new AbortController()
-    abortRef.current = controller
-    let cancelled = false
+  const loadPost = useCallback(
+    (signal: AbortSignal) =>
+      withAutoRetry(
+        () => fetchPostById(id, isGuest ? undefined : user?.id, signal),
+        { signal },
+      ),
+    [id, isGuest, user?.id],
+  )
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- load movement on route change
-    setLoading(true)
-    setError(null)
+  const {
+    error,
+    isLoading,
+    showSlowHint,
+    showRecovery,
+    reload,
+  } = useAsyncLoad(loadPost, {
+    enabled: Boolean(id),
+    deps: [id, isGuest, user?.id],
+    onSuccess: (data) => {
+      setPost(data)
+      setActionError(null)
+    },
+  })
 
-    withAutoRetry(
-      () => fetchPostById(id, isGuest ? undefined : user?.id, controller.signal),
-      { signal: controller.signal },
-    )
-      .then((data) => {
-        if (!cancelled && !controller.signal.aborted) setPost(data)
-      })
-      .catch((err) => {
-        if (!cancelled && !isRequestAborted(err)) setError(formatError(err))
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-
-    return () => {
-      cancelled = true
-      controller.abort()
-    }
-  }, [id, isGuest, user?.id])
+  const displayError = actionError ?? error
 
   if (!authLoading && isGuest && isMember) {
     return <Navigate to={`/feed/${id}`} replace />
@@ -93,10 +86,10 @@ function MovementDetailContent({
         supported_by_me: true,
         support_count: (post.support_count ?? 0) + 1,
       })
-      setError(null)
+      setActionError(null)
       setActionMessage('You have supported this petition.')
     } catch (err) {
-      setError(formatError(err))
+      setActionError(formatError(err))
     } finally {
       setPetitionSigning(false)
     }
@@ -122,10 +115,10 @@ function MovementDetailContent({
         supported_by_me: nowParticipating,
         support_count: Math.max(0, (post.support_count ?? 0) + (nowParticipating ? 1 : -1)),
       })
-      setError(null)
+      setActionError(null)
       setActionMessage(getActionSuccessMessage(post.movement_type, nowParticipating))
     } catch (err) {
-      setError(formatError(err))
+      setActionError(formatError(err))
     } finally {
       setSupporting(false)
     }
@@ -142,7 +135,7 @@ function MovementDetailContent({
       const poll = await castPollVote(postId, optionId, user.id)
       setPost((p) => (p && p.id === postId ? { ...p, poll } : p))
     } catch (err) {
-      setError(formatError(err))
+      setActionError(formatError(err))
     } finally {
       setPollVoting(false)
     }
@@ -161,20 +154,13 @@ function MovementDetailContent({
 
       <AsyncLoadHint
         className="mb-4"
-        showSlowHint={loading && showSlowHint && !error}
-        showRecovery={loading && showRecovery && !error}
-        error={error}
-        onRetry={() => {
-          setLoading(true)
-          setError(null)
-          void fetchPostById(id, isGuest ? undefined : user?.id)
-            .then((data) => setPost(data))
-            .catch((err) => setError(formatError(err)))
-            .finally(() => setLoading(false))
-        }}
+        showSlowHint={isLoading && showSlowHint && !displayError}
+        showRecovery={isLoading && showRecovery && !displayError}
+        error={displayError}
+        onRetry={reload}
       />
 
-      {actionMessage && !error && (
+      {actionMessage && !displayError && (
         <div className="mb-4">
           <Toast
             variant="success"
@@ -184,7 +170,7 @@ function MovementDetailContent({
         </div>
       )}
 
-      {loading ? (
+      {isLoading ? (
         <div className="flex flex-col items-center justify-center gap-3 py-20">
           <Loader2 className="h-10 w-10 animate-spin text-accent-600" />
           <p className="text-sm text-slate-500">Loading movement…</p>

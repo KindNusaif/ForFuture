@@ -115,8 +115,6 @@ export function useAsyncLoad<T>(
   useEffect(() => {
     if (!enabled) {
       cancel()
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset when disabled
-      setPhase('idle')
       return
     }
     const timer = window.setTimeout(() => {
@@ -128,13 +126,17 @@ export function useAsyncLoad<T>(
     }
   }, [enabled, depsKey, run, cancel])
 
+  const activePhase: AsyncLoadPhase = enabled ? phase : 'idle'
+
   return {
-    phase,
-    data,
-    error,
-    isLoading: phase === 'loading' || phase === 'slow' || phase === 'recover',
-    showSlowHint: phase === 'slow' || phase === 'recover',
-    showRecovery: phase === 'recover',
+    phase: activePhase,
+    data: enabled ? data : null,
+    error: enabled ? error : null,
+    isLoading:
+      enabled &&
+      (phase === 'loading' || phase === 'slow' || phase === 'recover'),
+    showSlowHint: enabled && (phase === 'slow' || phase === 'recover'),
+    showRecovery: enabled && phase === 'recover',
     reload,
     cancel,
   }

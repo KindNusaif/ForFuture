@@ -39,6 +39,7 @@ export default function MapPicker({
   const markerRef = useRef<google.maps.Marker | null>(null)
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null)
   const onChangeRef = useRef(onChange)
+  const initialLocationRef = useRef(value)
   const [mapError, setMapError] = useState<string | null>(null)
   const [mapReady, setMapReady] = useState(false)
   const [locating, setLocating] = useState(false)
@@ -78,11 +79,12 @@ export default function MapPicker({
         await loadGoogleMaps()
         if (cancelled || !mapRef.current) return
 
-        const center = hasValidCoordinates(value)
-          ? { lat: value.latitude, lng: value.longitude }
+        const initial = initialLocationRef.current
+        const center = hasValidCoordinates(initial)
+          ? { lat: initial.latitude, lng: initial.longitude }
           : getDefaultMapCenter()
 
-        const zoom = hasValidCoordinates(value) ? SELECTED_MAP_ZOOM : DEFAULT_MAP_ZOOM
+        const zoom = hasValidCoordinates(initial) ? SELECTED_MAP_ZOOM : DEFAULT_MAP_ZOOM
 
         const map = new google.maps.Map(mapRef.current, {
           center,
@@ -97,7 +99,7 @@ export default function MapPicker({
 
         const marker = new google.maps.Marker({
           map,
-          position: hasValidCoordinates(value) ? center : undefined,
+          position: hasValidCoordinates(initial) ? center : undefined,
           draggable: !disabled,
         })
 
@@ -107,7 +109,7 @@ export default function MapPicker({
           const lng = e.latLng.lng()
           marker.setPosition({ lat, lng })
           void applyLocation(
-            { latitude: lat, longitude: lng, location_name: value.location_name },
+            { latitude: lat, longitude: lng, location_name: initial.location_name },
             true,
           )
         })
@@ -119,7 +121,7 @@ export default function MapPicker({
             {
               latitude: pos.lat(),
               longitude: pos.lng(),
-              location_name: value.location_name,
+              location_name: initial.location_name,
             },
             true,
           )
@@ -168,7 +170,6 @@ export default function MapPicker({
       }
       autocompleteRef.current = null
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- init once per mount
   }, [mapsEnabled, disabled, applyLocation, t])
 
   const latitude = value.latitude

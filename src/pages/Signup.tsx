@@ -81,7 +81,7 @@ export default function Signup() {
           autoComplete="name"
           aria-invalid={Boolean(fieldErrors.name)}
           className={`${inputClass} ${fieldErrors.name ? inputErrorClass : ''}`}
-          placeholder="Amina Hassan"
+          placeholder="Jordan Chen"
         />
       </FormField>
       <FormField label="Email" id="email" error={fieldErrors.email}>
