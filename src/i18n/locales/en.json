@@ -161,7 +161,13 @@
     "pollPageTitle": "Create a community poll",
     "pollPageSubtitle": "Ask a question and add choices for your community to vote on.",
     "pollSectionTitle": "Poll details",
-    "pollSectionSubtitle": "Add your question first, then at least two answer options."
+    "pollSectionSubtitle": "Add your question first, then at least two answer options.",
+    "fixValidation": "Please fix the highlighted fields below before publishing.",
+    "voiceIdLoading": "Setting up your Youth Voice ID…",
+    "voiceIdPublishHint": "Your Youth Voice ID will be created when you publish. Fill in the form, then tap Publish movement.",
+    "voiceIdRequired": "Your Youth Voice ID is required to publish. Try refreshing the page.",
+    "loginRequired": "You must be logged in to publish a movement.",
+    "descriptionMinHint": "Description needs at least {{min}} characters ({{current}}/{{min}})."
   },
   "categories": {
     "all": "All",

@@ -566,7 +566,10 @@ export async function createPost(input: CreateMovementInput) {
   const insertRow = buildInsertRow(input)
 
   async function insertAndSelect(columns: string) {
-    return client.from('posts').insert(insertRow).select(columns).single()
+    return withTimeout(
+      client.from('posts').insert(insertRow).select(columns).single(),
+      DEFAULT_REQUEST_TIMEOUT_MS,
+    )
   }
 
   let { data, error } = await insertAndSelect(POST_OWN_COLUMNS)
@@ -574,7 +577,19 @@ export async function createPost(input: CreateMovementInput) {
     ;({ data, error } = await insertAndSelect(POST_OWN_COLUMNS_LEGACY))
   }
 
-  if (error) throw enhanceSupabaseError(error)
+  if (error) {
+    if (error.message?.includes('posts_movement_type_check') || error.code === '23514') {
+      throw new Error(
+        'This movement type is not supported by your database yet. Run supabase/APPLY_ALL_MIGRATIONS.sql in Supabase, then try again.',
+      )
+    }
+    if (isMissingRelation(error)) {
+      throw new Error(
+        'The posts table is not set up. Run supabase/APPLY_ALL_MIGRATIONS.sql in the Supabase SQL Editor, then refresh.',
+      )
+    }
+    throw enhanceSupabaseError(error)
+  }
 
   const post = mapPostRow(data as unknown as Record<string, unknown>, {
     viewerUserId: input.userId,

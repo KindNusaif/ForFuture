@@ -19,7 +19,9 @@ import { getMovementConfig, isPollMovement } from '../lib/movements'
 import MovementMediaUploader from '../components/media/MovementMediaUploader'
 import { usePendingMovementMedia } from '../hooks/usePendingMovementMedia'
 import { isPetitionMovement } from '../lib/petitions'
+import { scrollToFirstFieldError } from '../lib/createPostForm'
 import { createPost } from '../lib/posts'
+import { ensureYouthVoiceId } from '../lib/auth'
 import { formatError } from '../lib/errors'
 import {
   hasFieldErrors,
@@ -59,8 +61,10 @@ const MOVEMENT_TYPE_VALUES: MovementType[] = [
 
 export default function CreatePost() {
   const { t } = useTranslation()
-  const { user, profile } = useAuth()
+  const { user, profile, refreshProfile } = useAuth()
   const pollQuestionRef = useRef<HTMLInputElement>(null)
+  const submittingRef = useRef(false)
+  const formRef = useRef<HTMLFormElement>(null)
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const typeFromUrl = searchParams.get('type')
@@ -96,6 +100,9 @@ export default function CreatePost() {
   const defaultAuthorName = profile?.display_name ?? ''
   const authorName = authorNameOverride ?? defaultAuthorName
   const effectivePostingIdentity = requiresProfile ? 'profile' : postingIdentity
+  const [voiceIdBootstrapping, setVoiceIdBootstrapping] = useState(false)
+  /** Only block clicks while voice ID is actively being created — not when setup failed (submit retries). */
+  const canPublish = !voiceIdBootstrapping
 
   function handleMovementTypeChange(next: MovementType) {
     setMovementType(next)
@@ -170,7 +177,34 @@ export default function CreatePost() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!user || !profile?.youth_voice_id) return
+    if (submittingRef.current || loading) return
+
+    if (!user) {
+      setError(t('create.loginRequired'))
+      return
+    }
+
+    let youthVoiceId = profile?.youth_voice_id
+    if (!youthVoiceId) {
+      setVoiceIdBootstrapping(true)
+      setError(null)
+      try {
+        const updated = await ensureYouthVoiceId(user.id)
+        youthVoiceId = updated.youth_voice_id
+        await refreshProfile()
+      } catch (err) {
+        setError(formatError(err) || t('create.voiceIdRequired'))
+        setVoiceIdBootstrapping(false)
+        return
+      } finally {
+        setVoiceIdBootstrapping(false)
+      }
+    }
+
+    if (!youthVoiceId) {
+      setError(t('create.voiceIdRequired'))
+      return
+    }
 
     const issueText = movementFields.petition_issue.trim()
     const petitionDescription = isPetition
@@ -199,7 +233,12 @@ export default function CreatePost() {
       petition_closing_date: movementFields.petition_closing_date,
     })
     setFieldErrors(errors)
-    if (hasFieldErrors(errors)) return
+    if (hasFieldErrors(errors)) {
+      setError(t('create.fixValidation'))
+      scrollToFirstFieldError(errors)
+      formRef.current?.querySelector('[role="alert"]')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      return
+    }
 
     if (movementSupportsAttachments(movementType) && pendingMedia.hasFiles) {
       if (!pendingMedia.validation.valid) {
@@ -208,6 +247,7 @@ export default function CreatePost() {
       }
     }
 
+    submittingRef.current = true
     setLoading(true)
     setError(null)
     try {
@@ -220,7 +260,7 @@ export default function CreatePost() {
         category: category as Category,
         authorName: authorName.trim(),
         postingIdentity: effectivePostingIdentity,
-        youthVoiceId: profile.youth_voice_id,
+        youthVoiceId,
         movementType,
         proposed_solution: movementFields.proposed_solution,
         expected_impact: movementFields.expected_impact,
@@ -299,7 +339,9 @@ export default function CreatePost() {
       })
     } catch (err) {
       setError(formatError(err))
+      formRef.current?.querySelector('[role="alert"]')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
     } finally {
+      submittingRef.current = false
       setLoading(false)
     }
   }
@@ -334,10 +376,23 @@ export default function CreatePost() {
       />
 
       <form
+        ref={formRef}
         onSubmit={handleSubmit}
         noValidate
         className="card-surface mt-8 space-y-6 p-6 sm:p-8"
       >
+        {voiceIdBootstrapping && (
+          <p className="rounded-xl border border-accent-200/80 bg-accent-50/80 px-4 py-3 text-sm text-accent-800 dark:border-accent-700/50 dark:bg-accent-950/40 dark:text-accent-200">
+            {t('create.voiceIdLoading')}
+          </p>
+        )}
+
+        {!voiceIdBootstrapping && !profile?.youth_voice_id && user && (
+          <p className="rounded-xl border border-amber-200/80 bg-amber-50/80 px-4 py-3 text-sm text-amber-900 dark:border-amber-700/50 dark:bg-amber-950/30 dark:text-amber-200">
+            {t('create.voiceIdPublishHint')}
+          </p>
+        )}
+
         {error && (
           <p
             className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
@@ -453,6 +508,16 @@ export default function CreatePost() {
                     className={`${inputClass} resize-y min-h-[140px] ${fieldErrors.description ? inputErrorClass : ''}`}
                   />
                   <CharCount current={description.length} max={POST_LIMITS.descriptionMax} />
+                  {!fieldErrors.description &&
+                    description.length > 0 &&
+                    description.length < POST_LIMITS.descriptionMin && (
+                      <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+                        {t('create.descriptionMinHint', {
+                          min: POST_LIMITS.descriptionMin,
+                          current: description.length,
+                        })}
+                      </p>
+                    )}
                 </FormField>
               )}
             </>
@@ -510,13 +575,19 @@ export default function CreatePost() {
           </Link>
           <button
             type="submit"
-            disabled={loading || !profile?.youth_voice_id}
-            className="btn-primary px-8 disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={loading || !canPublish}
+            aria-busy={loading || voiceIdBootstrapping}
+            className="btn-primary motion-essential px-8 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? (
               <>
                 <Loader2 className="h-5 w-5 animate-spin" />
-                Publishing…
+                {t('create.publishing')}
+              </>
+            ) : voiceIdBootstrapping ? (
+              <>
+                <Loader2 className="h-5 w-5 animate-spin" />
+                {t('create.voiceIdLoading')}
               </>
             ) : (
               <>
