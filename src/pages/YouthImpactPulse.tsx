@@ -74,7 +74,7 @@ export default function YouthImpactPulse() {
       {needsMigration && (
         <div
           role="alert"
-          className="mb-8 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-950"
+          className="alert-warning mb-8 px-4 py-4 text-sm"
         >
           <p className="font-semibold">{t('impactPulse.migrationTitle')}</p>
           <p className="mt-1 leading-relaxed">{t('impactPulse.migrationBody')}</p>
@@ -84,7 +84,7 @@ export default function YouthImpactPulse() {
       {error && !needsMigration && (
         <div
           role="alert"
-          className="mb-8 flex flex-col gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-900 sm:flex-row sm:items-center sm:justify-between"
+          className="alert-error mb-8 flex flex-col gap-3 px-4 py-4 text-sm sm:flex-row sm:items-center sm:justify-between"
         >
           <p>{error}</p>
           <button type="button" onClick={() => void reload()} className="btn-secondary min-h-10! shrink-0">

@@ -1,12 +1,15 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import AuthForm, { FormField, inputClass, inputErrorClass } from '../components/AuthForm'
+import PasswordField from '../components/PasswordField'
 import { signUp } from '../lib/auth'
 import { formatError } from '../lib/errors'
 import { isSupabaseConfigured } from '../lib/supabase'
 import { validateSignup } from '../lib/validation'
 
 export default function Signup() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? '/feed'
@@ -99,19 +102,17 @@ export default function Signup() {
           placeholder="you@example.com"
         />
       </FormField>
-      <FormField label="Password" id="password" error={fieldErrors.password}>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          required
-          minLength={6}
-          autoComplete="new-password"
-          aria-invalid={Boolean(fieldErrors.password)}
-          className={`${inputClass} ${fieldErrors.password ? inputErrorClass : ''}`}
-          placeholder="At least 6 characters"
-        />
-      </FormField>
+      <PasswordField
+        id="password"
+        name="password"
+        label="Password"
+        error={fieldErrors.password}
+        autoComplete="new-password"
+        minLength={6}
+        placeholder="At least 6 characters"
+        disabled={loading}
+        footer={<p className="form-hint mt-1.5">{t('auth.passwordHint')}</p>}
+      />
     </AuthForm>
   )
 }

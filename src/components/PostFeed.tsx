@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Inbox, Loader2, Plus } from 'lucide-react'
 import EmptyState from './EmptyState'
 import FeedDiscoveryBar from './FeedDiscoveryBar'
@@ -73,6 +74,7 @@ function PostFeedContent({
   syncFiltersFromUrl = false,
   className = '',
 }: PostFeedProps) {
+  const { t } = useTranslation()
   const { openJoinModal } = useJoinMovement()
   const isGuest = mode === 'guest'
   const viewerUserId = isGuest ? undefined : userId
@@ -291,6 +293,19 @@ function PostFeedContent({
     void loadPage(nextOffset, true)
   }
 
+  function handleClearFilters() {
+    setSearch('')
+    if (syncFiltersFromUrl) {
+      updateUrlFilters('All', 'All')
+    } else {
+      setLocalCategory('All')
+      setLocalMovementFilter('All')
+    }
+  }
+
+  const hasActiveFilters =
+    search.trim().length > 0 || movementFilter !== 'All' || category !== 'All'
+
   async function handlePollVote(postId: string, optionId: string) {
     if (isGuest || !optionId) {
       handleRestrictedAction()
@@ -416,6 +431,8 @@ function PostFeedContent({
           isGuest={isGuest}
           showCreateButton={showCreateButton}
           onGuestCreate={() => handleRestrictedAction()}
+          onClearFilters={handleClearFilters}
+          hasActiveFilters={hasActiveFilters}
         />
       )}
 
@@ -442,6 +459,13 @@ function PostFeedContent({
             title={emptyState.title}
             description={emptyState.description}
           />
+          {hasActiveFilters && (
+            <p className="mt-4 text-center">
+              <button type="button" onClick={handleClearFilters} className="btn-secondary">
+                {t('feed.clearFilters')}
+              </button>
+            </p>
+          )}
           {hasMore && (
             <p className="mt-4 text-center">
               <button type="button" onClick={handleLoadMore} className="btn-secondary">

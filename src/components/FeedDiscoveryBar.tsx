@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronDown, Plus, Search } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { ChevronDown, Plus, Search, X } from 'lucide-react'
 import CategoryFilter from './CategoryFilter'
 import MovementTypeFilter from './MovementTypeFilter'
 import type { Category } from '../types'
@@ -16,6 +17,8 @@ interface FeedDiscoveryBarProps {
   isGuest: boolean
   showCreateButton?: boolean
   onGuestCreate?: () => void
+  onClearFilters?: () => void
+  hasActiveFilters?: boolean
 }
 
 export default function FeedDiscoveryBar({
@@ -28,9 +31,15 @@ export default function FeedDiscoveryBar({
   isGuest,
   showCreateButton = true,
   onGuestCreate,
+  onClearFilters,
+  hasActiveFilters = false,
 }: FeedDiscoveryBarProps) {
+  const { t } = useTranslation()
   const [moreFiltersOpen, setMoreFiltersOpen] = useState(false)
   const categoryActive = category !== 'All'
+  const typeActive = movementFilter !== 'All'
+  const searchActive = search.trim().length > 0
+  const filtersActive = hasActiveFilters || categoryActive || typeActive || searchActive
 
   return (
     <div className="card-surface mb-5 overflow-hidden p-3 sm:p-4">
@@ -89,6 +98,18 @@ export default function FeedDiscoveryBar({
               aria-hidden
             />
           </button>
+
+          {filtersActive && onClearFilters && (
+            <button
+              type="button"
+              onClick={onClearFilters}
+              className="filter-chip gap-1.5 px-3 py-2 text-sm"
+              aria-label="Clear all filters and search"
+            >
+              <X className="h-4 w-4" aria-hidden />
+              <span className="hidden sm:inline">{t('feed.clearFilters')}</span>
+            </button>
+          )}
         </div>
 
         <MovementTypeFilter

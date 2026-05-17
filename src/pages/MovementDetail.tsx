@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import PostCard from '../components/PostCard'
+import ShareMovementButton from '../components/ShareMovementButton'
+import { getMovementShareUrl } from '../lib/share'
 import Toast from '../components/Toast'
 import AsyncLoadHint from '../components/AsyncLoadHint'
 import { useJoinMovement } from '../hooks/useJoinMovement'
@@ -136,16 +138,23 @@ function MovementDetailContent({
     }
   }
 
+  const shareUrl = post ? getMovementShareUrl(post.id, isGuest ? 'guest' : 'member') : ''
+
   return (
     <>
-      <button
-        type="button"
-        onClick={() => navigate(backTo)}
-        className="btn-ghost mb-6 min-h-10! px-0!"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        {backLabel}
-      </button>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={() => navigate(backTo)}
+          className="btn-ghost min-h-10! px-0!"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          {backLabel}
+        </button>
+        {post && (
+          <ShareMovementButton url={shareUrl} title={post.title} variant="secondary" />
+        )}
+      </div>
 
       <AsyncLoadHint
         className="mb-4"

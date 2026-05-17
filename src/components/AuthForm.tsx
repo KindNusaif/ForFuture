@@ -115,7 +115,7 @@ export function FormField({
       <span className="text-sm font-medium text-primary">{label}</span>
       <span className="mt-1 block">{children}</span>
       {error && (
-        <span className="mt-1 block text-xs text-red-600" role="alert">
+        <span className="form-error mt-1 block" role="alert">
           {error}
         </span>
       )}

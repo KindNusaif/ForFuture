@@ -272,6 +272,7 @@
     "newShort": "New",
     "start": "Start",
     "moreFilters": "වැඩි පෙරහන්",
+    "clearFilters": "Clear filters",
     "loadMore": "තව පෙන්වන්න",
     "loadingMore": "Loading…",
     "noMatchTitle": "No matching movements",
@@ -922,6 +923,13 @@
     "documentsTitle": "Supporting Documents",
     "viewPdf": "View",
     "imageFailed": "Image unavailable"
+  },
+  "share": {
+    "button": "Share",
+    "buttonAria": "Share movement: {{title}}",
+    "linkCopied": "Link copied",
+    "shared": "Shared",
+    "movementText": "Join this youth movement on ForFuture: {{title}}"
   },
   "common": {
     "close": "වසන්න",
