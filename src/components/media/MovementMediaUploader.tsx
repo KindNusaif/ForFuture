@@ -92,7 +92,7 @@ export default function MovementMediaUploader({
         </p>
         <button
           type="button"
-          className="btn-secondary mt-3 !min-h-9 !px-4 !py-2 text-xs"
+          className="btn-secondary mt-3 min-h-9! px-4! py-2! text-xs"
           onClick={(e) => {
             e.stopPropagation()
             handlePick()

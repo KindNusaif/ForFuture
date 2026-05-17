@@ -170,7 +170,7 @@ export default function AdminTrustReview() {
 
   return (
     <section className="mx-auto min-w-0 max-w-5xl px-4 py-8 sm:px-6">
-      <Link to="/feed" className="btn-ghost mb-6 !min-h-[40px] !px-0">
+      <Link to="/feed" className="btn-ghost mb-6 min-h-[40px]! px-0!">
         <ArrowLeft className="h-4 w-4" />
         Back to feed
       </Link>

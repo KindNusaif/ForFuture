@@ -156,7 +156,7 @@ function ProfileContent({ userId, email }: { userId: string; email?: string | nu
             <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} aria-hidden />
             {t('profile.refresh')}
           </button>
-          <Link to="/create" className="btn-primary !min-h-[40px] !py-2">
+          <Link to="/create" className="btn-primary min-h-[40px]! py-2!">
             <Plus className="h-4 w-4" aria-hidden />
             {t('profile.createMovement')}
           </Link>

@@ -101,7 +101,7 @@ export default function LandingHero() {
                     featured ? 'landing-preview-item landing-preview-item-featured' : 'landing-preview-item'
                   }
                 >
-                  <span className="tip-icon !h-12 !w-12">
+                  <span className="tip-icon h-12! w-12!">
                     <Icon className="h-6 w-6" aria-hidden />
                   </span>
                   <div className="min-w-0 text-left">

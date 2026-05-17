@@ -103,7 +103,7 @@ async function fetchRecentPostsForRanking(signal?: AbortSignal): Promise<Post[]>
   return enrichPosts(rows, undefined, signal)
 }
 
-async function fetchCategoryCountsFromDb(signal?: AbortSignal): Promise<DiscoverCategoryCount[]> {
+async function fetchCategoryCountsFromDb(): Promise<DiscoverCategoryCount[]> {
   const client = requireSupabase()
   const { data, error } = await client
     .from(FEED_SOURCE)
@@ -135,8 +135,6 @@ function categoryCountsFromImpact(impact: ImpactPulseDashboard): DiscoverCategor
 
 function buildFeatured(posts: Post[]): DiscoverPageData['featured'] {
   const ranked = rankByEngagement(posts)
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
 
   const volunteer = ranked
     .filter((p) => p.movement_type === 'volunteer_drive')
@@ -162,7 +160,7 @@ function buildFeatured(posts: Post[]): DiscoverPageData['featured'] {
 }
 
 /** Lightweight fallback when full enrich is slow — action counts only */
-async function fetchTrendingFallback(signal?: AbortSignal): Promise<DiscoverTrendingItem[]> {
+async function fetchTrendingFallback(): Promise<DiscoverTrendingItem[]> {
   const client = requireSupabase()
   const { data, error } = await client
     .from(FEED_SOURCE)
@@ -195,7 +193,7 @@ export async function fetchDiscoverPageData(options?: {
   }
 
   let posts: Post[] = []
-  let trending: DiscoverTrendingItem[] = []
+  let trending: DiscoverTrendingItem[]
 
   try {
     posts = await fetchRecentPostsForRanking(signal)
@@ -208,7 +206,7 @@ export async function fetchDiscoverPageData(options?: {
       trending = rankByEngagement(posts).slice(0, 6).map(toTrendingItem)
     }
   } catch {
-    trending = await fetchTrendingFallback(signal)
+    trending = await fetchTrendingFallback()
     if (posts.length === 0) {
       const client = requireSupabase()
       const { data } = await client
@@ -245,7 +243,7 @@ export async function fetchDiscoverPageData(options?: {
     if (impact.categories.length > 0) {
       categoryCounts = categoryCountsFromImpact(impact)
     } else {
-      categoryCounts = await fetchCategoryCountsFromDb(signal)
+      categoryCounts = await fetchCategoryCountsFromDb()
     }
   } catch {
     categoryCounts = CATEGORIES.filter((c) => c !== 'Other').map((category) => ({

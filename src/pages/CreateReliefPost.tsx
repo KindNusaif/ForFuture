@@ -248,7 +248,7 @@ export default function CreateReliefPost() {
 
   return (
     <section className="mx-auto min-w-0 max-w-2xl px-4 py-8 sm:px-6">
-      <Link to="/relief" className="btn-ghost mb-6 !min-h-[40px] !px-0">
+      <Link to="/relief" className="btn-ghost mb-6 min-h-[40px]! px-0!">
         <ArrowLeft className="h-4 w-4" />
         {t('relief.backToHub')}
       </Link>

@@ -16,6 +16,8 @@ import Signup from './pages/Signup'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 import Explore from './pages/Explore'
+import Movements from './pages/Movements'
+import Discover from './pages/Discover'
 import ImpactMap from './pages/ImpactMap'
 import Feed from './pages/Feed'
 import { CreatePostRoute } from './pages/CreatePost'
@@ -72,6 +74,8 @@ export default function App() {
 
           {/* Public guest explore — read only */}
           <Route element={<ExploreLayout />}>
+            <Route path="movements" element={<Movements />} />
+            <Route path="discover" element={<Discover />} />
             <Route path="explore" element={<Explore />} />
             <Route path="explore/relief" element={<ReliefHub mode="guest" />} />
             <Route
@@ -79,8 +83,18 @@ export default function App() {
               element={
                 <MovementDetail
                   mode="guest"
-                  backTo="/explore"
-                  backLabel="Back to Explore Youth Momentum"
+                  backTo="/movements"
+                  backLabel="Back to Movements"
+                />
+              }
+            />
+            <Route
+              path="movements/:id"
+              element={
+                <MovementDetail
+                  mode="guest"
+                  backTo="/movements"
+                  backLabel="Back to Movements"
                 />
               }
             />

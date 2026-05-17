@@ -7,7 +7,6 @@ import {
   Lightbulb,
   Map,
   Megaphone,
-  MessageCircle,
   Rocket,
   Shield,
   Sparkles,
@@ -19,7 +18,7 @@ import CTAButton from '../components/landing/CTAButton'
 import FeatureCard from '../components/landing/FeatureCard'
 import LandingHero from '../components/landing/LandingHero'
 import LandingImpactPreview from '../components/landing/LandingImpactPreview'
-import LandingStatCard from '../components/landing/LandingStatCard'
+import LandingImpactStats from '../components/landing/LandingImpactStats'
 import SectionHeader from '../components/landing/SectionHeader'
 
 export default function Landing() {
@@ -86,12 +85,6 @@ export default function Landing() {
     { title: t('landing.whySafeTitle'), text: t('landing.whySafeText') },
     { title: t('landing.whyBarriersTitle'), text: t('landing.whyBarriersText') },
     { title: t('landing.whyVisibleTitle'), text: t('landing.whyVisibleText') },
-  ]
-
-  const demoStats = [
-    { value: '10K+', label: t('landing.statVoices'), icon: MessageCircle },
-    { value: '500+', label: t('landing.statActions'), icon: Rocket },
-    { value: '200+', label: t('landing.statVolunteer'), icon: Users },
   ]
 
   return (
@@ -168,13 +161,7 @@ export default function Landing() {
             </ul>
           </section>
 
-          <ul className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
-            {demoStats.map(({ value, label, icon }) => (
-              <li key={label}>
-                <LandingStatCard value={value} label={label} icon={icon} />
-              </li>
-            ))}
-          </ul>
+          <LandingImpactStats />
         </div>
       </section>
 

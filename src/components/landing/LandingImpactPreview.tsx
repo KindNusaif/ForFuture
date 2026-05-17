@@ -88,7 +88,7 @@ export default function LandingImpactPreview() {
               <ul className="mt-4 space-y-3">
                 {legend.map(({ icon: Icon, label, count }) => (
                   <li key={label} className="flex items-center gap-3 rounded-xl bg-surface p-3 ring-1 ring-default">
-                    <span className="tip-icon !h-9 !w-9 !rounded-lg">
+                    <span className="tip-icon h-9! w-9! rounded-lg!">
                       <Icon className="h-4 w-4" aria-hidden />
                     </span>
                     <div className="min-w-0 flex-1">

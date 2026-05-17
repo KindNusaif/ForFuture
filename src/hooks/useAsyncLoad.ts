@@ -47,6 +47,7 @@ export function useAsyncLoad<T>(
 
   const requestIdRef = useRef(0)
   const abortRef = useRef<AbortController | null>(null)
+  const dataRef = useRef<T | null>(null)
   const slowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const recoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -95,7 +96,12 @@ export function useAsyncLoad<T>(
       setError(null)
       onSuccess?.(result)
     } catch (err) {
-      if (requestId !== requestIdRef.current || isRequestAborted(err)) return
+      if (requestId !== requestIdRef.current) return
+      if (isRequestAborted(err)) {
+        if (dataRef.current) setPhase('success')
+        else setPhase('idle')
+        return
+      }
       setError(formatError(err))
       setPhase('error')
     } finally {
@@ -111,6 +117,10 @@ export function useAsyncLoad<T>(
   }, [run])
 
   const depsKey = JSON.stringify(deps)
+
+  useEffect(() => {
+    dataRef.current = data
+  }, [data])
 
   useEffect(() => {
     if (!enabled) {

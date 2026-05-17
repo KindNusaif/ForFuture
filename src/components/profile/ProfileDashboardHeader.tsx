@@ -124,7 +124,7 @@ export default function ProfileDashboardHeader({
                     type="button"
                     onClick={() => void onSaveBio()}
                     disabled={!canSave}
-                    className="btn-secondary !min-h-9 !px-4 !py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+                    className="btn-secondary min-h-9! px-4! py-2! text-sm disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {bioSaveStatus === 'saving' ? t('profile.saving') : t('profile.saveBio')}
                   </button>

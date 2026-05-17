@@ -54,7 +54,7 @@ export default function DiscoverTrendingSection({ items, loading, error }: Props
                   className="group card-surface flex h-full flex-col p-5 transition hover:border-accent-300 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
                 >
                   <div className="mb-3 flex items-start justify-between gap-2">
-                    <MovementTypeBadge type={item.movement_type} compact />
+                    <MovementTypeBadge movementType={item.movement_type} />
                     {index === 0 && item.engagement_count > 0 && (
                       <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-800 ring-1 ring-amber-200">
                         <Flame className="h-3 w-3" aria-hidden />

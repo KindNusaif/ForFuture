@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, NavLink, useLocation } from 'react-router-dom'
 import { Menu, Search, X } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -7,45 +7,40 @@ import LanguageSwitcher from './LanguageSwitcher'
 import Logo from './Logo'
 import { useAuth } from '../hooks/useAuth'
 
-const linkClass = 'public-nav-link'
+const inactiveClass = 'public-nav-link'
+const activeClass = 'public-nav-link public-nav-link-active'
+
+function navClass({ isActive }: { isActive: boolean }) {
+  return isActive ? activeClass : inactiveClass
+}
+
+function isAboutActive(pathname: string, hash: string) {
+  return pathname === '/' && hash === '#why-forfuture'
+}
 
 export default function PublicNav() {
   const [open, setOpen] = useState(false)
   const { isMember, loading } = useAuth()
   const { t } = useTranslation()
-
-  const memberLinks = (
-    <>
-      <Link to="/feed" className={linkClass}>
-        {t('nav.myFeed')}
-      </Link>
-      <Link to="/impact-map" className={linkClass}>
-        {t('nav.impactMap')}
-      </Link>
-      <Link to="/impact" className={linkClass}>
-        {t('nav.impactPulse')}
-      </Link>
-      <Link to="/create" className={linkClass}>
-        {t('nav.create')}
-      </Link>
-      <Link to="/profile" className={linkClass}>
-        {t('nav.profile')}
-      </Link>
-    </>
-  )
+  const location = useLocation()
+  const aboutActive = isAboutActive(location.pathname, location.hash)
 
   const guestCenterLinks = (
     <>
-      <Link to="/explore" className={linkClass}>
+      <NavLink to="/movements" className={navClass} end>
         {t('nav.movements')}
-      </Link>
-      <Link to="/impact" className={linkClass}>
+      </NavLink>
+      <NavLink to="/discover" className={navClass}>
+        {t('nav.discover')}
+      </NavLink>
+      <NavLink to="/impact" className={navClass}>
         {t('nav.impactNav')}
-      </Link>
-      <Link to="/explore" className={linkClass}>
-        {t('nav.exploreShort')}
-      </Link>
-      <a href="/#why-forfuture" className={linkClass}>
+      </NavLink>
+      <a
+        href="/#why-forfuture"
+        className={aboutActive ? activeClass : inactiveClass}
+        aria-current={aboutActive ? 'page' : undefined}
+      >
         {t('nav.about')}
       </a>
     </>
@@ -53,16 +48,40 @@ export default function PublicNav() {
 
   const guestMobileLinks = (
     <>
-      <Link to="/explore" className="block rounded-lg px-3 py-2.5 text-sm font-medium" onClick={() => setOpen(false)}>
+      <NavLink
+        to="/movements"
+        end
+        className={({ isActive }) =>
+          `block rounded-lg px-3 py-2.5 text-sm font-medium ${isActive ? 'bg-accent-50 text-accent-700' : ''}`
+        }
+        onClick={() => setOpen(false)}
+      >
         {t('nav.movements')}
-      </Link>
-      <Link to="/impact" className="block rounded-lg px-3 py-2.5 text-sm font-medium" onClick={() => setOpen(false)}>
+      </NavLink>
+      <NavLink
+        to="/discover"
+        className={({ isActive }) =>
+          `block rounded-lg px-3 py-2.5 text-sm font-medium ${isActive ? 'bg-accent-50 text-accent-700' : ''}`
+        }
+        onClick={() => setOpen(false)}
+      >
+        {t('nav.discover')}
+      </NavLink>
+      <NavLink
+        to="/impact"
+        className={({ isActive }) =>
+          `block rounded-lg px-3 py-2.5 text-sm font-medium ${isActive ? 'bg-accent-50 text-accent-700' : ''}`
+        }
+        onClick={() => setOpen(false)}
+      >
         {t('nav.impactNav')}
-      </Link>
-      <Link to="/explore" className="block rounded-lg px-3 py-2.5 text-sm font-medium" onClick={() => setOpen(false)}>
-        {t('nav.exploreShort')}
-      </Link>
-      <a href="/#why-forfuture" className="block rounded-lg px-3 py-2.5 text-sm font-medium" onClick={() => setOpen(false)}>
+      </NavLink>
+      <a
+        href="/#why-forfuture"
+        className={`block rounded-lg px-3 py-2.5 text-sm font-medium ${aboutActive ? 'bg-accent-50 text-accent-700' : ''}`}
+        onClick={() => setOpen(false)}
+        aria-current={aboutActive ? 'page' : undefined}
+      >
         {t('nav.about')}
       </a>
       <Link to="/login" className="block rounded-lg px-3 py-2.5 text-sm font-medium" onClick={() => setOpen(false)}>
@@ -90,20 +109,36 @@ export default function PublicNav() {
 
         <nav className="ml-auto hidden items-center gap-1 md:flex" aria-label={t('nav.appNav')}>
           {loading ? null : isMember ? (
-            memberLinks
+            <>
+              <Link to="/feed" className={inactiveClass}>
+                {t('nav.myFeed')}
+              </Link>
+              <Link to="/impact-map" className={inactiveClass}>
+                {t('nav.impactMap')}
+              </Link>
+              <Link to="/impact" className={inactiveClass}>
+                {t('nav.impactPulse')}
+              </Link>
+              <Link to="/create" className={inactiveClass}>
+                {t('nav.create')}
+              </Link>
+              <Link to="/profile" className={inactiveClass}>
+                {t('nav.profile')}
+              </Link>
+            </>
           ) : (
             <>
               <Link
-                to="/explore"
+                to="/movements"
                 className="rounded-lg p-2 text-secondary transition hover:bg-muted hover:text-primary"
-                aria-label={t('nav.searchExplore')}
+                aria-label={t('nav.searchMovements')}
               >
                 <Search className="h-5 w-5" aria-hidden />
               </Link>
-              <Link to="/login" className={linkClass}>
+              <Link to="/login" className={inactiveClass}>
                 {t('nav.login')}
               </Link>
-              <Link to="/signup" className="btn-primary !min-h-[40px] !px-4 !py-2">
+              <Link to="/signup" className="btn-primary min-h-[40px]! px-4! py-2!">
                 {t('nav.joinMovement')}
               </Link>
             </>
@@ -115,9 +150,9 @@ export default function PublicNav() {
         <div className="ml-auto flex items-center gap-2 md:hidden">
           {!loading && !isMember && (
             <Link
-              to="/explore"
+              to="/movements"
               className="rounded-lg p-2 text-secondary ring-1 ring-default hover:bg-muted"
-              aria-label={t('nav.searchExplore')}
+              aria-label={t('nav.searchMovements')}
             >
               <Search className="h-5 w-5" aria-hidden />
             </Link>

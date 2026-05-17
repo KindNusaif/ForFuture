@@ -87,7 +87,7 @@ export default function YouthImpactPulse() {
           className="mb-8 flex flex-col gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-900 sm:flex-row sm:items-center sm:justify-between"
         >
           <p>{error}</p>
-          <button type="button" onClick={() => void reload()} className="btn-secondary !min-h-10 shrink-0">
+          <button type="button" onClick={() => void reload()} className="btn-secondary min-h-10! shrink-0">
             <RefreshCw className="h-4 w-4" aria-hidden />
             {t('loading.retry')}
           </button>

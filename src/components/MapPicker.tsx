@@ -264,7 +264,7 @@ export default function MapPicker({
           onBlur={handleSearchBlur}
           disabled={disabled || !mapReady}
           placeholder={placeholder ?? t('map.searchPlaceholder')}
-          className={`${inputClass} !mt-0 pl-9`}
+          className={`${inputClass} mt-0! pl-9`}
           autoComplete="off"
           aria-label={t('map.searchPlaceholder')}
         />

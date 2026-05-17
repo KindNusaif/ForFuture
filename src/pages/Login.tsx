@@ -103,7 +103,7 @@ export default function Login() {
           </div>
           <Link
             to="/explore"
-            className="btn-secondary flex w-full items-center justify-center gap-2 !min-h-[44px]"
+            className="btn-secondary flex w-full items-center justify-center gap-2 min-h-[44px]!"
           >
             <Compass className="h-4 w-4 text-accent-600" aria-hidden />
             {t('landing.exploreCta')}

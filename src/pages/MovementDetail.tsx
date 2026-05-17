@@ -146,7 +146,7 @@ function MovementDetailContent({
       <button
         type="button"
         onClick={() => navigate(backTo)}
-        className="btn-ghost mb-6 !min-h-[40px] !px-0"
+        className="btn-ghost mb-6 min-h-[40px]! px-0!"
       >
         <ArrowLeft className="h-4 w-4" />
         {backLabel}

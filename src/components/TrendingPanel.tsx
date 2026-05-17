@@ -46,7 +46,7 @@ export default function TrendingPanel() {
           to="/impact"
           className="card-surface flex items-center gap-3 p-4 transition hover:border-accent-400/40 hover:shadow-md"
         >
-          <span className="tip-icon !h-10 !w-10">
+          <span className="tip-icon h-10! w-10!">
             <Activity className="h-5 w-5" />
           </span>
           <div className="min-w-0">

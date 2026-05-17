@@ -55,7 +55,7 @@ export default function ImpactMapFilters({
           type="button"
           onClick={onUseMyLocation}
           disabled={geoLoading}
-          className="btn-secondary !min-h-[40px] !py-2"
+          className="btn-secondary min-h-[40px]! py-2!"
         >
           <LocateFixed className={`h-4 w-4 ${geoLoading ? 'animate-pulse' : ''}`} />
           {geoLoading ? 'Locating…' : hasUserLocation ? 'Update my location' : 'Use my location'}
