@@ -1,4 +1,7 @@
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Check, Loader2, Lock, ScrollText } from 'lucide-react'
+import ConfirmDialog from './ui/ConfirmDialog'
 import { getMovementConfig } from '../lib/movements'
 import { getMovementVisual } from '../lib/movementVisual'
 import {
@@ -27,6 +30,8 @@ export default function PetitionActionButton({
   onSign,
   className = '',
 }: PetitionActionButtonProps) {
+  const { t } = useTranslation()
+  const [confirmOpen, setConfirmOpen] = useState(false)
   const movement = getMovementConfig('youth_petition')
   const visual = getMovementVisual('youth_petition')
   const signed = Boolean(post.supported_by_me)
@@ -38,12 +43,22 @@ export default function PetitionActionButton({
 
   const disabled = closed || signed || loading
 
+  function handlePrimaryClick() {
+    if (guestMode || signed || closed || loading) return
+    setConfirmOpen(true)
+  }
+
+  function handleConfirm() {
+    setConfirmOpen(false)
+    onSign()
+  }
+
   return (
     <div
       className={`min-w-0 rounded-xl border p-3 sm:min-w-[15rem] sm:p-3.5 ${visual.actionZone} ${className}`}
     >
       <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-muted">
-        Support this demand
+        {t('petitions.supportLabel')}
       </p>
 
       {goal != null && goal > 0 && (
@@ -53,14 +68,15 @@ export default function PetitionActionButton({
             {progress != null && <span>{progress}%</span>}
           </div>
           <div
-            className="mt-2 h-2 overflow-hidden rounded-full bg-fuchsia-200/60"
+            className="mt-2 h-2 overflow-hidden rounded-full bg-muted"
             role="progressbar"
             aria-valuenow={progress ?? 0}
             aria-valuemin={0}
             aria-valuemax={100}
+            aria-label={t('petitions.progressLabel')}
           >
             <div
-              className="h-full rounded-full bg-linear-to-r from-fuchsia-500 to-accent-500 transition-all duration-500"
+              className="h-full rounded-full bg-linear-to-r from-fuchsia-500 to-accent-500 transition-all duration-500 dark:from-fuchsia-400 dark:to-accent-400"
               style={{ width: `${progress ?? 0}%` }}
             />
           </div>
@@ -69,16 +85,16 @@ export default function PetitionActionButton({
 
       {closingLabel && (
         <p
-          className={`mb-2 text-xs font-medium ${closed ? 'text-muted' : 'text-fuchsia-800'}`}
+          className={`mb-2 text-xs font-medium ${closed ? 'text-muted' : 'text-fuchsia-800 dark:text-fuchsia-300'}`}
         >
-          {closed ? 'Closed' : closingLabel}
+          {closed ? t('petitions.closed') : closingLabel}
         </p>
       )}
 
       <button
         type="button"
         disabled={disabled}
-        onClick={onSign}
+        onClick={guestMode ? onSign : handlePrimaryClick}
         className={
           signed
             ? 'btn-cta-supported w-full'
@@ -90,22 +106,22 @@ export default function PetitionActionButton({
         }
         aria-pressed={signed}
         aria-busy={loading}
-        title={guestMode ? 'Sign in to support this petition' : movement.actionDisclaimer}
+        title={guestMode ? t('petitions.signInToSupport') : movement.actionDisclaimer}
       >
         {loading ? (
           <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
         ) : guestMode ? (
           <Lock className="h-4 w-4 shrink-0 opacity-70" aria-hidden />
         ) : signed ? (
-          <Check className="h-4 w-4 shrink-0 text-brand-700" aria-hidden />
+          <Check className="h-4 w-4 shrink-0 text-brand-700 dark:text-brand-300" aria-hidden />
         ) : (
           <ScrollText className="h-4 w-4 shrink-0" aria-hidden />
         )}
         <span className="truncate">
           {closed
-            ? 'Petition closed'
+            ? t('petitions.closed')
             : signed
-              ? 'You supported this petition'
+              ? t('petitions.signed')
               : movement.ctaLabel}
         </span>
       </button>
@@ -114,7 +130,7 @@ export default function PetitionActionButton({
         {goal == null || goal <= 0
           ? formatPetitionSupporterCount(count)
           : count === 0
-            ? 'Be the first youth supporter'
+            ? t('petitions.beFirst')
             : formatPetitionSupporterCount(count, goal)}
       </p>
 
@@ -124,6 +140,17 @@ export default function PetitionActionButton({
           <span className="mt-0.5 block font-medium text-secondary">{PETITION_DISCLAIMER}</span>
         </p>
       )}
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title={t('petitions.confirmTitle')}
+        description={t('petitions.confirmDescription')}
+        confirmLabel={t('petitions.confirmButton')}
+        cancelLabel={t('common.cancel')}
+        loading={loading}
+        onConfirm={handleConfirm}
+        onCancel={() => setConfirmOpen(false)}
+      />
     </div>
   )
 }

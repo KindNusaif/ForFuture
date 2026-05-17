@@ -3,6 +3,7 @@ import { Link, Outlet } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import PublicNav from './PublicNav'
 import PublicFooter from './PublicFooter'
+import SkipLink from './SkipLink'
 import { useAuth } from '../hooks/useAuth'
 
 export default function ExploreLayout({ children }: { children?: ReactNode }) {
@@ -11,8 +12,9 @@ export default function ExploreLayout({ children }: { children?: ReactNode }) {
 
   return (
     <div className="flex min-h-screen flex-col">
+      <SkipLink />
       <PublicNav />
-      <main className="min-w-0 flex-1 page-enter pb-16 md:pb-0">
+      <main id="main-content" className="min-w-0 flex-1 page-enter pb-16 md:pb-0">
         {children ?? <Outlet />}
       </main>
       <PublicFooter />

@@ -6,6 +6,7 @@ import { useIsAdmin } from '../hooks/useIsAdmin'
 import ThemeQuickToggle from './appearance/ThemeQuickToggle'
 import LanguageSwitcher from './LanguageSwitcher'
 import Logo from './Logo'
+import SkipLink from './SkipLink'
 import { useAuth } from '../hooks/useAuth'
 import { signOut } from '../lib/auth'
 import { isCreateMovementNavActive, isQuickPollNavActive } from '../lib/createNav'
@@ -35,6 +36,7 @@ export default function AppShell({ children }: { children?: ReactNode }) {
 
   return (
     <div className="min-h-screen pb-20 lg:pb-0">
+      <SkipLink />
       <div className="mx-auto flex max-w-7xl gap-0 lg:gap-8 lg:px-6 lg:py-6">
         <aside className="hidden w-56 shrink-0 lg:block">
           <div className="sticky top-6 space-y-6">
@@ -125,7 +127,7 @@ export default function AppShell({ children }: { children?: ReactNode }) {
           </div>
         </aside>
 
-        <main className="min-w-0 flex-1 page-enter">
+        <main id="main-content" className="min-w-0 flex-1 page-enter">
           <div className="mb-4 flex justify-end px-4 pt-3 lg:hidden">
             <LanguageSwitcher variant="compact" />
           </div>

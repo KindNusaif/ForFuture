@@ -6,7 +6,7 @@ import PasswordField from '../components/PasswordField'
 import { signUp } from '../lib/auth'
 import { formatError } from '../lib/errors'
 import { isSupabaseConfigured } from '../lib/supabase'
-import { validateSignup } from '../lib/validation'
+import { isValidEmail, validateSignup } from '../lib/validation'
 
 export default function Signup() {
   const { t } = useTranslation()
@@ -23,7 +23,10 @@ export default function Signup() {
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    if (loading) return
+
     setFieldErrors({})
+    setError(null)
 
     if (!isSupabaseConfigured) {
       setError('Supabase is not configured. Check your .env file.')
@@ -35,19 +38,33 @@ export default function Signup() {
     const email = String(form.get('email') ?? '').trim()
     const password = String(form.get('password') ?? '')
 
+    const errors: typeof fieldErrors = {}
+    if (!name.trim() || name.trim().length < 2) {
+      errors.name = t('auth.nameRequired')
+    }
+    if (!email) {
+      errors.email = t('auth.emailRequired')
+    } else if (!isValidEmail(email)) {
+      errors.email = t('auth.emailInvalid')
+    }
+    if (!password) {
+      errors.password = t('auth.passwordRequired')
+    } else if (password.length < 6) {
+      errors.password = t('auth.passwordTooShort')
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors)
+      return
+    }
+
     const validationError = validateSignup(name, email, password)
     if (validationError) {
-      const errors: typeof fieldErrors = {}
-      if (!name.trim() || name.trim().length < 2) errors.name = 'Enter your name (2+ characters).'
-      if (!email.trim() || !email.includes('@')) errors.email = 'Enter a valid email.'
-      if (!password || password.length < 6) errors.password = 'Password must be at least 6 characters.'
-      if (Object.keys(errors).length > 0) setFieldErrors(errors)
-      else setError(validationError)
+      setError(validationError)
       return
     }
 
     setLoading(true)
-    setError(null)
     try {
       await signUp(email, password, name)
       navigate(from, { replace: true })
@@ -60,43 +77,46 @@ export default function Signup() {
 
   return (
     <AuthForm
-      title="Join ForFuture"
-      subtitle="Create your account and receive your unique Youth Voice ID."
-      submitLabel="Join ForFuture"
+      title={t('auth.signupTitle')}
+      subtitle={t('auth.signupSubtitle')}
+      submitLabel={t('auth.signupButton')}
+      loadingLabel={t('auth.pleaseWait')}
       loading={loading}
       error={error}
       onSubmit={handleSubmit}
       footer={
         <>
-          Already have an account?{' '}
+          {t('auth.hasAccount')}{' '}
           <Link
             to="/login"
             className="font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
           >
-            Log in
+            {t('auth.logInLink')}
           </Link>
         </>
       }
     >
-      <FormField label="Your name" id="name" error={fieldErrors.name}>
+      <FormField label={t('auth.displayName')} id="name" error={fieldErrors.name}>
         <input
           id="name"
           name="name"
           type="text"
           required
           autoComplete="name"
+          disabled={loading}
           aria-invalid={Boolean(fieldErrors.name)}
           className={`${inputClass} ${fieldErrors.name ? inputErrorClass : ''}`}
           placeholder="Jordan Chen"
         />
       </FormField>
-      <FormField label="Email" id="email" error={fieldErrors.email}>
+      <FormField label={t('auth.email')} id="email" error={fieldErrors.email}>
         <input
           id="email"
           name="email"
           type="email"
           required
           autoComplete="email"
+          disabled={loading}
           aria-invalid={Boolean(fieldErrors.email)}
           className={`${inputClass} ${fieldErrors.email ? inputErrorClass : ''}`}
           placeholder="you@example.com"
@@ -105,7 +125,7 @@ export default function Signup() {
       <PasswordField
         id="password"
         name="password"
-        label="Password"
+        label={t('auth.password')}
         error={fieldErrors.password}
         autoComplete="new-password"
         minLength={6}

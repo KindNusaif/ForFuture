@@ -181,18 +181,18 @@ export default function ReportContentModal({
             />
           </label>
 
-          <p className="mt-3 flex items-start gap-2 rounded-xl border border-brand-200/70 bg-brand-50/60 px-3 py-2.5 text-xs leading-relaxed text-brand-900">
-            <Shield className="mt-0.5 h-4 w-4 shrink-0 text-brand-700" aria-hidden />
+          <p className="alert-info mt-3 flex items-start gap-2 text-xs leading-relaxed">
+            <Shield className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
             Reporting does not hide content. Our moderation team reviews each case fairly.
           </p>
 
           {validationError && (
-            <p className="mt-3 text-sm font-medium text-amber-800" role="alert">
+            <p className="form-error mt-3" role="alert">
               {validationError}
             </p>
           )}
           {submitError && (
-            <p className="mt-3 text-sm font-medium text-red-700" role="alert">
+            <p className="form-error mt-3" role="alert">
               {submitError}
             </p>
           )}
