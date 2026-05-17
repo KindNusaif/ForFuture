@@ -64,7 +64,7 @@ export default function LandingHero() {
             <CTAButton to="/signup" icon={ArrowRight} className="w-full sm:w-auto">
               {t('landing.joinCta')}
             </CTAButton>
-            <CTAButton to="/explore" variant="secondary" icon={Compass} className="w-full sm:w-auto">
+            <CTAButton to="/discover" variant="secondary" icon={Compass} className="w-full sm:w-auto">
               {t('landing.exploreCta')}
             </CTAButton>
           </div>
@@ -127,7 +127,7 @@ export default function LandingHero() {
             </div>
           </div>
           <Link
-            to="/explore"
+            to="/discover"
             tabIndex={-1}
             className="pointer-events-none absolute -bottom-3 -left-3 hidden rounded-2xl bg-brand-500 px-4 py-2 text-xs font-bold text-white shadow-lg lg:block"
             aria-hidden

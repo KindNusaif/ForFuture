@@ -50,7 +50,7 @@ export default function DiscoverTrendingSection({ items, loading, error }: Props
             return (
               <li key={item.id}>
                 <Link
-                  to={`/explore/${item.id}`}
+                  to={`/movements/${item.id}`}
                   className="group card-surface flex h-full flex-col p-5 transition hover:border-accent-300 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
                 >
                   <div className="mb-3 flex items-start justify-between gap-2">

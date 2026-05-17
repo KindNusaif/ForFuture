@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Inbox, Loader2, Plus } from 'lucide-react'
 import EmptyState from './EmptyState'
 import FeedDiscoveryBar from './FeedDiscoveryBar'
@@ -26,6 +26,11 @@ import { isRequestAborted } from '../lib/supabaseRequest'
 import { getActionSuccessMessage } from '../lib/movements'
 import { togglePostAction } from '../lib/postActions'
 import { formatError } from '../lib/errors'
+import {
+  buildMovementsSearchParams,
+  parseCategoryFromUrl,
+  parseMovementFilterFromUrl,
+} from '../lib/feedUrlFilters'
 import type { ReliefHubFilter } from '../lib/reliefHub'
 import type { Category, MovementType, Post } from '../types'
 
@@ -43,6 +48,8 @@ interface PostFeedProps {
   showCreateButton?: boolean
   reliefHub?: boolean
   reliefSubtype?: ReliefHubFilter
+  /** Read/write ?category= and ?type= on /movements (guest discover links). */
+  syncFiltersFromUrl?: boolean
   className?: string
 }
 
@@ -63,11 +70,13 @@ function PostFeedContent({
   showCreateButton = true,
   reliefHub = false,
   reliefSubtype = 'all',
+  syncFiltersFromUrl = false,
   className = '',
 }: PostFeedProps) {
   const { openJoinModal } = useJoinMovement()
   const isGuest = mode === 'guest'
   const viewerUserId = isGuest ? undefined : userId
+  const [searchParams, setSearchParams] = useSearchParams()
 
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
@@ -76,8 +85,15 @@ function PostFeedContent({
   const [hasMore, setHasMore] = useState(false)
   const [nextOffset, setNextOffset] = useState(0)
   const [error, setError] = useState<string | null>(null)
-  const [category, setCategory] = useState<Category | 'All'>('All')
-  const [movementFilter, setMovementFilter] = useState<MovementFilter>('All')
+  const [localCategory, setLocalCategory] = useState<Category | 'All'>('All')
+  const [localMovementFilter, setLocalMovementFilter] = useState<MovementFilter>('All')
+
+  const category = syncFiltersFromUrl
+    ? parseCategoryFromUrl(searchParams.get('category'))
+    : localCategory
+  const movementFilter = syncFiltersFromUrl
+    ? parseMovementFilterFromUrl(searchParams.get('type'))
+    : localMovementFilter
   const [search, setSearch] = useState('')
   const [supportingId, setSupportingId] = useState<string | null>(null)
   const [petitionSigningId, setPetitionSigningId] = useState<string | null>(null)
@@ -155,6 +171,43 @@ function PostFeedContent({
       }
     },
     [viewerUserId, movementFilter, category, reliefHub, reliefSubtype],
+  )
+
+  const updateUrlFilters = useCallback(
+    (nextCategory: Category | 'All', nextMovement: MovementFilter) => {
+      if (!syncFiltersFromUrl) return
+      const next = buildMovementsSearchParams({
+        category: nextCategory,
+        movementFilter: nextMovement,
+      })
+      const current = searchParams.toString()
+      const built = next.toString()
+      if (current === built) return
+      setSearchParams(next, { replace: true })
+    },
+    [syncFiltersFromUrl, searchParams, setSearchParams],
+  )
+
+  const handleCategoryChange = useCallback(
+    (value: Category | 'All') => {
+      if (syncFiltersFromUrl) {
+        updateUrlFilters(value, movementFilter)
+      } else {
+        setLocalCategory(value)
+      }
+    },
+    [movementFilter, syncFiltersFromUrl, updateUrlFilters],
+  )
+
+  const handleMovementFilterChange = useCallback(
+    (value: MovementFilter) => {
+      if (syncFiltersFromUrl) {
+        updateUrlFilters(category, value)
+      } else {
+        setLocalMovementFilter(value)
+      }
+    },
+    [category, syncFiltersFromUrl, updateUrlFilters],
   )
 
   useEffect(() => {
@@ -355,9 +408,11 @@ function PostFeedContent({
           search={search}
           onSearchChange={setSearch}
           movementFilter={movementFilter}
-          onMovementFilterChange={setMovementFilter}
+          onMovementFilterChange={
+            syncFiltersFromUrl ? handleMovementFilterChange : setLocalMovementFilter
+          }
           category={category}
-          onCategoryChange={setCategory}
+          onCategoryChange={syncFiltersFromUrl ? handleCategoryChange : setLocalCategory}
           isGuest={isGuest}
           showCreateButton={showCreateButton}
           onGuestCreate={() => handleRestrictedAction()}
@@ -422,7 +477,7 @@ function PostFeedContent({
               <li key={post.id} className="min-w-0">
                 <PostCard
                   post={post}
-                  detailPath={isGuest ? `/explore/${post.id}` : `/feed/${post.id}`}
+                  detailPath={isGuest ? `/movements/${post.id}` : `/feed/${post.id}`}
                   onSupport={
                     isPollMovement(post.movement_type) || isPetitionMovement(post.movement_type)
                       ? undefined

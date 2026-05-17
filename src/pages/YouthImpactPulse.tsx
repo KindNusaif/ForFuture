@@ -33,7 +33,7 @@ export default function YouthImpactPulse() {
   const { isMember } = useAuth()
   const { data, loading, error, needsMigration, reload } = useImpactPulseData()
   const { showSlowHint, showRecovery } = useLoadingProgress(loading)
-  const detailBase = isMember ? '/feed' : '/explore'
+  const detailBase = isMember ? '/feed' : '/movements'
   const unavailable = needsMigration
 
   const liveUpdatedLabel = useMemo(() => {

@@ -47,7 +47,7 @@ export default function Landing() {
       icon: Compass,
       title: t('landing.toolkitFeedTitle'),
       text: t('landing.toolkitFeedText'),
-      link: '/explore',
+      link: '/movements',
       linkLabel: t('landing.toolkitFeedCta'),
       featured: true,
       className: 'lg:col-span-2 lg:row-span-2',
@@ -200,7 +200,7 @@ export default function Landing() {
             <CTAButton to="/signup" variant="inverse">
               {t('landing.finalCtaButton')}
             </CTAButton>
-            <CTAButton to="/explore" variant="inverse-outline" icon={Map}>
+            <CTAButton to="/discover" variant="inverse-outline" icon={Map}>
               {t('landing.exploreCta')}
             </CTAButton>
           </div>

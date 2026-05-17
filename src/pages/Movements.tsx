@@ -28,7 +28,7 @@ export default function Movements() {
         </div>
       </header>
 
-      <PostFeed mode="guest" showCreateButton={false} />
+      <PostFeed mode="guest" showCreateButton={false} syncFiltersFromUrl />
     </div>
   )
 }

@@ -44,7 +44,7 @@ export default function ImpactMapPage() {
     [filtered, selectedId],
   )
 
-  const detailBase = isMember ? '/feed' : '/explore'
+  const detailBase = isMember ? '/feed' : '/movements'
 
   const flyTo = useMemo(() => {
     if (selectionFlyTo) return selectionFlyTo

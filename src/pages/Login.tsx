@@ -102,7 +102,7 @@ export default function Login() {
             <span className="h-px flex-1 bg-slate-200" aria-hidden />
           </div>
           <Link
-            to="/explore"
+            to="/movements"
             className="btn-secondary flex w-full items-center justify-center gap-2 min-h-[44px]!"
           >
             <Compass className="h-4 w-4 text-accent-600" aria-hidden />

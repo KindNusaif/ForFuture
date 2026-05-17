@@ -36,7 +36,7 @@ function FeaturedColumn({
           {items.map((item) => (
             <li key={item.id}>
               <Link
-                to={`/explore/${item.id}`}
+                to={`/movements/${item.id}`}
                 className="flex items-center justify-between gap-3 px-4 py-3 text-sm transition hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-accent-500"
               >
                 <span className="line-clamp-2 font-medium text-primary">{item.title}</span>

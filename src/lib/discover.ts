@@ -5,9 +5,10 @@ import { enrichPostsWithActions } from './postActions'
 import {
   EMPTY_IMPACT_PULSE,
   fetchImpactPulseDashboard,
-  isRpcMissing,
   type ImpactPulseDashboard,
 } from './impactPulse'
+import { DEFAULT_REQUEST_TIMEOUT_MS, FEED_REQUEST_TIMEOUT_MS } from './requestConfig'
+import { isRequestAborted, withTimeout } from './supabaseRequest'
 import type { Category, MovementType, Post } from '../types'
 import { CATEGORIES } from '../types'
 
@@ -54,6 +55,16 @@ export interface DiscoverPageData {
   }
 }
 
+export const EMPTY_DISCOVER_PAGE: DiscoverPageData = {
+  impact: EMPTY_IMPACT_PULSE,
+  trending: [],
+  categoryCounts: CATEGORIES.filter((c) => c !== 'Other').map((category) => ({
+    category,
+    count: 0,
+  })),
+  featured: { volunteer: [], civic: [], rising: [] },
+}
+
 function engagementScore(post: Post): number {
   if (post.movement_type === 'quick_youth_poll' && post.poll) {
     return post.poll.totalVotes ?? 0
@@ -98,9 +109,14 @@ function rankByEngagement(posts: Post[]): Post[] {
 }
 
 async function fetchRecentPostsForRanking(signal?: AbortSignal): Promise<Post[]> {
-  const { rows } = await fetchFeedRowsPage({ limit: DISCOVER_SCAN_LIMIT, offset: 0 }, signal)
+  const { rows } = await withTimeout(
+    fetchFeedRowsPage({ limit: DISCOVER_SCAN_LIMIT, offset: 0 }, signal),
+    FEED_REQUEST_TIMEOUT_MS,
+    undefined,
+    signal,
+  )
   if (rows.length === 0) return []
-  return enrichPosts(rows, undefined, signal)
+  return withTimeout(enrichPosts(rows, undefined, signal), FEED_REQUEST_TIMEOUT_MS, undefined, signal)
 }
 
 async function fetchCategoryCountsFromDb(): Promise<DiscoverCategoryCount[]> {
@@ -187,9 +203,14 @@ export async function fetchDiscoverPageData(options?: {
 
   let impact = EMPTY_IMPACT_PULSE
   try {
-    impact = await fetchImpactPulseDashboard({ signal })
+    impact = await withTimeout(
+      fetchImpactPulseDashboard({ signal }),
+      DEFAULT_REQUEST_TIMEOUT_MS,
+      undefined,
+      signal,
+    )
   } catch (err) {
-    if (!isRpcMissing(err)) throw err
+    if (isRequestAborted(err)) throw err
   }
 
   let posts: Post[] = []
@@ -255,6 +276,18 @@ export async function fetchDiscoverPageData(options?: {
   const featured = posts.length > 0 ? buildFeatured(posts) : { volunteer: [], civic: [], rising: [] }
 
   return { impact, trending, categoryCounts, featured }
+}
+
+/** Never throws except on abort — returns empty sections when data is unavailable. */
+export async function fetchDiscoverPageDataSafe(options?: {
+  signal?: AbortSignal
+}): Promise<DiscoverPageData> {
+  try {
+    return await fetchDiscoverPageData(options)
+  } catch (err) {
+    if (isRequestAborted(err)) throw err
+    return EMPTY_DISCOVER_PAGE
+  }
 }
 
 export function movementsFilterUrl(options: {
