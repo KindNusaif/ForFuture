@@ -56,7 +56,7 @@ export default function ResetPassword() {
     return (
       <main className="mx-auto flex min-h-[calc(100vh-12rem)] max-w-md flex-col items-center justify-center px-4 py-12">
         <Loader2 className="h-8 w-8 animate-spin text-brand-600" aria-hidden />
-        <p className="mt-4 text-sm text-slate-600">{t('auth.resetVerifyingLink')}</p>
+        <p className="mt-4 text-sm text-secondary">{t('auth.resetVerifyingLink')}</p>
       </main>
     )
   }
@@ -68,8 +68,8 @@ export default function ResetPassword() {
           <Logo to="/" />
         </div>
         <div className="card-surface p-8 text-center">
-          <h1 className="text-xl font-bold text-slate-900">{t('auth.resetInvalidTitle')}</h1>
-          <p className="mt-3 text-sm leading-relaxed text-slate-600">
+          <h1 className="text-xl font-bold text-primary">{t('auth.resetInvalidTitle')}</h1>
+          <p className="mt-3 text-sm leading-relaxed text-secondary">
             {t('auth.resetInvalidMessage')}
           </p>
           <Link to="/forgot-password" className="btn-primary mt-6 inline-flex w-full justify-center">
@@ -93,8 +93,8 @@ export default function ResetPassword() {
           <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
             <CheckCircle2 className="h-7 w-7" aria-hidden />
           </span>
-          <h1 className="mt-5 text-2xl font-bold text-slate-900">{t('auth.resetSuccessTitle')}</h1>
-          <p className="mt-3 text-sm leading-relaxed text-slate-600">
+          <h1 className="mt-5 text-2xl font-bold text-primary">{t('auth.resetSuccessTitle')}</h1>
+          <p className="mt-3 text-sm leading-relaxed text-secondary">
             {t('auth.resetSuccessMessage')}
           </p>
           <Link

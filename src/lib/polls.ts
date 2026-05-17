@@ -1,3 +1,4 @@
+import { mapDuplicateActionError } from './duplicateErrors'
 import { enhanceSupabaseError, isMissingRelation } from './supabaseErrors'
 import { requireSupabase } from './supabase'
 import { isPollMovement } from './movements'
@@ -154,7 +155,7 @@ export async function castPollVote(
 
   if (error) {
     if (error.code === '23505') {
-      throw new Error('You have already voted on this poll.')
+      throw mapDuplicateActionError(error, 'poll')
     }
     throw enhanceSupabaseError(error)
   }

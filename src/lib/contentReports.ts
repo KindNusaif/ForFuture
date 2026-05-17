@@ -1,3 +1,4 @@
+import { mapDuplicateActionError } from './duplicateErrors'
 import { enhanceSupabaseError } from './supabaseErrors'
 import { requireSupabase } from './supabase'
 import { DEFAULT_REQUEST_TIMEOUT_MS, withTimeout } from './supabaseRequest'
@@ -123,7 +124,7 @@ export async function submitContentReport(
 
   if (error) {
     if (error.code === '23505') {
-      throw new Error('You have already submitted a report for this content.')
+      throw mapDuplicateActionError(error, 'report')
     }
     throw enhanceSupabaseError(error)
   }

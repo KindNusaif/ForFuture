@@ -70,12 +70,12 @@ export default function ForgotPassword() {
           <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-50 text-accent-700">
             <Mail className="h-7 w-7" aria-hidden />
           </span>
-          <h1 className="mt-5 text-2xl font-bold text-slate-900">{t('auth.resetEmailSentTitle')}</h1>
-          <p className="mt-3 text-sm leading-relaxed text-slate-600">
+          <h1 className="mt-5 text-2xl font-bold text-primary">{t('auth.resetEmailSentTitle')}</h1>
+          <p className="mt-3 text-sm leading-relaxed text-secondary">
             {t('auth.resetEmailSentMessage')}
           </p>
           {submittedEmail && (
-            <p className="mt-2 text-sm font-medium text-slate-800">{submittedEmail}</p>
+            <p className="mt-2 text-sm font-medium text-primary">{submittedEmail}</p>
           )}
           {error && (
             <p
@@ -100,7 +100,7 @@ export default function ForgotPassword() {
           </div>
         </div>
         <p className="mt-6 text-center">
-          <Link to="/" className="text-sm text-slate-500 hover:text-accent-600">
+          <Link to="/" className="auth-link">
             {t('auth.backHome')}
           </Link>
         </p>

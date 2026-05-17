@@ -127,6 +127,8 @@ function MovementDetailContent({
       setPost((current) =>
         current && current.id === postId ? { ...current, poll } : current,
       )
+      setActionError(null)
+      setActionMessage('Vote recorded! Thanks for sharing your voice.')
     } catch (err) {
       setActionError(formatError(err))
     } finally {

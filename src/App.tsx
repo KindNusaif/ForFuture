@@ -33,6 +33,10 @@ const AdminTrustReview = lazy(() => import('./pages/AdminTrustReview'))
 const ReliefHub = lazy(() => import('./pages/ReliefHub'))
 const CreateReliefPost = lazy(() => import('./pages/CreateReliefPost'))
 const YouthImpactPulse = lazy(() => import('./pages/YouthImpactPulse'))
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'))
+const TermsOfUse = lazy(() => import('./pages/TermsOfUse'))
+const CommunityGuidelines = lazy(() => import('./pages/CommunityGuidelines'))
+const Contact = lazy(() => import('./pages/Contact'))
 
 function LazyPage({ children }: { children: ReactNode }) {
   return <Suspense fallback={<PageLoader />}>{children}</Suspense>
@@ -89,6 +93,38 @@ export default function App() {
                   element={
                     <LazyPage>
                       <ResetPassword />
+                    </LazyPage>
+                  }
+                />
+                <Route
+                  path="privacy"
+                  element={
+                    <LazyPage>
+                      <PrivacyPolicy />
+                    </LazyPage>
+                  }
+                />
+                <Route
+                  path="terms"
+                  element={
+                    <LazyPage>
+                      <TermsOfUse />
+                    </LazyPage>
+                  }
+                />
+                <Route
+                  path="community-guidelines"
+                  element={
+                    <LazyPage>
+                      <CommunityGuidelines />
+                    </LazyPage>
+                  }
+                />
+                <Route
+                  path="contact"
+                  element={
+                    <LazyPage>
+                      <Contact />
                     </LazyPage>
                   }
                 />

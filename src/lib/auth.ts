@@ -8,7 +8,7 @@ import {
 import { enhanceSupabaseError, isMissingColumn } from './supabaseErrors'
 import { requireSupabase } from './supabase'
 import { DEFAULT_REQUEST_TIMEOUT_MS, withTimeout } from './supabaseRequest'
-import { getPasswordResetRedirectUrl } from './appUrl'
+import { getAppOrigin, getPasswordResetRedirectUrl } from './appUrl'
 import { generateYouthVoiceIdCandidate } from './youthVoiceId'
 import { isAppearanceMode } from './theme/types'
 import type { Profile } from '../types'
@@ -100,6 +100,7 @@ export async function signUp(
     password,
     options: {
       data: { display_name: displayName.trim() },
+      emailRedirectTo: `${getAppOrigin()}/login`,
     },
   })
   if (error) throw error

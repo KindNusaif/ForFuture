@@ -32,7 +32,7 @@ export default function ReportContentButton({ post, className = '' }: ReportCont
     <button
       type="button"
       onClick={handleClick}
-      className={`inline-flex min-h-[32px] items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 ${className}`}
+      className={`inline-flex min-h-[32px] items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-muted transition hover:bg-muted hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 ${className}`}
       aria-label="Report this content"
     >
       <Flag className="h-3.5 w-3.5" aria-hidden />

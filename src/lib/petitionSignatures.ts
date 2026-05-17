@@ -1,3 +1,4 @@
+import { mapDuplicateActionError } from './duplicateErrors'
 import { enhanceSupabaseError } from './supabaseErrors'
 import { requireSupabase } from './supabase'
 import { chunkIds, DEFAULT_REQUEST_TIMEOUT_MS, withTimeout } from './supabaseRequest'
@@ -80,7 +81,7 @@ export async function signPetition(petitionId: string, userId: string): Promise<
 
   if (error) {
     if (error.code === '23505') {
-      throw new Error('You have already supported this petition.')
+      throw mapDuplicateActionError(error, 'petition')
     }
     throw enhanceSupabaseError(error)
   }

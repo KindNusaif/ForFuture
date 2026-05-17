@@ -1,6 +1,14 @@
 import type { MovementType, Post } from '../types'
 
-export type ReportableContentType = 'movement' | 'poll' | 'comment'
+export type ReportableContentType =
+  | 'movement'
+  | 'poll'
+  | 'petition'
+  | 'volunteer_drive'
+  | 'fundraising'
+  | 'campaign'
+  | 'relief'
+  | 'comment'
 
 export type ContentReportReason =
   | 'misinformation'
@@ -79,7 +87,33 @@ export const CONTENT_REPORT_PRIORITY_LABELS: Record<ContentReportPriority, strin
 }
 
 export function getReportableContentType(movementType: MovementType): ReportableContentType {
-  return movementType === 'quick_youth_poll' ? 'poll' : 'movement'
+  switch (movementType) {
+    case 'quick_youth_poll':
+      return 'poll'
+    case 'youth_petition':
+      return 'petition'
+    case 'volunteer_drive':
+      return 'volunteer_drive'
+    case 'fundraising':
+      return 'fundraising'
+    case 'peaceful_civic_action':
+      return 'campaign'
+    case 'donation_relief':
+      return 'relief'
+    default:
+      return 'movement'
+  }
+}
+
+export const REPORTABLE_CONTENT_TYPE_LABELS: Record<ReportableContentType, string> = {
+  movement: 'Movement',
+  poll: 'Poll',
+  petition: 'Petition',
+  volunteer_drive: 'Volunteer drive',
+  fundraising: 'Fundraising campaign',
+  campaign: 'Civic campaign',
+  relief: 'Relief cause',
+  comment: 'Comment',
 }
 
 export function getReportableContentTypeForPost(post: Post): ReportableContentType {
