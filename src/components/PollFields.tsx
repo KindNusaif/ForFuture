@@ -37,24 +37,18 @@ export default function PollFields({
   }
 
   return (
-    <div
-      className={`space-y-4 rounded-xl border p-4 ${
-        priority
-          ? 'border-sky-300/90 bg-white/80 dark:border-sky-700/60 dark:bg-sky-950/20'
-          : 'border-sky-100 bg-sky-50/40'
-      }`}
-    >
+    <div className={`space-y-4 p-4 ${priority ? 'poll-panel-inset' : 'card-inset'}`}>
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-sky-800">
+        <p className="poll-heading text-xs font-semibold uppercase tracking-wide">
           Poll options
         </p>
-        <p className="mt-1 text-xs text-sky-700/90">
+        <p className="poll-helper mt-1 text-xs opacity-90">
           Add between {POLL_OPTION_MIN} and {POLL_OPTION_MAX} choices. Each option must be unique.
         </p>
       </div>
 
       {errors.pollOptions && (
-        <p className="text-sm text-red-600" role="alert">
+        <p className="text-sm text-red-600 dark:text-red-400" role="alert">
           {errors.pollOptions}
         </p>
       )}
@@ -83,7 +77,7 @@ export default function PollFields({
                     type="button"
                     onClick={() => removeOption(index)}
                     disabled={disabled}
-                    className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 disabled:opacity-50"
+                    className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-default bg-surface text-secondary transition hover:bg-muted disabled:opacity-50"
                     aria-label={`Remove option ${index + 1}`}
                   >
                     <Minus className="h-4 w-4" />
@@ -100,12 +94,13 @@ export default function PollFields({
           type="button"
           onClick={addOption}
           disabled={disabled}
-          className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-dashed border-sky-300 bg-white px-4 py-2 text-sm font-semibold text-sky-800 transition hover:bg-sky-50 disabled:opacity-50"
+          className="poll-add-option inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-dashed px-4 py-2 text-sm font-semibold transition hover:opacity-90 disabled:opacity-50 sm:w-auto"
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-4 w-4" aria-hidden />
           Add option
         </button>
       )}
     </div>
   )
 }
+

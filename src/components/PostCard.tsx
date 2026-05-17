@@ -130,7 +130,9 @@ export default function PostCard({
           : 'hover:border-slate-300/80 hover:shadow-md'
       }`}
     >
-      <div className={`bg-linear-to-r px-4 pb-3 pt-4 sm:px-5 sm:pt-5 ${visual.headerWash}`}>
+      <div
+        className={`card-header-wash bg-linear-to-r px-4 pb-3 pt-4 sm:px-5 sm:pt-5 ${visual.headerWash}`}
+      >
         <header className="flex flex-wrap items-start justify-between gap-2">
           <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
             {reliefSubtype ? (
@@ -165,7 +167,7 @@ export default function PostCard({
               <ProtectedVoicePill youthVoiceId={post.youth_voice_id} />
             )}
             {showMomentum && momentumLabel && (
-              <span className="rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent-700 ring-1 ring-accent-200/80">
+              <span className="momentum-pill">
                 {momentumLabel}
               </span>
             )}
@@ -181,7 +183,7 @@ export default function PostCard({
 
       <div className="px-4 sm:px-5">
         {!isPoll && (
-          <h3 className="wrap-user-text pt-3 text-lg font-bold leading-snug text-slate-900 sm:text-xl">
+          <h3 className="wrap-user-text pt-3 text-lg font-bold leading-snug text-primary sm:text-xl">
             {detailPath ? (
               <Link
                 to={detailPath}
@@ -196,12 +198,12 @@ export default function PostCard({
         )}
 
         {showDescription && !isPetition && (
-          <p className="line-clamp-card wrap-user-text mt-2 text-sm leading-relaxed text-slate-600">
+          <p className="line-clamp-card wrap-user-text mt-2 text-sm leading-relaxed text-secondary">
             {post.description}
           </p>
         )}
         {isPetition && post.petition_issue && (
-          <p className="line-clamp-card wrap-user-text mt-2 text-sm leading-relaxed text-slate-600">
+          <p className="line-clamp-card wrap-user-text mt-2 text-sm leading-relaxed text-secondary">
             {post.petition_issue}
           </p>
         )}

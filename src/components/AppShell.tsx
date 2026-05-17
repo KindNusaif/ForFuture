@@ -11,15 +11,11 @@ import { signOut } from '../lib/auth'
 import { isCreateMovementNavActive, isQuickPollNavActive } from '../lib/createNav'
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-  `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
-    isActive
-      ? 'bg-accent-50 text-accent-700 ring-1 ring-accent-200/80'
-      : 'text-slate-600 hover:bg-slate-100 hover:text-accent-700'
-  }`
+  isActive ? 'nav-link nav-link-active' : 'nav-link'
 
 const mobileLinkClass = ({ isActive }: { isActive: boolean }) =>
   `flex min-w-0 flex-1 flex-col items-center gap-0.5 px-1 py-2 text-[10px] font-medium transition ${
-    isActive ? 'text-accent-600' : 'text-slate-500'
+    isActive ? 'text-accent-400' : 'text-muted'
   }`
 
 export default function AppShell({ children }: { children?: ReactNode }) {
@@ -100,14 +96,20 @@ export default function AppShell({ children }: { children?: ReactNode }) {
               )}
             </nav>
             {profile && (
-              <div className="rounded-2xl border border-accent-200/80 bg-linear-to-br from-accent-50/80 to-white p-4 shadow-sm">
-                <p className="text-[10px] font-bold uppercase tracking-wide text-accent-600">
+              <div className="voice-id-card p-4 shadow-sm">
+                <p
+                  className="text-[10px] font-bold uppercase tracking-wide"
+                  style={{ color: 'var(--ff-voice-card-title)' }}
+                >
                   {t('voice.yourYouthVoiceId')}
                 </p>
-                <p className="mt-1.5 font-mono text-sm font-bold text-accent-900">
+                <p
+                  className="mt-1.5 font-mono text-sm font-bold"
+                  style={{ color: 'var(--ff-voice-card-id)' }}
+                >
                   {profile.youth_voice_id ?? '—'}
                 </p>
-                <p className="mt-2 text-[11px] leading-relaxed text-slate-600">
+                <p className="mt-2 text-[11px] leading-relaxed text-secondary">
                   {t('voice.youthVoiceHint')}
                 </p>
               </div>
@@ -115,7 +117,7 @@ export default function AppShell({ children }: { children?: ReactNode }) {
             <button
               type="button"
               onClick={() => void handleLogout()}
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+              className="nav-link w-full"
             >
               <LogOut className="h-5 w-5 shrink-0" aria-hidden />
               {t('nav.logout')}
@@ -171,3 +173,4 @@ export default function AppShell({ children }: { children?: ReactNode }) {
     </div>
   )
 }
+

@@ -39,7 +39,7 @@ function CharCount({ current, max }: { current: number; max: number }) {
   return (
     <span
       className={`mt-1 block text-right text-xs tabular-nums ${
-        nearLimit ? 'text-amber-600' : 'text-slate-400'
+        nearLimit ? 'text-amber-600' : 'text-muted'
       }`}
     >
       {current}/{max}
@@ -356,17 +356,14 @@ export default function CreatePost() {
 
           {isPoll ? (
             <section
-              className="space-y-5 rounded-2xl border-2 border-sky-200/90 bg-sky-50/50 p-5 dark:border-sky-800/60 dark:bg-sky-950/30"
+              className="poll-panel space-y-5 p-5 sm:p-6"
               aria-labelledby="poll-details-heading"
             >
               <div>
-                <h2
-                  id="poll-details-heading"
-                  className="text-base font-bold text-sky-900 dark:text-sky-100"
-                >
+                <h2 id="poll-details-heading" className="poll-heading text-base font-bold">
                   {t('create.pollSectionTitle')}
                 </h2>
-                <p className="mt-1 text-sm text-sky-800/90 dark:text-sky-200/80">
+                <p className="poll-helper mt-1 text-sm opacity-90">
                   {t('create.pollSectionSubtitle')}
                 </p>
               </div>

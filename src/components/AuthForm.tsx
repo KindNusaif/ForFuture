@@ -117,7 +117,7 @@ export function FormField({
 }) {
   return (
     <label htmlFor={id} className="block">
-      <span className="text-sm font-medium text-slate-700">{label}</span>
+      <span className="text-sm font-medium text-primary">{label}</span>
       <span className="mt-1 block">{children}</span>
       {error && (
         <span className="mt-1 block text-xs text-red-600" role="alert">

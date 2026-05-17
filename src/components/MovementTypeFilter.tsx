@@ -36,7 +36,7 @@ export default function MovementTypeFilter({
   return (
     <div className={compact ? '' : 'space-y-2'}>
       {!compact && (
-        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted">
           {t('feed.movementType')}
         </p>
       )}

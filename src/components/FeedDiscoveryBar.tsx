@@ -38,7 +38,7 @@ export default function FeedDiscoveryBar({
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <div className="relative min-w-0 flex-1 basis-[12rem]">
             <Search
-              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
               aria-hidden
             />
             <input
@@ -46,7 +46,7 @@ export default function FeedDiscoveryBar({
               value={search}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder="Search movements, authors, topics…"
-              className="w-full min-h-[42px] rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20"
+              className="search-input"
               aria-label="Search movements"
             />
           </div>
@@ -73,10 +73,8 @@ export default function FeedDiscoveryBar({
           <button
             type="button"
             onClick={() => setMoreFiltersOpen((o) => !o)}
-            className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-medium transition ${
-              moreFiltersOpen || categoryActive
-                ? 'border-accent-200 bg-accent-50 text-accent-800'
-                : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+            className={`filter-chip gap-1.5 px-3 py-2 text-sm ${
+              moreFiltersOpen || categoryActive ? 'filter-chip-active' : ''
             }`}
             aria-expanded={moreFiltersOpen}
           >
@@ -100,7 +98,7 @@ export default function FeedDiscoveryBar({
         />
 
         {moreFiltersOpen && (
-          <div className="border-t border-slate-100 pt-3">
+          <div className="border-t border-default pt-3">
             <CategoryFilter selected={category} onChange={onCategoryChange} compact />
           </div>
         )}

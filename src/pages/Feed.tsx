@@ -33,7 +33,7 @@ export default function Feed() {
             <h1 className="page-title mt-2">
               Good to see you, {firstName}
             </h1>
-            <p className="mt-2 text-slate-600">
+            <p className="mt-2 text-secondary">
               What future do you want to help build today?
             </p>
             <Link
