@@ -565,6 +565,14 @@ export async function createPost(input: CreateMovementInput) {
   const client = requireSupabase()
   const insertRow = buildInsertRow(input)
 
+  if (
+    input.movementType === 'donation_relief' &&
+    insertRow.donation_subtype !== 'blood_donation' &&
+    insertRow.donation_subtype !== 'item_donation'
+  ) {
+    throw new Error('Select Blood Donation or Item Donation before publishing.')
+  }
+
   async function insertAndSelect(columns: string) {
     return withTimeout(
       client.from('posts').insert(insertRow).select(columns).single(),
@@ -578,6 +586,11 @@ export async function createPost(input: CreateMovementInput) {
   }
 
   if (error) {
+    if (error.message?.includes('donation subtype')) {
+      throw new Error(
+        'Donation & Relief could not save your request type. In Supabase → SQL Editor, run supabase/fix_posts_facade_relief.sql, then try publishing again.',
+      )
+    }
     if (error.message?.includes('posts_movement_type_check') || error.code === '23514') {
       throw new Error(
         'This movement type is not supported by your database yet. Run supabase/APPLY_ALL_MIGRATIONS.sql in Supabase, then try again.',

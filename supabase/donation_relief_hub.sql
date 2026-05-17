@@ -227,3 +227,47 @@ left join public.profiles pr
 grant select on public.posts_public_safe to anon, authenticated;
 
 notify pgrst, 'reload schema';
+
+-- Forward donation_subtype through public.posts insert facade
+create or replace function public.posts_facade_insert()
+returns trigger
+language plpgsql
+set search_path = pg_catalog, private, public
+as $$
+declare inserted private.posts%rowtype;
+begin
+  insert into private.posts (
+    user_id, title, description, category, author_name, posting_identity, youth_voice_id,
+    movement_type,
+    donation_subtype, relief_status, blood_group, hospital_or_organizer, urgency_level,
+    donors_needed, needed_by_date, item_category, items_needed, quantity_needed,
+    beneficiary_group, collection_location, relief_deadline, organizer_transparency_note,
+    proposed_solution, expected_impact, issue_summary, desired_change,
+    event_date, event_time, location, volunteer_slots, contact_note,
+    fundraising_goal_amount, fundraising_purpose, beneficiary_description, current_raised_amount,
+    action_date, action_time, action_location, action_purpose, safety_note,
+    petition_issue, petition_requested_change, petition_target_authority,
+    petition_support_goal, petition_closing_date, petition_impact_note,
+    location_name, latitude, longitude
+  ) values (
+    new.user_id, new.title, new.description, new.category, new.author_name,
+    new.posting_identity, new.youth_voice_id, new.movement_type,
+    new.donation_subtype, coalesce(new.relief_status, 'open'), new.blood_group, new.hospital_or_organizer,
+    new.urgency_level, new.donors_needed, new.needed_by_date, new.item_category, new.items_needed,
+    new.quantity_needed, new.beneficiary_group, new.collection_location, new.relief_deadline,
+    new.organizer_transparency_note,
+    new.proposed_solution, new.expected_impact, new.issue_summary, new.desired_change,
+    new.event_date, new.event_time, new.location, new.volunteer_slots, new.contact_note,
+    new.fundraising_goal_amount, new.fundraising_purpose, new.beneficiary_description,
+    coalesce(new.current_raised_amount, 0),
+    new.action_date, new.action_time, new.action_location, new.action_purpose, new.safety_note,
+    new.petition_issue, new.petition_requested_change, new.petition_target_authority,
+    new.petition_support_goal, new.petition_closing_date, new.petition_impact_note,
+    new.location_name, new.latitude, new.longitude
+  )
+  returning * into inserted;
+  return inserted;
+end;
+$$;
+
+notify pgrst, 'reload schema';
