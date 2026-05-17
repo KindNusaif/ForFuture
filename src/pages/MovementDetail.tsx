@@ -1,22 +1,19 @@
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import PostCard from '../components/PostCard'
 import Toast from '../components/Toast'
 import AsyncLoadHint from '../components/AsyncLoadHint'
-import { useAsyncLoad } from '../hooks/useAsyncLoad'
-import { withAutoRetry } from '../lib/supabaseRequest'
 import { useJoinMovement } from '../hooks/useJoinMovement'
 import { useAuthUser } from '../hooks/useAuthUser'
-import { fetchPostById } from '../lib/posts'
+import { useMovementDetail } from '../hooks/useMovementDetail'
+import { useLoadingProgress } from '../hooks/useLoadingProgress'
 import { castPollVote } from '../lib/polls'
 import { getActionSuccessMessage } from '../lib/movements'
 import { togglePostAction } from '../lib/postActions'
 import { signPetition } from '../lib/petitionSignatures'
 import { isPetitionMovement } from '../lib/petitions'
 import { formatError } from '../lib/errors'
-import type { Post } from '../types'
-
 interface MovementDetailProps {
   mode: 'guest' | 'member'
   backTo: string
@@ -34,9 +31,21 @@ function MovementDetailContent({
   const { openJoinModal } = useJoinMovement()
   const isGuest = mode === 'guest'
 
-  const [postOverride, setPostOverride] = useState<Post | null>(null)
   const loadEnabled = Boolean(id) && (isGuest || (!authLoading && Boolean(user)))
   const waitingForAuth = !isGuest && authLoading
+
+  const {
+    post: fetchedPost,
+    loading,
+    error,
+    reload,
+    setPost,
+  } = useMovementDetail({
+    postId: id,
+    isGuest,
+    userId: user?.id,
+    enabled: loadEnabled,
+  })
 
   const [supporting, setSupporting] = useState(false)
   const [petitionSigning, setPetitionSigning] = useState(false)
@@ -44,30 +53,10 @@ function MovementDetailContent({
   const [actionMessage, setActionMessage] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
 
-  const loadPost = useCallback(
-    (signal: AbortSignal) =>
-      withAutoRetry(
-        () => fetchPostById(id, isGuest ? undefined : user?.id, signal),
-        { signal },
-      ),
-    [id, isGuest, user?.id],
-  )
-
-  const {
-    data,
-    error,
-    isLoading,
-    showSlowHint,
-    showRecovery,
-    reload,
-  } = useAsyncLoad(loadPost, {
-    enabled: loadEnabled,
-    deps: [id, isGuest, user?.id],
-  })
-
-  const post = postOverride ?? data ?? null
+  const post = fetchedPost
   const displayError = actionError ?? error
-  const showPageLoading = waitingForAuth || (isLoading && !post)
+  const showPageLoading = waitingForAuth || loading
+  const { showSlowHint, showRecovery } = useLoadingProgress(showPageLoading)
 
   if (!authLoading && isGuest && isMember) {
     return <Navigate to={`/feed/${id}`} replace />
@@ -83,7 +72,7 @@ function MovementDetailContent({
     setPetitionSigning(true)
     try {
       await signPetition(postId, user.id)
-      setPostOverride({
+      setPost({
         ...post,
         supported_by_me: true,
         support_count: (post.support_count ?? 0) + 1,
@@ -112,7 +101,7 @@ function MovementDetailContent({
         Boolean(post.supported_by_me),
         post.donation_subtype,
       )
-      setPostOverride({
+      setPost({
         ...post,
         supported_by_me: nowParticipating,
         support_count: Math.max(0, (post.support_count ?? 0) + (nowParticipating ? 1 : -1)),
@@ -135,10 +124,9 @@ function MovementDetailContent({
     setPollVoting(true)
     try {
       const poll = await castPollVote(postId, optionId, user.id)
-      setPostOverride((p) => {
-        const base = p ?? post
-        return base && base.id === postId ? { ...base, poll } : base
-      })
+      setPost((current) =>
+        current && current.id === postId ? { ...current, poll } : current,
+      )
     } catch (err) {
       setActionError(formatError(err))
     } finally {
@@ -180,7 +168,7 @@ function MovementDetailContent({
           <Loader2 className="h-10 w-10 animate-spin text-accent-600" />
           <p className="text-sm text-slate-500">Loading movement…</p>
         </div>
-      ) : !post ? (
+      ) : !post && !displayError ? (
         <div className="card-surface p-10 text-center">
           <p className="text-lg font-bold text-slate-900">Movement not found</p>
           <p className="mt-2 text-sm text-slate-600">It may have been removed or is unavailable.</p>
@@ -188,7 +176,7 @@ function MovementDetailContent({
             {backLabel}
           </Link>
         </div>
-      ) : (
+      ) : post ? (
         <PostCard
           post={post}
           highlight
@@ -205,7 +193,7 @@ function MovementDetailContent({
           showEngagementHint
           showFullMedia
         />
-      )}
+      ) : null}
     </>
   )
 }

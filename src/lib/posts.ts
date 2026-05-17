@@ -19,6 +19,7 @@ import { requireSupabase } from './supabase'
 import { FEED_ENRICH_TIMEOUT_MS, FEED_REQUEST_TIMEOUT_MS } from './requestConfig'
 import {
   DEFAULT_REQUEST_TIMEOUT_MS,
+  isRequestAborted,
   withAutoRetry,
   withTimeout,
 } from './supabaseRequest'
@@ -413,13 +414,24 @@ export async function fetchPostById(
       if (!row) return null
 
       const mapped = mapPostRow(row as unknown as Record<string, unknown>, { viewerUserId })
-      const [post] = await withTimeout(
-        enrichPosts([mapped], viewerUserId, signal),
-        FEED_ENRICH_TIMEOUT_MS,
-        undefined,
-        signal,
-      )
-      return post
+      const shell: Post = {
+        ...(mapped as Post),
+        support_count: 0,
+        supported_by_me: false,
+      }
+
+      try {
+        const [enriched] = await withTimeout(
+          enrichPosts([mapped], viewerUserId, signal),
+          FEED_ENRICH_TIMEOUT_MS,
+          undefined,
+          signal,
+        )
+        return enriched ?? shell
+      } catch (enrichErr) {
+        if (isRequestAborted(enrichErr)) throw enrichErr
+        return shell
+      }
     },
     { signal },
   )

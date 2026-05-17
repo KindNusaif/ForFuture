@@ -68,6 +68,9 @@ export function useAsyncLoad<T>(
     clearTimers()
   }, [clearTimers])
 
+  const executeRef = useRef(execute)
+  const onSuccessRef = useRef(onSuccess)
+
   const run = useCallback(async () => {
     cancel()
     const controller = new AbortController()
@@ -88,13 +91,13 @@ export function useAsyncLoad<T>(
     }, recoverAfterMs)
 
     try {
-      const result = await execute(controller.signal)
+      const result = await executeRef.current(controller.signal)
       if (requestId !== requestIdRef.current || controller.signal.aborted) return
 
       setData(result)
       setPhase('success')
       setError(null)
-      onSuccess?.(result)
+      onSuccessRef.current?.(result)
     } catch (err) {
       if (requestId !== requestIdRef.current) return
       if (isRequestAborted(err)) {
@@ -110,13 +113,18 @@ export function useAsyncLoad<T>(
         abortRef.current = null
       }
     }
-  }, [cancel, clearTimers, execute, onSuccess, recoverAfterMs, slowAfterMs])
+  }, [cancel, clearTimers, recoverAfterMs, slowAfterMs])
 
   const reload = useCallback(() => {
     void run()
   }, [run])
 
   const depsKey = JSON.stringify(deps)
+
+  useEffect(() => {
+    executeRef.current = execute
+    onSuccessRef.current = onSuccess
+  }, [execute, onSuccess])
 
   useEffect(() => {
     dataRef.current = data
