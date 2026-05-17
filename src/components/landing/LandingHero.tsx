@@ -46,12 +46,12 @@ export default function LandingHero() {
       <div className="landing-hero-glow landing-hero-glow-brand" aria-hidden />
 
       <div className="relative mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-2 lg:gap-16">
-        <div className="text-center lg:text-left">
+        <div className="landing-stagger text-center lg:text-left">
           <span className="landing-eyebrow sm:text-xs">
             <Sparkles className="h-4 w-4" aria-hidden />
             {t('landing.eyebrow')}
           </span>
-          <h1 className="mt-6 text-4xl font-bold tracking-tight text-primary sm:text-5xl sm:leading-[1.08] lg:text-[3.35rem]">
+          <h1 className="hero-display mt-6">
             {t('landing.heroTitle')}
           </h1>
           <p className="mt-3 text-sm font-semibold sm:text-base" style={{ color: 'var(--ff-landing-tagline)' }}>

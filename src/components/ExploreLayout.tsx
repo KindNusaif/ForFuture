@@ -12,15 +12,15 @@ export default function ExploreLayout({ children }: { children?: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
       <PublicNav />
-      <main className="min-w-0 flex-1 pb-16 md:pb-0">
+      <main className="min-w-0 flex-1 page-enter pb-16 md:pb-0">
         {children ?? <Outlet />}
       </main>
       <PublicFooter />
       {!isMember && (
-        <aside className="fixed inset-x-0 bottom-0 z-30 border-t border-accent-200/80 bg-accent-50/95 px-4 py-3 backdrop-blur-md md:hidden">
-          <p className="text-center text-xs text-accent-900">
+        <aside className="guest-banner fixed inset-x-0 bottom-0 z-30 border-t border-accent-500/25 bg-accent-500/10 px-4 py-3 backdrop-blur-md md:hidden dark:border-accent-400/20 dark:bg-accent-500/15">
+          <p className="text-center text-xs text-primary">
             {t('explore.guestBanner')}{' '}
-            <Link to="/signup" className="font-semibold underline hover:text-accent-700">
+            <Link to="/signup" className="link-primary underline">
               {t('explore.guestJoin')}
             </Link>{' '}
             {t('explore.guestContribute')}

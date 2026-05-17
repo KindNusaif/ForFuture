@@ -49,7 +49,7 @@ export default function PasswordField({
           type="button"
           disabled={disabled}
           onClick={() => setVisible((v) => !v)}
-          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-2 text-muted transition hover:bg-muted hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-2 text-muted transition hover:bg-muted hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
           aria-label={visible ? t('auth.hidePassword') : t('auth.showPassword')}
           aria-pressed={visible}
         >

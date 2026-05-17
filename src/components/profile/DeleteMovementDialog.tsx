@@ -35,7 +35,7 @@ export default function DeleteMovementDialog({
         if (!deleting) onCancel()
       }}
       onClose={onCancel}
-      className="w-[min(100%,28rem)] max-w-lg rounded-2xl border border-slate-200 bg-white p-0 shadow-xl backdrop:bg-slate-900/50"
+      className="w-[min(100%,28rem)] max-w-lg rounded-2xl border-0 bg-transparent p-0 shadow-none backdrop:bg-black/50 dark:backdrop:bg-black/70"
       aria-labelledby="delete-movement-title"
     >
       <form
@@ -44,29 +44,29 @@ export default function DeleteMovementDialog({
           e.preventDefault()
           if (!deleting) onConfirm()
         }}
-        className="p-6"
+        className="dialog-panel p-6"
       >
         <div className="flex items-start justify-between gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-500/10 text-red-600 dark:text-red-400">
             <AlertTriangle className="h-5 w-5" aria-hidden />
           </span>
           <button
             type="button"
             onClick={onCancel}
             disabled={deleting}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
+            className="rounded-lg p-1.5 text-muted hover:bg-muted hover:text-primary disabled:opacity-50"
             aria-label={t('common.close')}
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <h2 id="delete-movement-title" className="mt-4 text-lg font-bold text-slate-900">
+        <h2 id="delete-movement-title" className="mt-4 text-lg font-bold text-primary">
           {t('profile.deleteTitle')}
         </h2>
-        <p className="mt-2 text-sm leading-relaxed text-slate-600">{t('profile.deleteMessage')}</p>
+        <p className="mt-2 text-sm leading-relaxed text-secondary">{t('profile.deleteMessage')}</p>
         {postTitle && (
-          <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-800">
+          <p className="mt-3 rounded-lg bg-muted px-3 py-2 text-sm font-semibold text-primary">
             {postTitle}
           </p>
         )}
@@ -83,7 +83,7 @@ export default function DeleteMovementDialog({
           <button
             type="submit"
             disabled={deleting}
-            className="inline-flex w-full min-h-[44px] items-center justify-center gap-2 rounded-xl bg-red-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-60 sm:w-auto"
+            className="inline-flex w-full min-h-11 items-center justify-center gap-2 rounded-xl bg-red-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-60 sm:w-auto"
           >
             {deleting ? (
               <>

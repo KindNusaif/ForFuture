@@ -50,20 +50,20 @@ export default function JoinMovementModal({
     <dialog
       ref={dialogRef}
       onClose={onClose}
-      className="w-[min(calc(100%-2rem),28rem)] max-w-md rounded-2xl border-0 bg-transparent p-0 shadow-none"
+      className="w-[min(calc(100%-2rem),28rem)] max-w-md rounded-2xl border-0 bg-transparent p-0 shadow-none backdrop:bg-black/50 dark:backdrop:bg-black/70"
       aria-labelledby="join-movement-title"
       aria-describedby="join-movement-desc"
     >
-      <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-2xl">
+      <div className="dialog-panel relative">
         <div
-          className="absolute inset-0 bg-linear-to-br from-accent-50/90 via-white to-brand-50/50"
+          className="pointer-events-none absolute inset-0 profile-hero-wash opacity-80"
           aria-hidden
         />
         <div className="relative p-6 sm:p-8">
           <button
             type="button"
             onClick={onClose}
-            className="absolute right-4 top-4 rounded-xl p-2 text-slate-400 transition hover:bg-white/80 hover:text-slate-700"
+            className="absolute right-4 top-4 rounded-xl p-2 text-muted transition hover:bg-muted hover:text-primary"
             aria-label={t('common.close')}
           >
             <X className="h-5 w-5" />
@@ -72,7 +72,7 @@ export default function JoinMovementModal({
           <span
             className={`inline-flex rounded-2xl p-3 text-white shadow-lg ${
               isReport
-                ? 'bg-slate-800 shadow-slate-900/25'
+                ? 'bg-slate-700 shadow-slate-900/25 dark:bg-slate-600'
                 : 'bg-accent-600 shadow-accent-600/30'
             }`}
           >
@@ -87,10 +87,13 @@ export default function JoinMovementModal({
             )}
           </span>
 
-          <h2 id="join-movement-title" className="mt-5 text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">
+          <h2
+            id="join-movement-title"
+            className="mt-5 text-xl font-extrabold tracking-tight text-primary sm:text-2xl"
+          >
             {title}
           </h2>
-          <p id="join-movement-desc" className="mt-2 text-sm leading-relaxed text-slate-600">
+          <p id="join-movement-desc" className="mt-2 text-sm leading-relaxed text-secondary">
             {description}
           </p>
 
@@ -99,9 +102,9 @@ export default function JoinMovementModal({
               {benefits.map(({ icon: Icon, text }) => (
                 <li
                   key={text}
-                  className="flex items-center gap-3 rounded-xl border border-white/80 bg-white/70 px-3 py-2.5 text-sm text-slate-700 shadow-sm"
+                  className="flex items-center gap-3 rounded-xl border border-default bg-surface/80 px-3 py-2.5 text-sm text-secondary shadow-sm"
                 >
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent-100 text-accent-600">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent-100 text-accent-600 dark:bg-accent-950/60 dark:text-accent-300">
                     <Icon className="h-4 w-4" aria-hidden />
                   </span>
                   {text}
@@ -117,11 +120,7 @@ export default function JoinMovementModal({
             <Link to="/login" onClick={onClose} className="btn-secondary w-full">
               {t('joinModal.logIn')}
             </Link>
-            <button
-              type="button"
-              onClick={onClose}
-              className="btn-ghost w-full text-slate-500"
-            >
+            <button type="button" onClick={onClose} className="btn-ghost w-full text-muted">
               {t('common.close')}
             </button>
           </div>

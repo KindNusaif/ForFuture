@@ -29,7 +29,7 @@ export default function ProfileImpactSection({ stats, loading }: ProfileImpactSe
 
   return (
     <section className="card-surface mt-6 p-5 sm:p-6" aria-labelledby="profile-impact-heading">
-      <h3 id="profile-impact-heading" className="text-lg font-bold text-slate-900">
+      <h3 id="profile-impact-heading" className="section-title text-lg! sm:text-xl!">
         {t('profile.impactTitle')}
       </h3>
 
@@ -70,7 +70,7 @@ export default function ProfileImpactSection({ stats, loading }: ProfileImpactSe
             />
           </dl>
           {allZero && (
-            <p className="mt-4 rounded-xl border border-dashed border-slate-200 bg-slate-50/80 px-4 py-3 text-center text-sm text-slate-600">
+            <p className="mt-4 rounded-xl border border-dashed border-default bg-muted/80 px-4 py-3 text-center text-sm text-secondary">
               {t('profile.impactEmpty')}
             </p>
           )}

@@ -141,7 +141,7 @@ function MovementDetailContent({
       <button
         type="button"
         onClick={() => navigate(backTo)}
-        className="btn-ghost mb-6 min-h-[40px]! px-0!"
+        className="btn-ghost mb-6 min-h-10! px-0!"
       >
         <ArrowLeft className="h-4 w-4" />
         {backLabel}
@@ -168,12 +168,12 @@ function MovementDetailContent({
       {showPageLoading ? (
         <div className="flex flex-col items-center justify-center gap-3 py-20">
           <Loader2 className="h-10 w-10 animate-spin text-accent-600" />
-          <p className="text-sm text-slate-500">Loading movement…</p>
+          <p className="text-sm text-muted">Loading movement…</p>
         </div>
       ) : !post && !displayError ? (
         <div className="card-surface p-10 text-center">
-          <p className="text-lg font-bold text-slate-900">Movement not found</p>
-          <p className="mt-2 text-sm text-slate-600">It may have been removed or is unavailable.</p>
+          <p className="text-lg font-bold text-primary">Movement not found</p>
+          <p className="mt-2 text-sm text-secondary">It may have been removed or is unavailable.</p>
           <Link to={backTo} className="btn-primary mt-6">
             {backLabel}
           </Link>
@@ -206,7 +206,7 @@ export default function MovementDetail(props: MovementDetailProps) {
   if (!id) {
     return (
       <section className="mx-auto max-w-3xl px-4 py-8">
-        <p className="text-slate-600">Invalid movement link.</p>
+        <p className="text-secondary">Invalid movement link.</p>
       </section>
     )
   }

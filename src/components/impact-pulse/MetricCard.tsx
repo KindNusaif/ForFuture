@@ -60,7 +60,7 @@ export default function MetricCard({
           ) : (
             <p className={`${valueClass} stat-value tabular-nums`}>{formatImpactCountFull(value)}</p>
           )}
-          <p className="stat-label mt-1 text-sm [overflow-wrap:anywhere]">{label}</p>
+          <p className="stat-label mt-1 text-sm wrap-anywhere">{label}</p>
           {hint && <p className="mt-1 text-xs leading-relaxed text-muted">{hint}</p>}
         </div>
       </div>

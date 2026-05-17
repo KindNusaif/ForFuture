@@ -210,7 +210,7 @@ export async function uploadMovementAttachments(input: {
       await removeStoragePaths(uploadedPaths)
       throw new Error(
         uploadError.message.includes('Bucket not found')
-          ? 'Media storage is not set up yet. Run supabase/movement_attachments.sql in Supabase.'
+          ? 'Media uploads are not available yet. Please try again later or contact support.'
           : 'Could not upload a file. Please try again or remove it and continue.',
       )
     }

@@ -15,7 +15,7 @@ const categoryColors: Record<string, string> = {
   Technology: 'bg-violet-50/90 text-violet-800 ring-violet-200/80',
   Community: 'bg-amber-50/90 text-amber-900 ring-amber-200/80',
   Economy: 'bg-orange-50/90 text-orange-900 ring-orange-200/80',
-  Other: 'bg-slate-50/90 text-slate-700 ring-slate-200/80',
+  Other: 'bg-muted/90 text-secondary ring-default',
 }
 
 interface MyMovementCardProps {
@@ -67,7 +67,7 @@ export default function MyMovementCard({ post, onDelete }: MyMovementCardProps) 
           <button
             type="button"
             onClick={() => setMenuOpen((o) => !o)}
-            className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+            className="rounded-lg p-2 text-muted transition hover:bg-muted hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
             aria-expanded={menuOpen}
             aria-haspopup="menu"
             aria-label={t('profile.movementActions')}
@@ -77,13 +77,13 @@ export default function MyMovementCard({ post, onDelete }: MyMovementCardProps) 
           {menuOpen && (
             <ul
               role="menu"
-              className="absolute right-0 z-20 mt-1 min-w-[180px] overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-lg"
+              className="theme-menu right-0 mt-1 min-w-[180px] py-1"
             >
               <li role="none">
                 <Link
                   to={`/feed/${post.id}`}
                   role="menuitem"
-                  className="flex w-full items-center gap-2 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                  className="flex w-full items-center gap-2 px-3 py-2.5 text-sm font-medium text-secondary hover:bg-muted"
                   onClick={() => setMenuOpen(false)}
                 >
                   <ExternalLink className="h-4 w-4 text-accent-600" aria-hidden />
@@ -109,12 +109,12 @@ export default function MyMovementCard({ post, onDelete }: MyMovementCardProps) 
         </div>
       </div>
 
-      <h4 className="wrap-user-text mt-3 text-base font-bold text-slate-900 sm:text-lg">{post.title}</h4>
-      <p className="wrap-user-text mt-1 line-clamp-2 text-sm leading-relaxed text-slate-600">{preview}</p>
+      <h4 className="wrap-user-text mt-3 text-base font-bold text-primary sm:text-lg">{post.title}</h4>
+      <p className="wrap-user-text mt-1 line-clamp-2 text-sm leading-relaxed text-secondary">{preview}</p>
 
-      <footer className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-slate-100 pt-3 text-xs text-slate-500">
+      <footer className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-default pt-3 text-xs text-muted">
         <time dateTime={post.created_at}>{created}</time>
-        <span className="font-medium text-slate-600">
+        <span className="font-medium text-secondary">
           {post.posting_identity === 'youth_voice'
             ? t('profile.postedAsYouthVoice')
             : t('profile.postedAsProfile')}

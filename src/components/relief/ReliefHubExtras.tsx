@@ -56,40 +56,40 @@ export default function ReliefHubExtras({ post }: ReliefHubExtrasProps) {
           </p>
         )}
         {post.hospital_or_organizer && (
-          <p className="wrap-user-text text-sm text-slate-700">
-            <span className="font-semibold text-slate-900">{t('relief.hospital')}:</span>{' '}
+          <p className="wrap-user-text text-sm text-secondary">
+            <span className="font-semibold text-primary">{t('relief.hospital')}:</span>{' '}
             {post.hospital_or_organizer}
           </p>
         )}
         {location && (
-          <p className="wrap-user-text flex items-start gap-2 text-sm text-slate-700">
+          <p className="wrap-user-text flex items-start gap-2 text-sm text-secondary">
             <MapPin className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
             {location}
           </p>
         )}
         {post.donors_needed != null && post.donors_needed > 0 && (
-          <p className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+          <p className="flex items-center gap-2 text-sm font-semibold text-primary">
             <Users className="h-4 w-4 shrink-0 text-rose-700" aria-hidden />
             {t('relief.donorsNeeded', { count: post.donors_needed })}
             {post.support_count != null && post.support_count > 0 && (
-              <span className="font-normal text-slate-600">
+              <span className="font-normal text-secondary">
                 · {formatPledgeProgress(post.support_count, post.donors_needed)}
               </span>
             )}
           </p>
         )}
         {post.needed_by_date && (
-          <p className="flex items-center gap-2 text-xs text-slate-600">
+          <p className="flex items-center gap-2 text-xs text-secondary">
             <Calendar className="h-3.5 w-3.5" aria-hidden />
             {t('relief.neededBy')}: {formatEventDate(post.needed_by_date)}
           </p>
         )}
         {post.contact_note && (
-          <p className="wrap-user-text rounded-lg bg-white/70 px-3 py-2 text-xs text-slate-600 ring-1 ring-slate-200/60">
+          <p className="wrap-user-text rounded-lg bg-surface/70 px-3 py-2 text-xs text-secondary ring-1 ring-default/60">
             {post.contact_note}
           </p>
         )}
-        <p className="text-[11px] leading-relaxed text-slate-500">{t('relief.bloodSafetyNote')}</p>
+        <p className="text-[11px] leading-relaxed text-muted">{t('relief.bloodSafetyNote')}</p>
         <MapPreview post={post} />
       </div>
     )
@@ -110,31 +110,31 @@ export default function ReliefHubExtras({ post }: ReliefHubExtrasProps) {
           </p>
         )}
         {post.items_needed && (
-          <p className="wrap-user-text text-sm font-semibold text-slate-800">{post.items_needed}</p>
+          <p className="wrap-user-text text-sm font-semibold text-primary">{post.items_needed}</p>
         )}
         {post.beneficiary_group && (
-          <p className="wrap-user-text text-sm text-slate-700">
+          <p className="wrap-user-text text-sm text-secondary">
             <span className="font-semibold">{t('relief.beneficiary')}:</span> {post.beneficiary_group}
           </p>
         )}
         {post.collection_location && (
-          <p className="wrap-user-text flex items-start gap-2 text-sm text-slate-700">
+          <p className="wrap-user-text flex items-start gap-2 text-sm text-secondary">
             <MapPin className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
             {post.collection_location}
           </p>
         )}
         {post.quantity_needed != null && post.quantity_needed > 0 && (
-          <p className="text-sm font-semibold text-slate-800">
+          <p className="text-sm font-semibold text-primary">
             {formatPledgeProgress(post.support_count ?? 0, post.quantity_needed)}
           </p>
         )}
         {post.relief_deadline && (
-          <p className="text-xs text-slate-600">
+          <p className="text-xs text-secondary">
             {t('relief.deadline')}: {formatEventDate(post.relief_deadline)}
           </p>
         )}
         {post.contact_note && (
-          <p className="wrap-user-text rounded-lg bg-white/70 px-3 py-2 text-xs text-slate-600 ring-1 ring-slate-200/60">
+          <p className="wrap-user-text rounded-lg bg-surface/70 px-3 py-2 text-xs text-secondary ring-1 ring-default/60">
             {post.contact_note}
           </p>
         )}
@@ -159,13 +159,13 @@ export default function ReliefHubExtras({ post }: ReliefHubExtrasProps) {
           />
         </div>
       ) : showNotReviewed ? (
-        <p className="mb-3 text-xs text-slate-500">{TRUST_TOOLTIPS.fundraisingNotReviewed}</p>
+        <p className="mb-3 text-xs text-muted">{TRUST_TOOLTIPS.fundraisingNotReviewed}</p>
       ) : null}
       {post.fundraising_purpose && (
-        <p className="wrap-user-text text-sm font-semibold text-slate-800">{post.fundraising_purpose}</p>
+        <p className="wrap-user-text text-sm font-semibold text-primary">{post.fundraising_purpose}</p>
       )}
       {post.beneficiary_description && (
-        <p className="wrap-user-text mt-1.5 text-xs leading-relaxed text-slate-600">
+        <p className="wrap-user-text mt-1.5 text-xs leading-relaxed text-secondary">
           {post.beneficiary_description}
         </p>
       )}
@@ -174,14 +174,14 @@ export default function ReliefHubExtras({ post }: ReliefHubExtrasProps) {
           <p className="text-[10px] font-bold uppercase tracking-wide text-sky-900">
             {t('relief.transparencyTitle')}
           </p>
-          <p className="wrap-user-text mt-1 text-xs leading-relaxed text-slate-700">
+          <p className="wrap-user-text mt-1 text-xs leading-relaxed text-secondary">
             {post.organizer_transparency_note}
           </p>
         </div>
       )}
       {goal > 0 && (
         <div className="mt-3">
-          <div className="flex justify-between text-xs font-semibold text-slate-600">
+          <div className="flex justify-between text-xs font-semibold text-secondary">
             <span>{formatCurrency(raised)} {t('relief.supportInterest')}</span>
             <span>{t('relief.goal')} {formatCurrency(goal)}</span>
           </div>
@@ -191,7 +191,7 @@ export default function ReliefHubExtras({ post }: ReliefHubExtrasProps) {
               style={{ width: `${pct}%` }}
             />
           </div>
-          <p className="mt-2 text-[11px] leading-relaxed text-slate-500">
+          <p className="mt-2 text-[11px] leading-relaxed text-muted">
             {t('relief.fundraisingDisclaimer')}
           </p>
         </div>

@@ -1,4 +1,4 @@
-import { enhanceSupabaseError, isPostgrestError } from './supabaseErrors'
+import { enhanceSupabaseError, isPostgrestError, sanitizeErrorForDisplay } from './supabaseErrors'
 import { isRequestAborted, RequestTimeoutError } from './supabaseRequest'
 
 /** Turn Supabase / network errors into user-friendly messages */
@@ -12,7 +12,7 @@ export function formatError(error: unknown): string {
   }
 
   if (isPostgrestError(error)) {
-    return enhanceSupabaseError(error).message
+    return sanitizeErrorForDisplay(enhanceSupabaseError(error).message)
   }
 
   if (error instanceof Error) {
@@ -52,7 +52,7 @@ export function formatError(error: unknown): string {
     if (lower.includes('timeout') || lower.includes('timed out')) {
       return 'This is taking longer than usual. Please check your connection and try again.'
     }
-    return error.message
+    return sanitizeErrorForDisplay(error.message)
   }
   return 'Something went wrong. Please try again.'
 }

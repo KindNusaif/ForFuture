@@ -48,7 +48,8 @@ export default function App() {
       <ThemeProvider>
         <JoinMovementProvider>
           <ReportContentProvider>
-            <Routes>
+            <div className="theme-transition min-h-screen">
+              <Routes>
               <Route element={<Layout />}>
                 <Route
                   index
@@ -286,7 +287,8 @@ export default function App() {
               </Route>
 
               <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
+              </Routes>
+            </div>
           </ReportContentProvider>
         </JoinMovementProvider>
       </ThemeProvider>

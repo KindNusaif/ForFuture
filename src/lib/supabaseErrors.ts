@@ -22,8 +22,14 @@ export function isMissingColumn(error: unknown): boolean {
   )
 }
 
-const SCHEMA_FIX_HINT =
-  'In Supabase → SQL Editor, run supabase/fix_missing_features.sql (copy the whole file, one Run). New project? Use supabase/APPLY_ALL_MIGRATIONS.sql instead. Hard-refresh this page (Ctrl+Shift+R) when done.'
+const DEV_SCHEMA_HINT =
+  'In Supabase → SQL Editor, run supabase/fix_missing_features.sql (or supabase/RUN_PUBLIC_BETA_IN_SUPABASE.sql for public beta). Hard-refresh when done.'
+
+function logDeveloperHint(context: string, error: PostgrestError) {
+  if (typeof import.meta !== 'undefined' && import.meta.env?.DEV) {
+    console.warn(`[ForFuture] ${context}`, error.message, DEV_SCHEMA_HINT)
+  }
+}
 
 export function enhanceSupabaseError(error: unknown): Error {
   if (!isPostgrestError(error)) {
@@ -31,28 +37,37 @@ export function enhanceSupabaseError(error: unknown): Error {
   }
 
   if (isMissingRelation(error)) {
-    const target = error.message.includes('posts_public_safe')
-      ? 'The posts_public_safe view is missing.'
-      : 'A required database table or view is missing.'
-    return new Error(`${target} ${SCHEMA_FIX_HINT}`)
-  }
-
-  if (isMissingColumn(error)) {
-    const hint = error.message.includes('poll')
-      ? 'Poll tables or columns are missing.'
-      : 'Your database is missing columns the app expects (movement_type, trust badges, youth_voice_id, etc.).'
-    return new Error(`${hint} ${SCHEMA_FIX_HINT}`)
-  }
-
-  if (error.message.includes('poll_options') || error.message.includes('poll_votes')) {
-    return new Error(`Poll feature is not set up in Supabase. ${SCHEMA_FIX_HINT}`)
-  }
-
-  if (error.code === '42501' || error.message.includes('permission denied')) {
+    logDeveloperHint('Missing database relation', error)
     return new Error(
-      `Database permission denied. Re-run supabase/00_fix_all.sql and supabase/guest_public_read.sql. ${error.message}`,
+      'Movements could not load because the database setup is incomplete. Please try again later or contact support if this continues.',
     )
   }
 
-  return new Error(error.message)
+  if (isMissingColumn(error)) {
+    logDeveloperHint('Missing database column', error)
+    return new Error(
+      'Movements could not load because the database needs an update. Please try again later or contact support if this continues.',
+    )
+  }
+
+  if (error.message.includes('poll_options') || error.message.includes('poll_votes')) {
+    logDeveloperHint('Poll tables missing', error)
+    return new Error('Polls are not available yet. Please try again later.')
+  }
+
+  if (error.code === '42501' || error.message.includes('permission denied')) {
+    logDeveloperHint('Permission denied', error)
+    return new Error('You do not have permission to perform this action. Try signing in again.')
+  }
+
+  return new Error('Something went wrong. Please try again.')
+}
+
+/** Strip internal migration paths from any error string shown in the UI */
+export function sanitizeErrorForDisplay(message: string): string {
+  return message
+    .replace(/\s*In Supabase[\s\S]*$/i, '')
+    .replace(/\s*Run supabase\/[\w./-]+\.sql[\s\S]*$/i, '')
+    .replace(/\s*Hard-refresh[\s\S]*$/i, '')
+    .trim()
 }

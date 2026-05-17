@@ -49,7 +49,7 @@ export default function ProfileDashboardHeader({
 
   return (
     <header className="card-surface overflow-hidden">
-      <div className="bg-linear-to-br from-accent-50/60 via-white to-brand-50/30 px-5 py-6 sm:px-8 sm:py-8">
+      <div className="profile-hero-wash">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start lg:flex-col lg:items-center">
             <span
@@ -67,7 +67,7 @@ export default function ProfileDashboardHeader({
 
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
+              <h2 className="text-2xl font-extrabold tracking-tight text-primary sm:text-3xl">
                 {displayName}
               </h2>
               {isVerified && (
@@ -81,12 +81,12 @@ export default function ProfileDashboardHeader({
               )}
             </div>
             {memberSince && (
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-muted">
                 {t('profile.memberSince')} {memberSince}
               </p>
             )}
             {email && (
-              <p className="mt-2 truncate text-sm text-slate-600" title={email}>
+              <p className="mt-2 truncate text-sm text-secondary" title={email}>
                 {email}
               </p>
             )}
@@ -94,7 +94,7 @@ export default function ProfileDashboardHeader({
             <div className="mt-6">
               <label
                 htmlFor="profile-bio"
-                className="text-xs font-bold uppercase tracking-wide text-slate-500"
+                className="form-label text-xs font-bold uppercase tracking-wide text-muted"
               >
                 {t('profile.bio')}
               </label>
@@ -105,20 +105,20 @@ export default function ProfileDashboardHeader({
                 rows={3}
                 maxLength={BIO_MAX}
                 placeholder={t('profile.bioPlaceholder')}
-                className="wrap-user-text mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                className="input-field wrap-user-text mt-2"
               />
               <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-                <span className="text-xs text-slate-500" aria-live="polite">
+                <span className="form-hint" aria-live="polite">
                   {bioDraft.length}/{BIO_MAX}
                 </span>
                 <div className="flex items-center gap-3">
                   {bioSaveStatus === 'saved' && (
-                    <span className="text-xs font-medium text-emerald-700">
+                    <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
                       {t('profile.bioSaved')}
                     </span>
                   )}
                   {bioSaveStatus === 'error' && bioError && (
-                    <span className="text-xs font-medium text-red-700">{bioError}</span>
+                    <span className="form-error">{bioError}</span>
                   )}
                   <button
                     type="button"
@@ -133,11 +133,11 @@ export default function ProfileDashboardHeader({
             </div>
 
             {isVerified && (
-              <div className="mt-5 rounded-xl border border-emerald-200/80 bg-emerald-50/50 px-4 py-3">
-                <p className="text-xs font-bold uppercase tracking-wide text-emerald-800">
+              <div className="alert-success mt-5 px-4 py-3">
+                <p className="text-xs font-bold uppercase tracking-wide">
                   {t('profile.verificationTitle')}
                 </p>
-                <p className="mt-1 text-sm leading-relaxed text-slate-700">
+                <p className="mt-1 text-sm leading-relaxed text-secondary">
                   {t('profile.verificationBody')}
                 </p>
               </div>

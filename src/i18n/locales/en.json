@@ -518,7 +518,8 @@
     "comfortHelper": "Use softer surfaces and gentler contrast for longer reading sessions.",
     "motionLabel": "Reduce Motion",
     "motionHelper": "Minimize non-essential animations and transitions.",
-    "quickToggle": "Appearance: {{mode}}. Click to change theme."
+    "quickToggle": "Appearance: {{mode}}. Click to change theme.",
+    "themeMenu": "Theme options"
   },
   "profile": {
     "title": "My Profile",

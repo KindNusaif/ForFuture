@@ -47,10 +47,10 @@ export default function LanguageSwitcher({
 
   const triggerClass =
     variant === 'compact'
-      ? 'inline-flex min-h-[36px] items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 shadow-sm transition hover:border-accent-200 hover:bg-accent-50/50'
+      ? 'menu-trigger-compact'
       : variant === 'landing'
-        ? 'inline-flex min-h-[40px] items-center gap-2 rounded-xl border border-slate-200/90 bg-white/90 px-3 py-2 text-sm font-medium text-slate-700 shadow-sm backdrop-blur transition hover:border-accent-200 hover:bg-white'
-        : 'inline-flex min-h-[40px] items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-accent-200 hover:bg-accent-50/60'
+        ? 'menu-trigger backdrop-blur'
+        : 'menu-trigger'
 
   return (
     <div ref={rootRef} className={`relative ${className}`}>
@@ -62,18 +62,18 @@ export default function LanguageSwitcher({
         aria-expanded={open}
         aria-label={t('language.select')}
       >
-        <Globe className="h-4 w-4 shrink-0 text-accent-600" aria-hidden />
+        <Globe className="h-4 w-4 shrink-0 text-accent-600 dark:text-accent-400" aria-hidden />
         <span className="max-w-[7rem] truncate sm:max-w-none">
-          {variant === 'compact' ? t(`language.${current === 'en' ? 'english' : current === 'ta' ? 'tamil' : 'sinhala'}`) : t('language.label')}
+          {variant === 'compact'
+            ? t(
+                `language.${current === 'en' ? 'english' : current === 'ta' ? 'tamil' : 'sinhala'}`,
+              )
+            : t('language.label')}
         </span>
       </button>
 
       {open && (
-        <ul
-          role="listbox"
-          aria-label={t('language.select')}
-          className="absolute right-0 z-50 mt-2 min-w-[10.5rem] overflow-hidden rounded-xl border border-slate-200/90 bg-white py-1 shadow-lg shadow-slate-900/10"
-        >
+        <ul role="listbox" aria-label={t('language.select')} className="theme-menu">
           {OPTIONS.map(({ code, labelKey }) => {
             const selected = current === code
             return (
@@ -81,11 +81,7 @@ export default function LanguageSwitcher({
                 <button
                   type="button"
                   onClick={() => selectLanguage(code)}
-                  className={`flex w-full items-center px-3 py-2.5 text-left text-sm transition ${
-                    selected
-                      ? 'bg-accent-50 font-semibold text-accent-800'
-                      : 'text-slate-700 hover:bg-slate-50'
-                  }`}
+                  className={`theme-menu-item ${selected ? 'theme-menu-item-active' : ''}`}
                 >
                   {t(labelKey)}
                 </button>

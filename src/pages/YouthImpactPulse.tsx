@@ -55,7 +55,7 @@ export default function YouthImpactPulse() {
           <h1 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-[2.75rem] lg:leading-tight">
             {t('impactPulse.heroTitle')}
           </h1>
-          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-200 sm:text-base">
+          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-white/80 sm:text-base">
             {t('impactPulse.heroSubtitle')}
           </p>
           <p className="mt-2 text-xs font-medium uppercase tracking-wider text-accent-200/90">
@@ -63,7 +63,7 @@ export default function YouthImpactPulse() {
           </p>
           <ImpactPulseStoryRibbon />
           {liveUpdatedLabel && (
-            <p className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-medium text-accent-100">
+            <p className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-surface/10 px-3 py-1.5 text-xs font-medium text-accent-100">
               <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" aria-hidden />
               {liveUpdatedLabel}
             </p>

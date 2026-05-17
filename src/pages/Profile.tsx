@@ -151,12 +151,12 @@ function ProfileContent({ userId, email }: { userId: string; email?: string | nu
             type="button"
             onClick={() => void reloadMovements(true)}
             disabled={movementsLoading || refreshing}
-            className="inline-flex min-h-[40px] items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:opacity-50"
+            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-default bg-surface px-3 py-2 text-sm font-medium text-secondary transition hover:bg-muted disabled:opacity-50"
           >
             <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} aria-hidden />
             {t('profile.refresh')}
           </button>
-          <Link to="/create" className="btn-primary min-h-[40px]! py-2!">
+          <Link to="/create" className="btn-primary min-h-10! py-2!">
             <Plus className="h-4 w-4" aria-hidden />
             {t('profile.createMovement')}
           </Link>
@@ -207,10 +207,10 @@ function ProfileContent({ userId, email }: { userId: string; email?: string | nu
       <AppearanceSettings />
 
       <details className="mt-10 rounded-xl border border-default bg-muted/50 px-4 py-3">
-        <summary className="cursor-pointer text-sm font-semibold text-slate-800">
+        <summary className="cursor-pointer text-sm font-semibold text-primary">
           Safe Reporting &amp; Fair Moderation
         </summary>
-        <p className="mt-2 text-xs leading-relaxed text-slate-600">{MODERATION_FEATURE_BLURB}</p>
+        <p className="mt-2 text-xs leading-relaxed text-secondary">{MODERATION_FEATURE_BLURB}</p>
       </details>
 
       <MyReportsSection userId={userId} />

@@ -40,7 +40,7 @@ export default function ImpactMapList({
     <div className="flex h-full min-h-0 flex-col">
       <button
         type="button"
-        className="flex items-center justify-between border-b border-slate-100 px-4 py-3 text-sm font-semibold text-slate-800 lg:pointer-events-none"
+        className="flex items-center justify-between border-b border-default px-4 py-3 text-sm font-semibold text-primary lg:pointer-events-none"
         onClick={onToggleMobile}
         aria-expanded={mobileExpanded}
       >
@@ -64,27 +64,27 @@ export default function ImpactMapList({
                 className={`w-full rounded-xl border p-3 text-left transition ${
                   selected
                     ? `bg-accent-50/80 ring-2 ring-accent-500/30 ${LAYER_RING[entry.layerType]}`
-                    : `bg-white hover:bg-slate-50 ${LAYER_RING[entry.layerType]}`
+                    : `bg-surface hover:bg-muted ${LAYER_RING[entry.layerType]}`
                 }`}
               >
                 <div className="flex items-start justify-between gap-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
+                  <span className="text-[10px] font-bold uppercase tracking-wide text-muted">
                     {getLayerLabel(entry.layerType)}
                   </span>
-                  <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
+                  <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-secondary">
                     {getStatusLabel(entry.status)}
                   </span>
                 </div>
-                <p className="wrap-user-text mt-1 text-sm font-semibold text-slate-900">
+                <p className="wrap-user-text mt-1 text-sm font-semibold text-primary">
                   {entry.title}
                 </p>
                 {entry.district && (
-                  <p className="mt-0.5 text-xs text-slate-500">{entry.district}</p>
+                  <p className="mt-0.5 text-xs text-muted">{entry.district}</p>
                 )}
                 {formatImpactDate(entry) && (
-                  <p className="mt-1 text-xs text-slate-500">{formatImpactDate(entry)}</p>
+                  <p className="mt-1 text-xs text-muted">{formatImpactDate(entry)}</p>
                 )}
-                <p className="mt-2 flex items-center gap-1 text-[10px] text-slate-500">
+                <p className="mt-2 flex items-center gap-1 text-[10px] text-muted">
                   {hasPin ? (
                     <>
                       <MapPin className="h-3 w-3" aria-hidden />

@@ -19,7 +19,7 @@ export default function MovementMediaDetail({ attachments }: MovementMediaDetail
     <div className="mt-6 space-y-6">
       {images.length > 0 && (
         <section aria-labelledby="movement-gallery-heading">
-          <h3 id="movement-gallery-heading" className="text-sm font-bold uppercase tracking-wide text-slate-700">
+          <h3 id="movement-gallery-heading" className="text-sm font-bold uppercase tracking-wide text-secondary">
             {t('media.galleryTitle')}
           </h3>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -32,7 +32,7 @@ export default function MovementMediaDetail({ attachments }: MovementMediaDetail
 
       {documents.length > 0 && (
         <section aria-labelledby="movement-docs-heading">
-          <h3 id="movement-docs-heading" className="text-sm font-bold uppercase tracking-wide text-slate-700">
+          <h3 id="movement-docs-heading" className="text-sm font-bold uppercase tracking-wide text-secondary">
             {t('media.documentsTitle')}
           </h3>
           <ul className="mt-3 space-y-2">
@@ -42,16 +42,16 @@ export default function MovementMediaDetail({ attachments }: MovementMediaDetail
                   href={doc.public_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 transition hover:border-accent-200 hover:shadow-sm"
+                  className="flex items-center gap-3 rounded-xl border border-default bg-surface p-4 transition hover:border-accent-200 hover:shadow-sm"
                 >
                   <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-rose-700">
                     <FileText className="h-6 w-6" aria-hidden />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-semibold text-slate-900">
+                    <span className="block truncate text-sm font-semibold text-primary">
                       {doc.original_file_name}
                     </span>
-                    <span className="text-xs text-slate-500">
+                    <span className="text-xs text-muted">
                       {formatFileSize(doc.file_size_bytes)}
                     </span>
                   </span>
@@ -75,7 +75,7 @@ function GalleryImage({ attachment }: { attachment: MovementAttachment }) {
 
   if (failed) {
     return (
-      <div className="flex aspect-video items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50 text-sm text-slate-500">
+      <div className="flex aspect-video items-center justify-center rounded-xl border border-dashed border-default bg-muted text-sm text-muted">
         {t('media.imageFailed')}
       </div>
     )
@@ -86,7 +86,7 @@ function GalleryImage({ attachment }: { attachment: MovementAttachment }) {
       href={attachment.public_url}
       target="_blank"
       rel="noopener noreferrer"
-      className="block overflow-hidden rounded-xl border border-slate-200/80 bg-slate-100"
+      className="block overflow-hidden rounded-xl border border-default bg-muted"
     >
       <img
         src={attachment.public_url}

@@ -14,16 +14,16 @@ export default function ImpactMapLayout() {
   if (!configured) {
     return (
       <main className="flex min-h-screen items-center justify-center px-4">
-        <p className="text-sm text-slate-600">Configure Supabase to use the Impact Map.</p>
+        <p className="text-sm text-secondary">Configure Supabase to use the Impact Map.</p>
       </main>
     )
   }
 
   if (loading) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center gap-3 bg-slate-50">
+      <main className="flex min-h-screen flex-col items-center justify-center gap-3 bg-muted">
         <Loader2 className="h-10 w-10 animate-spin text-accent-600" aria-label="Loading" />
-        <p className="text-sm text-slate-500">Loading Impact Map…</p>
+        <p className="text-sm text-muted">Loading Impact Map…</p>
       </main>
     )
   }

@@ -170,7 +170,7 @@ export default function AdminTrustReview() {
 
   return (
     <section className="mx-auto min-w-0 max-w-5xl px-4 py-8 sm:px-6">
-      <Link to="/feed" className="btn-ghost mb-6 min-h-[40px]! px-0!">
+      <Link to="/feed" className="btn-ghost mb-6 min-h-10! px-0!">
         <ArrowLeft className="h-4 w-4" />
         Back to feed
       </Link>
@@ -185,7 +185,7 @@ export default function AdminTrustReview() {
             <h1 className="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">
               Trust &amp; Verification Review
             </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-300">
+            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">
               Verify organizers separately from campaign review. A verified organizer does not
               automatically make every campaign trusted.
             </p>
@@ -194,7 +194,7 @@ export default function AdminTrustReview() {
             type="button"
             onClick={() => void loadQueue(true)}
             disabled={queueLoading || queueRefreshing}
-            className="inline-flex min-h-[40px] items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/15 disabled:opacity-50"
+            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-white/20 bg-surface/10 px-3 py-2 text-sm font-medium text-white transition hover:bg-surface/15 disabled:opacity-50"
           >
             <RefreshCw className={`h-4 w-4 ${queueRefreshing ? 'animate-spin' : ''}`} />
             Refresh queue
@@ -212,12 +212,12 @@ export default function AdminTrustReview() {
       />
 
       <section className="card-surface mt-8 overflow-hidden">
-        <div className="border-b border-slate-100 bg-emerald-50/50 px-4 py-4 sm:px-6">
-          <h2 className="flex items-center gap-2 text-lg font-bold text-slate-900">
+        <div className="border-b border-default bg-emerald-50/50 px-4 py-4 sm:px-6">
+          <h2 className="flex items-center gap-2 text-lg font-bold text-primary">
             <BadgeCheck className="h-5 w-5 text-emerald-700" aria-hidden />
             Organizer verification
           </h2>
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="mt-1 text-sm text-secondary">
             Search by display name, Youth Voice ID, or profile UUID.
           </p>
         </div>
@@ -229,7 +229,7 @@ export default function AdminTrustReview() {
               value={profileQuery}
               onChange={(e) => setProfileQuery(e.target.value)}
               placeholder="Search profiles…"
-              className="min-w-[200px] flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm"
+              className="min-w-[200px] flex-1 rounded-xl border border-default px-3 py-2 text-sm"
             />
             <button
               type="submit"
@@ -255,11 +255,11 @@ export default function AdminTrustReview() {
                     className={`w-full rounded-xl border px-4 py-3 text-left text-sm transition ${
                       selectedProfile?.id === profile.id
                         ? 'border-emerald-300 bg-emerald-50/80'
-                        : 'border-slate-200 hover:border-emerald-200'
+                        : 'border-default hover:border-emerald-200'
                     }`}
                   >
-                    <span className="font-semibold text-slate-900">{profile.display_name}</span>
-                    <span className="ml-2 font-mono text-xs text-slate-500">
+                    <span className="font-semibold text-primary">{profile.display_name}</span>
+                    <span className="ml-2 font-mono text-xs text-muted">
                       {profile.youth_voice_id ?? profile.id.slice(0, 8)}
                     </span>
                     {profile.is_verified_organizer && (
@@ -274,11 +274,11 @@ export default function AdminTrustReview() {
           )}
 
           {selectedProfile && (
-            <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
-              <p className="text-sm font-semibold text-slate-900">{selectedProfile.display_name}</p>
-              <p className="mt-1 font-mono text-xs text-slate-500">{selectedProfile.id}</p>
+            <div className="rounded-xl border border-default bg-muted/50 p-4">
+              <p className="text-sm font-semibold text-primary">{selectedProfile.display_name}</p>
+              <p className="mt-1 font-mono text-xs text-muted">{selectedProfile.id}</p>
               <label className="mt-4 block">
-                <span className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                <span className="text-xs font-bold uppercase tracking-wide text-muted">
                   Verification type
                 </span>
                 <select
@@ -286,7 +286,7 @@ export default function AdminTrustReview() {
                   onChange={(e) =>
                     setOrganizerType(e.target.value as OrganizerVerificationType)
                   }
-                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-xl border border-default px-3 py-2 text-sm"
                 >
                   {ORGANIZER_VERIFICATION_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -308,7 +308,7 @@ export default function AdminTrustReview() {
                   type="button"
                   disabled={profileSaving || !selectedProfile.is_verified_organizer}
                   onClick={() => void handleOrganizerUpdate(false)}
-                  className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                  className="rounded-lg border border-default bg-surface px-3 py-2 text-xs font-semibold text-secondary hover:bg-muted disabled:opacity-50"
                 >
                   Remove verification
                 </button>
@@ -321,13 +321,13 @@ export default function AdminTrustReview() {
       <section className="mt-8">
         <div className="mb-4 flex flex-wrap items-end gap-3">
           <label className="block">
-            <span className="text-xs font-bold uppercase tracking-wide text-slate-500">
+            <span className="text-xs font-bold uppercase tracking-wide text-muted">
               Review status
             </span>
             <select
               value={queueStatus}
               onChange={(e) => setQueueStatus(e.target.value as CampaignReviewStatus | '')}
-              className="mt-1 block rounded-xl border border-slate-200 px-3 py-2 text-sm"
+              className="mt-1 block rounded-xl border border-default px-3 py-2 text-sm"
             >
               <option value="">All statuses</option>
               {CAMPAIGN_REVIEW_STATUS_OPTIONS.map((opt) => (
@@ -338,13 +338,13 @@ export default function AdminTrustReview() {
             </select>
           </label>
           <label className="block">
-            <span className="text-xs font-bold uppercase tracking-wide text-slate-500">
+            <span className="text-xs font-bold uppercase tracking-wide text-muted">
               Movement type
             </span>
             <select
               value={queueMovement}
               onChange={(e) => setQueueMovement(e.target.value)}
-              className="mt-1 block rounded-xl border border-slate-200 px-3 py-2 text-sm"
+              className="mt-1 block rounded-xl border border-default px-3 py-2 text-sm"
             >
               {MOVEMENT_FILTER_OPTIONS.map((opt) => (
                 <option key={opt.value || 'all'} value={opt.value}>
@@ -365,20 +365,20 @@ export default function AdminTrustReview() {
           </ul>
         ) : queue.length === 0 ? (
           <div className="card-surface p-10 text-center">
-            <p className="text-lg font-bold text-slate-900">No campaigns match this filter</p>
+            <p className="text-lg font-bold text-primary">No campaigns match this filter</p>
           </div>
         ) : (
           <ul className="space-y-4">
             {queue.map((item) => (
               <li key={item.post_id} className="card-surface overflow-hidden">
-                <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 bg-slate-50/80 px-4 py-3 sm:px-5">
+                <div className="flex flex-wrap items-center gap-2 border-b border-default bg-muted/80 px-4 py-3 sm:px-5">
                   <span className="rounded-full bg-sky-100 px-2.5 py-0.5 text-[11px] font-semibold text-sky-900">
                     {item.review_status.replace('_', ' ')}
                   </span>
-                  <span className="text-xs font-medium text-slate-500">
+                  <span className="text-xs font-medium text-muted">
                     {movementTypeLabel(item.movement_type)}
                   </span>
-                  <time className="ml-auto text-xs text-slate-500">
+                  <time className="ml-auto text-xs text-muted">
                     {item.reviewed_at
                       ? `Reviewed ${new Date(item.reviewed_at).toLocaleString()}`
                       : 'Not reviewed yet'}
@@ -387,8 +387,8 @@ export default function AdminTrustReview() {
 
                 <div className="space-y-4 p-4 sm:p-5">
                   <div>
-                    <p className="text-base font-bold text-slate-900">{item.title}</p>
-                    <p className="mt-1 text-xs text-slate-500">
+                    <p className="text-base font-bold text-primary">{item.title}</p>
+                    <p className="mt-1 text-xs text-muted">
                       Public:{' '}
                       {item.posting_identity === 'youth_voice'
                         ? `Youth Voice ${item.youth_voice_id ?? 'ID'}`
@@ -407,7 +407,7 @@ export default function AdminTrustReview() {
                   </div>
 
                   <label className="block">
-                    <span className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                    <span className="text-xs font-bold uppercase tracking-wide text-muted">
                       Reviewed campaign type (when marking reviewed)
                     </span>
                     <select
@@ -418,7 +418,7 @@ export default function AdminTrustReview() {
                           [item.post_id]: e.target.value as ReviewedCampaignType,
                         }))
                       }
-                      className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+                      className="mt-1 w-full rounded-xl border border-default px-3 py-2 text-sm"
                     >
                       {REVIEWED_CAMPAIGN_TYPE_OPTIONS.map((opt) => (
                         <option key={opt.value} value={opt.value}>
@@ -429,7 +429,7 @@ export default function AdminTrustReview() {
                   </label>
 
                   <label className="block">
-                    <span className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                    <span className="text-xs font-bold uppercase tracking-wide text-muted">
                       Internal review note
                     </span>
                     <textarea
@@ -442,7 +442,7 @@ export default function AdminTrustReview() {
                       }
                       rows={2}
                       placeholder="Optional — not shown publicly"
-                      className="wrap-user-text mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+                      className="wrap-user-text mt-1.5 w-full rounded-xl border border-default px-3 py-2 text-sm"
                     />
                   </label>
 
@@ -457,7 +457,7 @@ export default function AdminTrustReview() {
                             item.review_status === action.value
                           }
                           onClick={() => void handleCampaignReview(item, action.value)}
-                          className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-sky-300 hover:bg-sky-50 disabled:opacity-50"
+                          className="rounded-lg border border-default bg-surface px-3 py-2 text-xs font-semibold text-secondary transition hover:border-sky-300 hover:bg-sky-50 disabled:opacity-50"
                         >
                           {updatingPostId === item.post_id ? 'Updating…' : action.label}
                         </button>
@@ -467,7 +467,7 @@ export default function AdminTrustReview() {
                       type="button"
                       disabled={updatingPostId === item.post_id || item.review_status === 'unreviewed'}
                       onClick={() => void handleCampaignReview(item, 'unreviewed')}
-                      className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-500 hover:bg-slate-50 disabled:opacity-50"
+                      className="rounded-lg border border-default bg-surface px-3 py-2 text-xs font-semibold text-muted hover:bg-muted disabled:opacity-50"
                     >
                       Reset to unreviewed
                     </button>

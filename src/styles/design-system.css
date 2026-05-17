@@ -1,0 +1,337 @@
+/* ForFuture design system — layout, surfaces, motion, forms */
+
+@layer base {
+  html {
+    transition:
+      background-color 0.22s ease,
+      color 0.18s ease;
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+
+  html:not([data-reduce-motion='true']) .theme-transition,
+  html:not([data-reduce-motion='true']) .theme-transition * {
+    transition:
+      background-color 0.22s ease,
+      border-color 0.22s ease,
+      color 0.18s ease,
+      box-shadow 0.22s ease,
+      fill 0.18s ease,
+      stroke 0.18s ease;
+  }
+
+  html:not([data-reduce-motion='true']) .theme-transition .motion-essential,
+  html:not([data-reduce-motion='true']) .theme-transition .motion-essential * {
+    transition: none;
+  }
+}
+
+@utility page-container {
+  @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+}
+
+@utility page-section {
+  @apply scroll-mt-24 py-16 sm:py-20 lg:py-24;
+}
+
+@utility page-enter {
+  animation: ff-page-enter 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes ff-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+[data-reduce-motion='true'] .page-enter {
+  animation: none;
+}
+
+@utility hero-display {
+  @apply text-4xl font-extrabold tracking-tight text-primary sm:text-5xl sm:leading-[1.06] lg:text-[3.5rem] lg:leading-[1.04];
+}
+
+@utility auth-shell {
+  @apply mx-auto flex min-h-[calc(100vh-12rem)] max-w-md flex-col justify-center px-4 py-12;
+}
+
+@utility auth-card {
+  @apply card-elevated p-6 sm:p-8;
+}
+
+@utility mobile-nav-link {
+  @apply block rounded-xl px-3 py-2.5 text-sm font-medium text-secondary transition;
+}
+
+.mobile-nav-link:hover {
+  background: var(--ff-nav-hover-bg);
+  color: var(--ff-nav-active-text);
+}
+
+@utility mobile-nav-link-active {
+  background: var(--ff-nav-active-bg);
+  color: var(--ff-nav-active-text);
+  box-shadow: inset 0 0 0 1px rgb(99 102 241 / 0.2);
+}
+
+@utility alert-base {
+  @apply rounded-xl border px-4 py-3 text-sm leading-relaxed;
+}
+
+@utility alert-success {
+  @apply alert-base;
+  border-color: rgb(16 185 129 / 0.45);
+  background: rgb(236 253 245 / 0.9);
+  color: #065f46;
+}
+
+[data-theme='dark'] .alert-success {
+  border-color: rgb(6 78 59 / 0.55);
+  background: rgb(6 46 34 / 0.5);
+  color: #a7f3d0;
+}
+
+@utility alert-error {
+  @apply alert-base;
+  border-color: rgb(248 113 113 / 0.5);
+  background: rgb(254 242 242 / 0.95);
+  color: #991b1b;
+}
+
+[data-theme='dark'] .alert-error {
+  border-color: rgb(127 29 29 / 0.55);
+  background: rgb(69 10 10 / 0.45);
+  color: #fecaca;
+}
+
+@utility alert-warning {
+  @apply alert-base;
+  border-color: rgb(251 191 36 / 0.55);
+  background: rgb(255 251 235 / 0.95);
+  color: #92400e;
+}
+
+[data-theme='dark'] .alert-warning {
+  border-color: rgb(120 53 15 / 0.55);
+  background: rgb(69 26 3 / 0.45);
+  color: #fde68a;
+}
+
+@utility alert-info {
+  @apply alert-base;
+  border-color: rgb(129 140 248 / 0.45);
+  background: rgb(238 242 255 / 0.9);
+  color: #3730a3;
+}
+
+[data-theme='dark'] .alert-info {
+  border-color: rgb(67 56 202 / 0.5);
+  background: rgb(49 46 129 / 0.35);
+  color: #c7d2fe;
+}
+
+@utility feed-header {
+  @apply card-elevated relative overflow-hidden p-6 sm:p-8;
+}
+
+.feed-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    var(--ff-glow-accent) 0%,
+    transparent 45%,
+    var(--ff-glow-brand) 100%
+  );
+  pointer-events: none;
+  opacity: 0.65;
+}
+
+.feed-header > * {
+  position: relative;
+  z-index: 1;
+}
+
+@utility step-card {
+  @apply card-surface relative p-6 text-left transition sm:p-7;
+}
+
+@utility step-number {
+  @apply flex h-10 w-10 items-center justify-center rounded-xl text-sm font-extrabold;
+  background: var(--ff-metric-icon-accent);
+  color: var(--ff-metric-icon-accent-text);
+}
+
+@utility menu-trigger {
+  @apply inline-flex min-h-10 items-center gap-2 rounded-xl border border-default bg-surface px-3 py-2 text-sm font-medium text-secondary shadow-sm transition hover:border-accent-300 hover:bg-muted;
+}
+
+@utility menu-trigger-compact {
+  @apply inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-default bg-surface px-2.5 py-1.5 text-xs font-medium text-secondary shadow-sm transition hover:border-accent-300 hover:bg-muted;
+}
+
+@utility theme-menu {
+  @apply absolute right-0 z-50 mt-2 min-w-[10.5rem] overflow-hidden rounded-xl border p-1 shadow-xl;
+  border-color: var(--ff-card-border);
+  background: var(--ff-card-elevated);
+}
+
+@utility theme-menu-item {
+  @apply flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium transition;
+  color: var(--ff-text-secondary);
+}
+
+.theme-menu-item:hover {
+  background: var(--ff-muted);
+  color: var(--ff-text-primary);
+}
+
+.theme-menu-item-active {
+  background: var(--ff-nav-active-bg);
+  color: var(--ff-nav-active-text);
+}
+
+@utility sidebar-panel {
+  @apply card-surface p-4;
+}
+
+@utility post-card-interactive {
+  @apply card-surface overflow-hidden transition;
+}
+
+.post-card-interactive:hover {
+  border-color: rgb(129 140 248 / 0.35);
+  box-shadow: 0 12px 32px var(--ff-shadow);
+}
+
+[data-reduce-motion='true'] .post-card-interactive:hover {
+  transform: none;
+}
+
+html:not([data-reduce-motion='true']) .post-card-interactive:hover {
+  transform: translateY(-2px);
+}
+
+@utility section-title {
+  @apply text-3xl font-extrabold tracking-tight text-primary sm:text-4xl;
+}
+
+@utility section-subtitle {
+  @apply mt-3 text-base leading-relaxed text-secondary sm:text-lg;
+}
+
+@utility form-label {
+  @apply text-sm font-semibold text-primary;
+}
+
+@utility form-hint {
+  @apply text-xs text-muted;
+}
+
+@utility form-error {
+  @apply text-xs font-medium text-red-600 dark:text-red-400;
+}
+
+@utility link-primary {
+  @apply font-semibold text-accent-600 transition hover:text-accent-700 dark:text-accent-300 dark:hover:text-accent-200;
+}
+
+@utility guest-banner {
+  @apply border-t border-default px-4 py-3 text-center text-xs text-secondary backdrop-blur-md;
+  background: color-mix(in srgb, var(--ff-nav) 92%, transparent);
+}
+
+@utility profile-hero-wash {
+  @apply bg-linear-to-br from-accent-50/50 via-surface to-brand-50/25 px-5 py-6 sm:px-8 sm:py-8;
+}
+
+[data-theme='dark'] .profile-hero-wash {
+  background: linear-gradient(
+    145deg,
+    rgb(49 46 129 / 0.22) 0%,
+    var(--ff-card) 45%,
+    rgb(6 78 59 / 0.12) 100%
+  );
+}
+
+@utility voice-option {
+  @apply relative flex cursor-pointer flex-col rounded-2xl border-2 p-4 transition;
+  border-color: var(--ff-border);
+  background: var(--ff-surface);
+}
+
+.voice-option:hover {
+  border-color: rgb(129 140 248 / 0.45);
+  background: var(--ff-muted-soft);
+}
+
+.voice-option-selected {
+  border-color: var(--color-accent-500);
+  background: var(--ff-nav-active-bg);
+  box-shadow: 0 0 0 1px rgb(99 102 241 / 0.25);
+}
+
+@utility voice-option-icon {
+  @apply mb-3 flex h-11 w-11 items-center justify-center rounded-xl shadow-sm;
+}
+
+.voice-option-icon-selected {
+  background: var(--color-accent-600);
+  color: white;
+}
+
+.voice-option-icon-idle {
+  background: var(--ff-muted);
+  color: var(--ff-text-muted);
+  box-shadow: inset 0 0 0 1px var(--ff-border);
+}
+
+@utility dialog-panel {
+  @apply card-elevated relative overflow-hidden shadow-2xl;
+}
+
+@utility meta-text {
+  @apply text-xs font-medium text-muted;
+}
+
+@utility chip-muted {
+  @apply rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-semibold text-secondary ring-1;
+  --tw-ring-color: var(--ff-border);
+}
+
+@utility stagger-1 {
+  animation-delay: 0.05s;
+}
+
+@utility stagger-2 {
+  animation-delay: 0.1s;
+}
+
+@utility stagger-3 {
+  animation-delay: 0.15s;
+}
+
+.landing-stagger > * {
+  animation: ff-page-enter 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.landing-stagger > *:nth-child(2) {
+  animation-delay: 0.06s;
+}
+
+.landing-stagger > *:nth-child(3) {
+  animation-delay: 0.12s;
+}
+
+[data-reduce-motion='true'] .landing-stagger > * {
+  animation: none;
+}

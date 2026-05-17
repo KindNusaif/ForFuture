@@ -125,9 +125,9 @@ export function reliefStatusBadgeClass(status: ReliefStatus | string | null | un
     case 'fulfilled':
       return 'bg-emerald-100 text-emerald-900 ring-emerald-200/80'
     case 'closed':
-      return 'bg-slate-100 text-slate-600 ring-slate-200/80'
+      return 'bg-muted text-secondary ring-default'
     default:
-      return 'bg-slate-100 text-slate-700 ring-slate-200/80'
+      return 'bg-muted text-secondary ring-default'
   }
 }
 
@@ -140,7 +140,7 @@ export function urgencyBadgeClass(level: UrgencyLevel | string | null | undefine
     case 'scheduled_drive':
       return 'bg-sky-100 text-sky-900 ring-sky-200/80'
     default:
-      return 'bg-slate-100 text-slate-700 ring-slate-200/80'
+      return 'bg-muted text-secondary ring-default'
   }
 }
 

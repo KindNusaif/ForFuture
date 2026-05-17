@@ -607,18 +607,14 @@ export async function createPost(input: CreateMovementInput) {
   if (error) {
     if (error.message?.includes('donation subtype')) {
       throw new Error(
-        'Donation & Relief could not save your request type. In Supabase → SQL Editor, run supabase/fix_posts_facade_relief.sql, then try publishing again.',
+        'Donation & Relief could not save your request. Please try again later or contact support.',
       )
     }
     if (error.message?.includes('posts_movement_type_check') || error.code === '23514') {
-      throw new Error(
-        'This movement type is not supported by your database yet. Run supabase/APPLY_ALL_MIGRATIONS.sql in Supabase, then try again.',
-      )
+      throw new Error('This movement type is not available yet. Please try again later.')
     }
     if (isMissingRelation(error)) {
-      throw new Error(
-        'The posts table is not set up. Run supabase/APPLY_ALL_MIGRATIONS.sql in the Supabase SQL Editor, then refresh.',
-      )
+      throw enhanceSupabaseError(error)
     }
     throw enhanceSupabaseError(error)
   }

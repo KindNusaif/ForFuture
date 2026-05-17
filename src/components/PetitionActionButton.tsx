@@ -42,13 +42,13 @@ export default function PetitionActionButton({
     <div
       className={`min-w-0 rounded-xl border p-3 sm:min-w-[15rem] sm:p-3.5 ${visual.actionZone} ${className}`}
     >
-      <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">
+      <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-muted">
         Support this demand
       </p>
 
       {goal != null && goal > 0 && (
         <div className="mb-3">
-          <div className="flex justify-between text-xs font-semibold text-slate-600">
+          <div className="flex justify-between text-xs font-semibold text-secondary">
             <span>{formatPetitionSupporterCount(count, goal)}</span>
             {progress != null && <span>{progress}%</span>}
           </div>
@@ -69,7 +69,7 @@ export default function PetitionActionButton({
 
       {closingLabel && (
         <p
-          className={`mb-2 text-xs font-medium ${closed ? 'text-slate-500' : 'text-fuchsia-800'}`}
+          className={`mb-2 text-xs font-medium ${closed ? 'text-muted' : 'text-fuchsia-800'}`}
         >
           {closed ? 'Closed' : closingLabel}
         </p>
@@ -83,7 +83,7 @@ export default function PetitionActionButton({
           signed
             ? 'btn-cta-supported w-full'
             : closed
-              ? 'w-full cursor-not-allowed rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-500'
+              ? 'w-full cursor-not-allowed rounded-xl border border-default bg-muted px-4 py-3 text-sm font-semibold text-muted'
               : guestMode
                 ? 'btn-cta-guest w-full'
                 : 'btn-cta w-full'
@@ -110,7 +110,7 @@ export default function PetitionActionButton({
         </span>
       </button>
 
-      <p className="mt-2 text-center text-xs font-medium text-slate-600 sm:text-right" aria-live="polite">
+      <p className="mt-2 text-center text-xs font-medium text-secondary sm:text-right" aria-live="polite">
         {goal == null || goal <= 0
           ? formatPetitionSupporterCount(count)
           : count === 0
@@ -119,9 +119,9 @@ export default function PetitionActionButton({
       </p>
 
       {showHint && (
-        <p className="mt-1.5 text-center text-[11px] leading-snug text-slate-500 sm:text-right">
+        <p className="mt-1.5 text-center text-[11px] leading-snug text-muted sm:text-right">
           {movement.engagementHint}
-          <span className="mt-0.5 block font-medium text-slate-600">{PETITION_DISCLAIMER}</span>
+          <span className="mt-0.5 block font-medium text-secondary">{PETITION_DISCLAIMER}</span>
         </p>
       )}
     </div>

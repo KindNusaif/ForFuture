@@ -79,7 +79,7 @@ export default function ImpactMapPage() {
           ForFuture
         </p>
         <h1 className="page-title mt-2">Impact Map</h1>
-        <p className="mt-2 max-w-2xl text-slate-600">
+        <p className="mt-2 max-w-2xl text-secondary">
           Discover volunteer opportunities, civic actions, and community issues happening across
           the country.
         </p>
@@ -152,7 +152,7 @@ export default function ImpactMapPage() {
         </div>
       ) : (
         <div className="mt-6 flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,22rem)_1fr] lg:gap-5">
-          <div className="card-surface order-2 flex min-h-[320px] flex-col overflow-hidden lg:order-1 lg:max-h-[calc(100vh-12rem)]">
+          <div className="card-surface order-2 flex min-h-80 flex-col overflow-hidden lg:order-1 lg:max-h-[calc(100vh-12rem)]">
             <ImpactMapList
               entries={filtered}
               selectedId={selectedId}
@@ -191,7 +191,7 @@ export default function ImpactMapPage() {
         </div>
       )}
 
-      <p className="mt-6 text-center text-xs text-slate-500">
+      <p className="mt-6 text-center text-xs text-muted">
         Map pins use coordinates when provided. Approximate pins are labeled and based on area
         names only — not GPS-precise locations.
       </p>

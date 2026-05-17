@@ -58,7 +58,7 @@ export default function ReliefHubFields({
         maxLength={POST_LIMITS.fieldMax}
         placeholder={placeholder}
         disabled={disabled}
-        className={`${inputClass} min-h-[80px] resize-y`}
+        className={`${inputClass} min-h-20 resize-y`}
       />
     </FormField>
   )
@@ -118,7 +118,7 @@ export default function ReliefHubFields({
             placeholder={t('relief.fields.hospitalPh')}
           />
         )}
-        <p className="text-[11px] leading-relaxed text-slate-500">{t('relief.bloodSafetyNote')}</p>
+        <p className="text-[11px] leading-relaxed text-muted">{t('relief.bloodSafetyNote')}</p>
       </div>
     )
   }
@@ -186,7 +186,7 @@ export default function ReliefHubFields({
         t('relief.fields.transparencyPh'),
       )}
       {inp('relief_deadline', t('relief.fields.deadline'), '', 'date')}
-      <p className="text-[11px] leading-relaxed text-slate-500">{t('relief.fundraisingDisclaimer')}</p>
+      <p className="text-[11px] leading-relaxed text-muted">{t('relief.fundraisingDisclaimer')}</p>
     </div>
   )
 }

@@ -15,7 +15,7 @@ export default function CategoryFilter({
 }: CategoryFilterProps) {
   return (
     <div className={compact ? 'space-y-2' : 'space-y-2'}>
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Category</p>
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted">Category</p>
       <div
         className={
           compact

@@ -55,18 +55,18 @@ export default function ImpactMapFilters({
           type="button"
           onClick={onUseMyLocation}
           disabled={geoLoading}
-          className="btn-secondary min-h-[40px]! py-2!"
+          className="btn-secondary min-h-10! py-2!"
         >
           <LocateFixed className={`h-4 w-4 ${geoLoading ? 'animate-pulse' : ''}`} />
           {geoLoading ? 'Locating…' : hasUserLocation ? 'Update my location' : 'Use my location'}
         </button>
-        <label className="inline-flex items-center gap-2 text-sm text-slate-600">
+        <label className="inline-flex items-center gap-2 text-sm text-secondary">
           <input
             type="checkbox"
             checked={nearMeEnabled}
             onChange={(e) => onNearMeEnabledChange(e.target.checked)}
             disabled={!hasUserLocation}
-            className="h-4 w-4 rounded border-slate-300 text-accent-600 focus:ring-accent-500"
+            className="h-4 w-4 rounded border-default text-accent-600 focus:ring-accent-500"
           />
           Near me
         </label>
@@ -74,7 +74,7 @@ export default function ImpactMapFilters({
           <select
             value={nearRadiusKm}
             onChange={(e) => onNearRadiusKmChange(Number(e.target.value))}
-            className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm"
+            className="input-field min-h-10! py-1.5! text-sm"
             aria-label="Near me radius"
           >
             <option value={25}>25 km</option>
@@ -87,24 +87,24 @@ export default function ImpactMapFilters({
       {geoError && <p className="text-xs text-amber-700">{geoError}</p>}
 
       <div className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
         <input
           type="search"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Search title, area, author…"
-          className="w-full min-h-[40px] rounded-xl border border-slate-200 py-2 pl-10 pr-3 text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20"
+          className="input-field w-full min-h-10 py-2 pl-10 pr-3 text-sm"
           aria-label="Search map results"
         />
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <label className="form-label block text-xs uppercase tracking-wide text-muted">
           Type
           <select
             value={contentType}
             onChange={(e) => onContentTypeChange(e.target.value as ImpactContentFilter)}
-            className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
+            className="input-field mt-1 w-full text-sm"
           >
             <option value="all">All</option>
             <option value="volunteer">Volunteer</option>
@@ -113,12 +113,12 @@ export default function ImpactMapFilters({
           </select>
         </label>
 
-        <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <label className="form-label block text-xs uppercase tracking-wide text-muted">
           District / area
           <select
             value={district}
             onChange={(e) => onDistrictChange(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
+            className="input-field mt-1 w-full text-sm"
           >
             <option value="">All areas</option>
             {districts.map((d) => (
@@ -129,12 +129,12 @@ export default function ImpactMapFilters({
           </select>
         </label>
 
-        <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <label className="form-label block text-xs uppercase tracking-wide text-muted">
           Status
           <select
             value={status}
             onChange={(e) => onStatusChange(e.target.value as ImpactStatusFilter)}
-            className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
+            className="input-field mt-1 w-full text-sm"
           >
             <option value="all">All</option>
             <option value="upcoming">Upcoming</option>
@@ -144,12 +144,12 @@ export default function ImpactMapFilters({
           </select>
         </label>
 
-        <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <label className="form-label block text-xs uppercase tracking-wide text-muted">
           Timing
           <select
             value={dateFilter}
             onChange={(e) => onDateFilterChange(e.target.value as ImpactDateFilter)}
-            className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
+            className="input-field mt-1 w-full text-sm"
           >
             <option value="all">All dates</option>
             <option value="upcoming">Upcoming & active only</option>

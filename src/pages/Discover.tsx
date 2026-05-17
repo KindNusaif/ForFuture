@@ -30,7 +30,7 @@ export default function Discover() {
         >
           <p className="font-semibold">{t('discover.loadErrorTitle')}</p>
           <p className="mt-1">{error}</p>
-          <button type="button" onClick={() => reload()} className="btn-secondary mt-3 min-h-[36px]!">
+          <button type="button" onClick={() => reload()} className="btn-secondary mt-3 min-h-9!">
             {t('discover.retry')}
           </button>
         </div>

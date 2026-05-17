@@ -20,7 +20,7 @@ export default function ImpactPulseStoryRibbon() {
         const Icon = step.icon
         return (
           <span key={step.key} className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-surface/10 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm">
               <Icon className="h-3.5 w-3.5 shrink-0 text-accent-200" aria-hidden />
               {t(`impactPulse.story.${step.key}`)}
             </span>

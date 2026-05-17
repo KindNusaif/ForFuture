@@ -33,7 +33,7 @@ export default function DiscoverMovementTypesSection() {
             <li key={type}>
               <Link
                 to={movementsFilterUrl({ type })}
-                className="group card-surface flex gap-4 p-5 transition hover:border-accent-300 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+                className="group card-surface flex gap-4 p-5 transition hover:border-accent-300 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
               >
                 <span
                   className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ring-1 ${config.badgeClass}`}

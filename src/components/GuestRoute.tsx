@@ -16,7 +16,7 @@ export default function GuestRoute({ children }: { children: ReactNode }) {
     return (
       <main className="flex min-h-[50vh] flex-col items-center justify-center gap-4 px-4">
         <Loader2 className="h-8 w-8 animate-spin text-brand-600" aria-label="Loading" />
-        <p className="text-sm text-slate-500">Loading your session…</p>
+        <p className="text-sm text-muted">Loading your session…</p>
         <AsyncLoadHint
           className="w-full max-w-md"
           showSlowHint={showSlowHint}

@@ -125,7 +125,7 @@ export default function ImpactMapCanvas({
   return (
     <div
       ref={containerRef}
-      className={`h-full min-h-[280px] w-full rounded-2xl ${className}`}
+      className={`h-full min-h-70 w-full rounded-2xl ${className}`}
       role="application"
       aria-label="Interactive impact map"
     />

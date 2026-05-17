@@ -41,7 +41,7 @@ export default function LandingImpactPreview() {
           </div>
 
           <div className="grid gap-0 lg:grid-cols-[1fr_280px]">
-            <div className="relative min-h-[280px] bg-linear-to-br from-accent-50/80 via-surface to-brand-50/60 p-6 dark:from-accent-950/30 dark:via-surface dark:to-brand-950/20 sm:min-h-[340px]">
+            <div className="relative min-h-70 bg-linear-to-br from-accent-50/80 via-surface to-brand-50/60 p-6 dark:from-accent-950/30 dark:via-surface dark:to-brand-950/20 sm:min-h-[340px]">
               <div
                 className="absolute inset-4 rounded-2xl border border-dashed border-accent-200/60 dark:border-accent-800/40"
                 aria-hidden

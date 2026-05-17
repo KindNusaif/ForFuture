@@ -47,14 +47,14 @@ export default function MovementMediaUploader({
 
   return (
     <section
-      className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-4 sm:p-5"
+      className="rounded-2xl border border-default bg-muted/50 p-4 sm:p-5"
       aria-labelledby="movement-media-heading"
     >
-      <h3 id="movement-media-heading" className="text-base font-bold text-slate-900">
+      <h3 id="movement-media-heading" className="text-base font-bold text-primary">
         {t('media.sectionTitle')}
       </h3>
-      <p className="mt-1 text-sm text-slate-600">{t('media.sectionHint')}</p>
-      <p className="mt-2 text-xs text-slate-500">{t('media.acceptedTypes')}</p>
+      <p className="mt-1 text-sm text-secondary">{t('media.sectionHint')}</p>
+      <p className="mt-2 text-xs text-muted">{t('media.acceptedTypes')}</p>
       <p className="text-xs font-medium text-accent-700">
         {t('media.limits', {
           images: MEDIA_LIMITS.maxImages,
@@ -78,16 +78,16 @@ export default function MovementMediaUploader({
         }}
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
-        className={`mt-4 flex min-h-[120px] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-4 py-6 text-center transition ${
+        className={`mt-4 flex min-h-30 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-4 py-6 text-center transition ${
           dragOver
             ? 'border-accent-400 bg-accent-50/80'
-            : 'border-slate-300 bg-white hover:border-accent-300 hover:bg-accent-50/40'
+            : 'border-default bg-surface hover:border-accent-300 hover:bg-accent-50/40'
         } ${disabled || uploading ? 'pointer-events-none opacity-60' : ''}`}
         aria-label={t('media.dropLabel')}
       >
         <Upload className="h-8 w-8 text-accent-600" aria-hidden />
-        <p className="mt-2 text-sm font-semibold text-slate-800">{t('media.dropTitle')}</p>
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-2 text-sm font-semibold text-primary">{t('media.dropTitle')}</p>
+        <p className="mt-1 text-xs text-muted">
           {t('media.remaining', { images: remainingImages, pdfs: remainingDocuments })}
         </p>
         <button
@@ -128,7 +128,7 @@ export default function MovementMediaUploader({
           {files.map((item) => (
             <li
               key={item.id}
-              className="flex gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm"
+              className="flex gap-3 rounded-xl border border-default bg-surface p-3 shadow-sm"
             >
               {item.kind === 'image' && item.previewUrl ? (
                 <img
@@ -146,9 +146,9 @@ export default function MovementMediaUploader({
                 </span>
               )}
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-slate-900">{item.file.name}</p>
-                <p className="text-xs text-slate-500">{formatFileSize(item.file.size)}</p>
-                <p className="text-xs font-medium text-slate-600">
+                <p className="truncate text-sm font-semibold text-primary">{item.file.name}</p>
+                <p className="text-xs text-muted">{formatFileSize(item.file.size)}</p>
+                <p className="text-xs font-medium text-secondary">
                   {item.kind === 'image' ? t('media.typeImage') : t('media.typePdf')}
                 </p>
               </div>
@@ -156,7 +156,7 @@ export default function MovementMediaUploader({
                 type="button"
                 onClick={() => onRemoveFile(item.id)}
                 disabled={disabled || uploading}
-                className="shrink-0 rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                className="shrink-0 rounded-lg p-1.5 text-muted hover:bg-muted hover:text-secondary"
                 aria-label={t('media.removeFile')}
               >
                 <X className="h-4 w-4" />

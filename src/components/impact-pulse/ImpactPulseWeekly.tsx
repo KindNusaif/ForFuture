@@ -58,7 +58,7 @@ export default function ImpactPulseWeekly({ weekly, loading, unavailable }: Prop
           >
             {weekly.most_supported ? (
               <>
-                <p className="text-lg font-bold text-primary [overflow-wrap:anywhere] [word-break:break-word]">
+                <p className="text-lg font-bold text-primary wrap-anywhere break-words">
                   {weekly.most_supported.title}
                 </p>
                 <p className="mt-2 text-sm text-secondary">
@@ -83,7 +83,7 @@ export default function ImpactPulseWeekly({ weekly, loading, unavailable }: Prop
           >
             {weekly.fastest_petition ? (
               <>
-                <p className="text-lg font-bold text-primary [overflow-wrap:anywhere] [word-break:break-word]">
+                <p className="text-lg font-bold text-primary wrap-anywhere break-words">
                   {weekly.fastest_petition.title}
                 </p>
                 <p className="mt-2 text-sm text-secondary">

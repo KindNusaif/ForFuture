@@ -86,7 +86,7 @@ export default function Login() {
           <Link
             to="/signup"
             state={location.state}
-            className="font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+            className="font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
           >
             {t('auth.signUpLink')}
           </Link>
@@ -103,7 +103,7 @@ export default function Login() {
           </div>
           <Link
             to="/movements"
-            className="btn-secondary flex w-full items-center justify-center gap-2 min-h-[44px]!"
+            className="btn-secondary flex w-full items-center justify-center gap-2 min-h-11!"
           >
             <Compass className="h-4 w-4 text-accent-600" aria-hidden />
             {t('landing.exploreCta')}
@@ -139,7 +139,7 @@ export default function Login() {
           <p className="mt-2 text-right">
             <Link
               to="/forgot-password"
-              className="text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+              className="text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
             >
               {t('auth.forgotPassword')}
             </Link>

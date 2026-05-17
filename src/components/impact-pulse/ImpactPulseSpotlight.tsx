@@ -46,14 +46,14 @@ export default function ImpactPulseSpotlight({
         </div>
       ) : (
         <article className="relative overflow-hidden rounded-3xl border border-accent-200/80 bg-linear-to-br from-accent-600 via-brand-700 to-slate-900 p-6 text-white shadow-xl sm:p-8">
-          <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
+          <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-surface/10 blur-2xl" />
           <div className="pointer-events-none absolute bottom-0 left-0 h-32 w-32 rounded-full bg-brand-400/20 blur-2xl" />
 
           {loading ? (
             <div className="relative space-y-3">
-              <Skeleton className="h-4 w-32 rounded-lg bg-white/20" />
-              <Skeleton className="h-8 w-4/5 rounded-lg bg-white/20" />
-              <Skeleton className="h-4 w-48 rounded-lg bg-white/20" />
+              <Skeleton className="h-4 w-32 rounded-lg bg-surface/20" />
+              <Skeleton className="h-8 w-4/5 rounded-lg bg-surface/20" />
+              <Skeleton className="h-4 w-48 rounded-lg bg-surface/20" />
             </div>
           ) : spotlight ? (
             <div className="relative min-w-0">
@@ -62,10 +62,10 @@ export default function ImpactPulseSpotlight({
                 {t('impactPulse.spotlight.eyebrow')}
               </p>
               <div className="mt-3 flex flex-wrap items-center gap-2">
-                <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">
+                <span className="rounded-full bg-surface/15 px-3 py-1 text-xs font-semibold">
                   {buildMovementConfig(spotlight.movement_type, t).shortLabel}
                 </span>
-                <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold">
+                <span className="rounded-full bg-surface/10 px-3 py-1 text-xs font-semibold">
                   {t(`categories.${spotlight.category}`, { defaultValue: spotlight.category })}
                 </span>
                 {spotlight.review_status === 'reviewed' && (
@@ -76,7 +76,7 @@ export default function ImpactPulseSpotlight({
                   />
                 )}
               </div>
-              <h3 className="mt-4 text-2xl font-extrabold tracking-tight [overflow-wrap:anywhere] [word-break:break-word] sm:text-3xl">
+              <h3 className="mt-4 text-2xl font-extrabold tracking-tight wrap-anywhere break-words sm:text-3xl">
                 {spotlight.title}
               </h3>
               <p className="mt-2 text-sm text-white/80">{spotlight.public_author_name}</p>

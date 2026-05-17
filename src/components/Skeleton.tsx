@@ -5,14 +5,14 @@ export function Skeleton({ className = '' }: { className?: string }) {
 export function PostCardSkeleton() {
   return (
     <article className="card-surface min-w-0 max-w-full p-5 sm:p-6">
-      <div className="flex justify-between border-b border-slate-100 pb-4">
+      <div className="flex justify-between border-b border-default pb-4">
         <Skeleton className="h-6 w-28 rounded-full" />
         <Skeleton className="h-4 w-16" />
       </div>
       <Skeleton className="mt-4 h-7 w-4/5" />
       <Skeleton className="mt-2 h-4 w-full" />
       <Skeleton className="mt-1.5 h-4 w-11/12" />
-      <div className="mt-5 flex justify-between border-t border-slate-100 pt-5">
+      <div className="mt-5 flex justify-between border-t border-default pt-5">
         <Skeleton className="h-9 w-36" />
         <Skeleton className="h-11 w-32 rounded-xl" />
       </div>

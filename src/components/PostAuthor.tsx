@@ -28,7 +28,7 @@ export default function PostAuthor({ post, className = '', compact = false }: Po
       <div className="flex min-w-0 items-center gap-2.5">
         {isAnonymous ? (
           <span
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-slate-100 to-slate-200 text-slate-600 ring-2 ring-white shadow-sm"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-slate-100 to-slate-200 text-secondary ring-2 ring-white shadow-sm"
             aria-hidden
           >
             <Shield className="h-4 w-4" />
@@ -47,12 +47,12 @@ export default function PostAuthor({ post, className = '', compact = false }: Po
           </span>
         )}
         <div className="min-w-0">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">
             {isAnonymous ? 'Posted with Youth Voice ID' : 'Posted as profile'}
           </p>
-          <p className="wrap-user-text text-sm font-semibold text-slate-800">{displayName}</p>
+          <p className="wrap-user-text text-sm font-semibold text-primary">{displayName}</p>
           {isAnonymous && youthVoiceId && !compact && (
-            <p className="mt-0.5 font-mono text-[11px] font-medium text-slate-500">{youthVoiceId}</p>
+            <p className="mt-0.5 font-mono text-[11px] font-medium text-muted">{youthVoiceId}</p>
           )}
         </div>
       </div>

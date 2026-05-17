@@ -29,7 +29,7 @@ export default function ImpactPulseJourney({ journey, loading, unavailable }: Pr
       subtitle={t('impactPulse.journey.subtitle')}
     >
       <div className="card-surface overflow-hidden bg-linear-to-br from-slate-900 via-brand-950 to-accent-950 p-6 text-white sm:p-8">
-        <p className="max-w-2xl text-sm leading-relaxed text-slate-200 sm:text-base">
+        <p className="max-w-2xl text-sm leading-relaxed text-white/80 sm:text-base">
           {t('impactPulse.journey.explainer')}
         </p>
 
@@ -38,7 +38,7 @@ export default function ImpactPulseJourney({ journey, loading, unavailable }: Pr
           aria-label={t('impactPulse.journey.aria')}
         >
           <div
-            className="pointer-events-none absolute left-5 top-10 bottom-10 w-px bg-white/15 lg:left-[10%] lg:right-[10%] lg:top-[3.25rem] lg:bottom-auto lg:h-px lg:w-auto"
+            className="pointer-events-none absolute left-5 top-10 bottom-10 w-px bg-surface/15 lg:left-[10%] lg:right-[10%] lg:top-[3.25rem] lg:bottom-auto lg:h-px lg:w-auto"
             aria-hidden
           />
 
@@ -49,18 +49,18 @@ export default function ImpactPulseJourney({ journey, loading, unavailable }: Pr
 
             return (
               <li key={stage.key} className="relative flex min-w-0 flex-1 flex-col lg:px-1">
-                <div className="flex min-w-0 flex-1 flex-col rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm lg:mx-1">
+                <div className="flex min-w-0 flex-1 flex-col rounded-2xl border border-white/10 bg-surface/5 p-4 backdrop-blur-sm lg:mx-1">
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-accent-300/90">
                       {String(index + 1).padStart(2, '0')}
                     </span>
-                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-accent-200">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface/10 text-accent-200">
                       <Icon className="h-4 w-4" aria-hidden />
                     </span>
                   </div>
 
                   {loading ? (
-                    <Skeleton className="mt-3 h-7 w-16 rounded-lg bg-white/20" />
+                    <Skeleton className="mt-3 h-7 w-16 rounded-lg bg-surface/20" />
                   ) : unavailable ? (
                     <p className="mt-3 text-2xl font-extrabold text-white/40">—</p>
                   ) : (
@@ -73,7 +73,7 @@ export default function ImpactPulseJourney({ journey, loading, unavailable }: Pr
 
                   {!loading && !unavailable && (
                     <div
-                      className="mt-3 h-1 overflow-hidden rounded-full bg-white/10"
+                      className="mt-3 h-1 overflow-hidden rounded-full bg-surface/10"
                       role="presentation"
                       aria-hidden
                     >

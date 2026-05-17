@@ -468,7 +468,7 @@ function PostFeedContent({
       ) : (
         <>
           {enriching && (
-            <p className="mb-3 text-center text-xs font-medium text-slate-500" role="status">
+            <p className="mb-3 text-center text-xs font-medium text-muted" role="status">
               Loading engagement counts…
             </p>
           )}

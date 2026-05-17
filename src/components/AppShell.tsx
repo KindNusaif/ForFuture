@@ -96,7 +96,7 @@ export default function AppShell({ children }: { children?: ReactNode }) {
               )}
             </nav>
             {profile && (
-              <div className="voice-id-card p-4 shadow-sm">
+              <div className="voice-id-card sidebar-panel">
                 <p
                   className="text-[10px] font-bold uppercase tracking-wide"
                   style={{ color: 'var(--ff-voice-card-title)' }}
@@ -125,7 +125,7 @@ export default function AppShell({ children }: { children?: ReactNode }) {
           </div>
         </aside>
 
-        <main className="min-w-0 flex-1">
+        <main className="min-w-0 flex-1 page-enter">
           <div className="mb-4 flex justify-end px-4 pt-3 lg:hidden">
             <LanguageSwitcher variant="compact" />
           </div>

@@ -40,7 +40,7 @@ export default function YouthVoiceIdCard({ youthVoiceId }: YouthVoiceIdCardProps
         <button
           type="button"
           onClick={() => void handleCopy()}
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-accent-200/80 bg-white/90 px-2.5 py-1.5 text-xs font-semibold text-accent-800 transition hover:bg-accent-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-accent-200/80 bg-surface/90 px-2.5 py-1.5 text-xs font-semibold text-accent-800 transition hover:bg-accent-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
           aria-label={t('profile.copyVoiceId')}
         >
           {copied ? (
@@ -56,7 +56,7 @@ export default function YouthVoiceIdCard({ youthVoiceId }: YouthVoiceIdCardProps
           )}
         </button>
       </div>
-      <p className="mt-3 text-xs leading-relaxed text-slate-600 sm:text-sm">
+      <p className="mt-3 text-xs leading-relaxed text-secondary sm:text-sm">
         {t('profile.youthVoiceHint')}
       </p>
     </div>

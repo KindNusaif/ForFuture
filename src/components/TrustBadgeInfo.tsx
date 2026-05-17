@@ -15,7 +15,7 @@ export default function TrustBadgeInfo({ label, explanation, className = '' }: T
     <span className={`relative inline-flex ${className}`}>
       <button
         type="button"
-        className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand-500"
+        className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-muted transition hover:bg-muted hover:text-secondary focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand-500"
         aria-label={`What ${label} means`}
         aria-expanded={open}
         aria-controls={popoverId}
@@ -29,7 +29,7 @@ export default function TrustBadgeInfo({ label, explanation, className = '' }: T
         <span
           id={popoverId}
           role="tooltip"
-          className="absolute left-0 top-full z-20 mt-1.5 w-64 rounded-xl border border-slate-200 bg-white p-3 text-xs leading-relaxed text-slate-600 shadow-lg"
+          className="absolute left-0 top-full z-20 mt-1.5 w-64 rounded-xl border border-default bg-surface p-3 text-xs leading-relaxed text-secondary shadow-lg"
         >
           {explanation}
         </span>

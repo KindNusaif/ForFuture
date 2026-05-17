@@ -19,7 +19,7 @@ export default function Logo({ to = '/', className = '', showTagline = false }: 
       <span className="flex flex-col leading-tight">
         <span className="text-lg font-bold tracking-tight text-accent-900">ForFuture</span>
         {showTagline && (
-          <span className="hidden text-[10px] font-medium uppercase tracking-wider text-slate-500 sm:block">
+          <span className="hidden text-[10px] font-medium uppercase tracking-wider text-muted sm:block">
             Youth voices → movements
           </span>
         )}

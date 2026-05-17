@@ -43,12 +43,12 @@ export default function ImpactMapStats({
           </span>
           <div>
             <p className="text-2xl font-extrabold tabular-nums">{value}</p>
-            <p className="text-xs font-medium text-slate-600">{label}</p>
+            <p className="text-xs font-medium text-secondary">{label}</p>
           </div>
         </div>
       ))}
-      <p className="text-center text-xs text-slate-500 sm:col-span-3">
-        Showing <span className="font-semibold text-slate-700">{visibleCount}</span> results on
+      <p className="text-center text-xs text-muted sm:col-span-3">
+        Showing <span className="font-semibold text-secondary">{visibleCount}</span> results on
         map and list
       </p>
     </div>

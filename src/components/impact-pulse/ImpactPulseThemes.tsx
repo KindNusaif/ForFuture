@@ -66,7 +66,7 @@ export default function ImpactPulseThemes({ categories, loading, unavailable }: 
                     >
                       {rank}
                     </span>
-                    <span className="[overflow-wrap:anywhere]">{label}</span>
+                    <span className="wrap-anywhere">{label}</span>
                   </span>
                   <span className="text-xs font-medium text-muted">
                     {formatImpactCountFull(item.count)} · {formatShare(item.share)}

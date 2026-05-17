@@ -45,13 +45,13 @@ export default function ReliefSubtypePicker({
                 : `${accent} border-transparent`
             } disabled:opacity-50`}
           >
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-slate-200/80">
-              <Icon className="h-5 w-5 text-slate-700" aria-hidden />
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface shadow-sm ring-1 ring-default">
+              <Icon className="h-5 w-5 text-secondary" aria-hidden />
             </span>
-            <span className="mt-3 text-sm font-bold text-slate-900">
+            <span className="mt-3 text-sm font-bold text-primary">
               {t(`relief.subtypes.${v}.title`)}
             </span>
-            <span className="mt-1 text-xs leading-relaxed text-slate-600">
+            <span className="mt-1 text-xs leading-relaxed text-secondary">
               {t(`relief.subtypes.${v}.description`)}
             </span>
           </button>

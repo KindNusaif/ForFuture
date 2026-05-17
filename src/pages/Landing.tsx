@@ -17,8 +17,10 @@ import { useTranslation } from 'react-i18next'
 import CTAButton from '../components/landing/CTAButton'
 import FeatureCard from '../components/landing/FeatureCard'
 import LandingHero from '../components/landing/LandingHero'
+import LandingHowItWorks from '../components/landing/LandingHowItWorks'
 import LandingImpactPreview from '../components/landing/LandingImpactPreview'
 import LandingImpactStats from '../components/landing/LandingImpactStats'
+import LandingTrustBand from '../components/landing/LandingTrustBand'
 import SectionHeader from '../components/landing/SectionHeader'
 
 export default function Landing() {
@@ -91,8 +93,10 @@ export default function Landing() {
     <>
       <LandingHero />
 
-      <section className="landing-value-band px-4 py-20 sm:py-24">
-        <div className="mx-auto max-w-6xl">
+      <LandingHowItWorks />
+
+      <section className="landing-value-band page-section px-4">
+        <div className="page-container">
           <SectionHeader
             title={t('landing.valueTitle')}
             subtitle={t('landing.valueSubtitle')}
@@ -111,8 +115,8 @@ export default function Landing() {
         </div>
       </section>
 
-      <section id="toolkit" className="scroll-mt-24 px-4 py-20 sm:py-24">
-        <div className="mx-auto max-w-6xl">
+      <section id="toolkit" className="page-section scroll-mt-24 px-4">
+        <div className="page-container">
           <SectionHeader
             title={t('landing.toolkitTitle')}
             subtitle={t('landing.toolkitSubtitle')}
@@ -139,8 +143,10 @@ export default function Landing() {
 
       <LandingImpactPreview />
 
-      <section id="why-forfuture" className="landing-why-band scroll-mt-24 px-4 py-20 sm:py-24">
-        <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-2 lg:items-center lg:gap-16">
+      <LandingTrustBand />
+
+      <section id="why-forfuture" className="landing-why-band page-section scroll-mt-24 px-4">
+        <div className="page-container grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-16">
           <section>
             <p className="eyebrow">{t('landing.whyEyebrow')}</p>
             <h2 className="mt-3 text-3xl font-bold tracking-tight text-primary sm:text-4xl">
@@ -165,8 +171,8 @@ export default function Landing() {
         </div>
       </section>
 
-      <section id="innovation" className="scroll-mt-24 px-4 py-20 sm:py-24">
-        <div className="mx-auto max-w-6xl">
+      <section id="innovation" className="page-section scroll-mt-24 px-4">
+        <div className="page-container">
           <SectionHeader title={t('landing.innovationTitle')} />
           <ul className="mt-12 grid gap-6 lg:grid-cols-2">
             <li className="landing-innovation-card">
@@ -191,8 +197,8 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="px-4 pb-20 sm:pb-24">
-        <div className="landing-final-cta mx-auto max-w-5xl px-6 py-14 text-center sm:px-10 sm:py-16">
+      <section className="page-section px-4">
+        <div className="landing-final-cta page-container max-w-5xl px-6 py-14 text-center sm:px-10 sm:py-16">
           <h2 className="text-2xl font-bold text-white sm:text-3xl lg:text-4xl">{t('landing.finalCtaTitle')}</h2>
           <p className="mx-auto mt-4 max-w-xl text-base text-accent-100 sm:text-lg">{t('landing.finalCtaSubtitle')}</p>
           <p className="mt-2 text-sm text-accent-200/90">{t('landing.finalCtaNote')}</p>

@@ -37,7 +37,7 @@ function FeaturedColumn({
             <li key={item.id}>
               <Link
                 to={`/movements/${item.id}`}
-                className="flex items-center justify-between gap-3 px-4 py-3 text-sm transition hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-accent-500"
+                className="flex items-center justify-between gap-3 px-4 py-3 text-sm transition hover:bg-muted focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-accent-500"
               >
                 <span className="line-clamp-2 font-medium text-primary">{item.title}</span>
                 <ArrowRight className="h-4 w-4 shrink-0 text-muted" aria-hidden />

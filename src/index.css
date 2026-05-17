@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import './styles/design-system.css';
 
 /* ─── Brand palette (unchanged) ─── */
 @theme {
@@ -256,7 +257,7 @@
 }
 
 @utility search-input {
-  @apply w-full min-h-[42px] rounded-xl border py-2 pl-9 pr-3 text-sm shadow-sm outline-none transition;
+  @apply w-full min-h-10.5 rounded-xl border py-2 pl-9 pr-3 text-sm shadow-sm outline-none transition;
   border-color: var(--ff-input-border);
   background: var(--ff-input-bg);
   color: var(--ff-text-primary);
@@ -417,8 +418,14 @@
   border-color: var(--ff-border);
 }
 
+@utility ring-default {
+  --tw-ring-color: var(--ff-border);
+}
+
 @utility nav-shell {
-  @apply sticky top-0 z-50 border-b border-default bg-nav backdrop-blur-xl;
+  @apply sticky top-0 z-50 border-b border-default backdrop-blur-xl;
+  background: color-mix(in srgb, var(--ff-nav) 88%, transparent);
+  box-shadow: 0 1px 0 var(--ff-border), 0 8px 24px var(--ff-shadow);
 }
 
 @utility wrap-user-text {
@@ -432,6 +439,7 @@
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 4;
+  line-clamp: 4;
   overflow: hidden;
 }
 
@@ -770,11 +778,22 @@
 }
 
 @utility btn-primary {
-  @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-accent-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-accent-600/30 transition hover:bg-accent-700 hover:shadow-lg active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 disabled:pointer-events-none disabled:opacity-60;
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-md transition active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 disabled:pointer-events-none disabled:opacity-60;
+  background: linear-gradient(135deg, var(--color-accent-600) 0%, var(--color-accent-700) 100%);
+  box-shadow:
+    0 4px 14px rgb(79 70 229 / 0.28),
+    inset 0 1px 0 rgb(255 255 255 / 0.12);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, var(--color-accent-500) 0%, var(--color-accent-700) 100%);
+  box-shadow:
+    0 6px 20px rgb(79 70 229 / 0.35),
+    inset 0 1px 0 rgb(255 255 255 / 0.14);
 }
 
 @utility btn-secondary {
-  @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border-2 border-accent-200/90 px-5 py-2.5 text-sm font-semibold text-accent-700 shadow-sm transition hover:border-accent-300 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400;
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border-2 border-accent-200/90 px-5 py-2.5 text-sm font-semibold text-accent-700 shadow-sm transition hover:border-accent-300 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400;
   background: var(--ff-surface);
 }
 
@@ -801,16 +820,16 @@
 }
 
 @utility btn-ghost {
-  @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition hover:bg-muted hover:text-primary;
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition hover:bg-muted hover:text-primary;
   color: var(--ff-text-secondary);
 }
 
 @utility btn-cta {
-  @apply inline-flex min-h-[44px] shrink-0 items-center justify-center gap-2 rounded-xl bg-accent-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-accent-600/25 transition hover:bg-accent-700 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60;
+  @apply inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-accent-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-accent-600/25 transition hover:bg-accent-700 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60;
 }
 
 @utility btn-cta-supported {
-  @apply inline-flex min-h-[44px] shrink-0 items-center justify-center gap-2 rounded-xl bg-brand-50 px-4 py-2.5 text-sm font-semibold text-brand-800 ring-1 ring-brand-200 transition hover:bg-brand-100;
+  @apply inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-brand-50 px-4 py-2.5 text-sm font-semibold text-brand-800 ring-1 ring-brand-200 transition hover:bg-brand-100;
 }
 
 [data-theme='dark'] .btn-cta-supported {
@@ -824,7 +843,7 @@
 }
 
 @utility btn-cta-guest {
-  @apply inline-flex min-h-[44px] shrink-0 items-center justify-center gap-2 rounded-xl border border-accent-200 px-4 py-2.5 text-sm font-semibold text-accent-700 shadow-sm transition hover:border-accent-300;
+  @apply inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl border border-accent-200 px-4 py-2.5 text-sm font-semibold text-accent-700 shadow-sm transition hover:border-accent-300;
   background: var(--ff-surface);
 }
 
@@ -884,7 +903,7 @@
 }
 
 @utility btn-spotlight {
-  @apply inline-flex min-h-[44px] items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold shadow-md transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white;
+  @apply inline-flex min-h-11 items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold shadow-md transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white;
   background: #ffffff;
   color: #065f46;
 }
@@ -895,7 +914,7 @@
 }
 
 @utility auth-link {
-  @apply text-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500;
+  @apply text-sm transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500;
   color: var(--ff-text-secondary);
 }
 

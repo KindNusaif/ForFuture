@@ -40,12 +40,12 @@ function ToggleRow({
         role="switch"
         aria-checked={checked}
         onClick={() => onChange(!checked)}
-        className={`relative mt-0.5 h-7 w-12 shrink-0 rounded-full transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 ${
+        className={`relative mt-0.5 h-7 w-12 shrink-0 rounded-full transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 ${
           checked ? 'bg-accent-600' : 'bg-slate-300'
         }`}
       >
         <span
-          className={`absolute top-0.5 left-0.5 h-6 w-6 rounded-full bg-white shadow transition ${
+          className={`absolute top-0.5 left-0.5 h-6 w-6 rounded-full bg-surface shadow transition ${
             checked ? 'translate-x-5' : 'translate-x-0'
           }`}
           aria-hidden
@@ -86,7 +86,7 @@ export default function AppearanceSettings() {
                 role="radio"
                 aria-checked={selected}
                 onClick={() => setAppearanceMode(value)}
-                className={`flex min-h-[88px] flex-col items-center justify-center gap-2 rounded-xl border px-2 py-3 text-center text-xs font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 ${
+                className={`flex min-h-22 flex-col items-center justify-center gap-2 rounded-xl border px-2 py-3 text-center text-xs font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 ${
                   selected
                     ? 'border-accent-400 bg-accent-50/80 text-accent-800 ring-1 ring-accent-300/80'
                     : 'border-default bg-surface text-secondary hover:border-accent-200 hover:bg-muted/60'

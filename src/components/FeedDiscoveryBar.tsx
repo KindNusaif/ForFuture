@@ -52,7 +52,7 @@ export default function FeedDiscoveryBar({
           </div>
 
           {!isGuest && showCreateButton && (
-            <Link to="/create" className="btn-primary shrink-0 min-h-[42px]! py-2!">
+            <Link to="/create" className="btn-primary shrink-0 min-h-10.5! py-2!">
               <Plus className="h-4 w-4" />
               <span className="hidden sm:inline">New movement</span>
               <span className="sm:hidden">New</span>
@@ -63,7 +63,7 @@ export default function FeedDiscoveryBar({
             <button
               type="button"
               onClick={onGuestCreate}
-              className="btn-secondary shrink-0 min-h-[42px]! py-2!"
+              className="btn-secondary shrink-0 min-h-10.5! py-2!"
             >
               <Plus className="h-4 w-4" />
               Start

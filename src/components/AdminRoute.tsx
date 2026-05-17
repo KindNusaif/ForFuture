@@ -11,7 +11,7 @@ export default function AdminRoute({ children }: { children: React.ReactNode }) 
     return (
       <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3">
         <Loader2 className="h-8 w-8 animate-spin text-accent-600" />
-        <p className="text-sm text-slate-500">Checking access…</p>
+        <p className="text-sm text-muted">Checking access…</p>
       </div>
     )
   }

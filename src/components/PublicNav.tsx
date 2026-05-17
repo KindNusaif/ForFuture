@@ -14,6 +14,10 @@ function navClass({ isActive }: { isActive: boolean }) {
   return isActive ? activeClass : inactiveClass
 }
 
+function mobileNavClass(isActive: boolean) {
+  return isActive ? 'mobile-nav-link mobile-nav-link-active' : 'mobile-nav-link'
+}
+
 function isAboutActive(pathname: string, hash: string) {
   return pathname === '/' && hash === '#why-forfuture'
 }
@@ -51,40 +55,34 @@ export default function PublicNav() {
       <NavLink
         to="/movements"
         end
-        className={({ isActive }) =>
-          `block rounded-lg px-3 py-2.5 text-sm font-medium ${isActive ? 'bg-accent-50 text-accent-700' : ''}`
-        }
+        className={({ isActive }) => mobileNavClass(isActive)}
         onClick={() => setOpen(false)}
       >
         {t('nav.movements')}
       </NavLink>
       <NavLink
         to="/discover"
-        className={({ isActive }) =>
-          `block rounded-lg px-3 py-2.5 text-sm font-medium ${isActive ? 'bg-accent-50 text-accent-700' : ''}`
-        }
+        className={({ isActive }) => mobileNavClass(isActive)}
         onClick={() => setOpen(false)}
       >
         {t('nav.discover')}
       </NavLink>
       <NavLink
         to="/impact"
-        className={({ isActive }) =>
-          `block rounded-lg px-3 py-2.5 text-sm font-medium ${isActive ? 'bg-accent-50 text-accent-700' : ''}`
-        }
+        className={({ isActive }) => mobileNavClass(isActive)}
         onClick={() => setOpen(false)}
       >
         {t('nav.impactNav')}
       </NavLink>
       <a
         href="/#why-forfuture"
-        className={`block rounded-lg px-3 py-2.5 text-sm font-medium ${aboutActive ? 'bg-accent-50 text-accent-700' : ''}`}
+        className={mobileNavClass(aboutActive)}
         onClick={() => setOpen(false)}
         aria-current={aboutActive ? 'page' : undefined}
       >
         {t('nav.about')}
       </a>
-      <Link to="/login" className="block rounded-lg px-3 py-2.5 text-sm font-medium" onClick={() => setOpen(false)}>
+      <Link to="/login" className="mobile-nav-link" onClick={() => setOpen(false)}>
         {t('nav.login')}
       </Link>
       <Link to="/signup" className="btn-primary mt-2 w-full" onClick={() => setOpen(false)}>
@@ -138,7 +136,7 @@ export default function PublicNav() {
               <Link to="/login" className={inactiveClass}>
                 {t('nav.login')}
               </Link>
-              <Link to="/signup" className="btn-primary min-h-[40px]! px-4! py-2!">
+              <Link to="/signup" className="btn-primary min-h-10! px-4! py-2!">
                 {t('nav.joinMovement')}
               </Link>
             </>
@@ -175,19 +173,19 @@ export default function PublicNav() {
         <nav className="space-y-1 border-t border-default px-4 py-4 md:hidden" aria-label={t('nav.mobileNav')}>
           {!loading && isMember ? (
             <>
-              <Link to="/feed" className="block rounded-lg px-3 py-2.5 text-sm font-medium" onClick={() => setOpen(false)}>
+              <Link to="/feed" className="mobile-nav-link" onClick={() => setOpen(false)}>
                 {t('nav.myFeed')}
               </Link>
-              <Link to="/impact-map" className="block rounded-lg px-3 py-2.5 text-sm font-medium" onClick={() => setOpen(false)}>
+              <Link to="/impact-map" className="mobile-nav-link" onClick={() => setOpen(false)}>
                 {t('nav.impactMap')}
               </Link>
-              <Link to="/impact" className="block rounded-lg px-3 py-2.5 text-sm font-medium" onClick={() => setOpen(false)}>
+              <Link to="/impact" className="mobile-nav-link" onClick={() => setOpen(false)}>
                 {t('nav.impactPulse')}
               </Link>
-              <Link to="/create" className="block rounded-lg px-3 py-2.5 text-sm font-medium" onClick={() => setOpen(false)}>
+              <Link to="/create" className="mobile-nav-link" onClick={() => setOpen(false)}>
                 {t('nav.create')}
               </Link>
-              <Link to="/profile" className="block rounded-lg px-3 py-2.5 text-sm font-medium" onClick={() => setOpen(false)}>
+              <Link to="/profile" className="mobile-nav-link" onClick={() => setOpen(false)}>
                 {t('nav.profile')}
               </Link>
             </>

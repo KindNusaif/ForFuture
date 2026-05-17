@@ -350,7 +350,7 @@ export default function CreatePost() {
     <section className="mx-auto min-w-0 max-w-2xl px-4 py-8 sm:px-6">
       <Link
         to="/feed"
-        className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 transition hover:text-brand-700"
+        className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-secondary transition hover:text-brand-700"
       >
         <ArrowLeft className="h-4 w-4" />
         Back to feed
@@ -454,7 +454,7 @@ export default function CreatePost() {
                   maxLength={POST_LIMITS.descriptionMax}
                   placeholder="Add a short note to help voters understand the question (optional)."
                   aria-invalid={Boolean(fieldErrors.description)}
-                  className={`${inputClass} resize-y min-h-[88px] ${fieldErrors.description ? inputErrorClass : ''}`}
+                  className={`${inputClass} resize-y min-h-22 ${fieldErrors.description ? inputErrorClass : ''}`}
                 />
                 <CharCount current={description.length} max={POST_LIMITS.descriptionMax} />
               </FormField>
@@ -505,7 +505,7 @@ export default function CreatePost() {
                     maxLength={POST_LIMITS.descriptionMax}
                     placeholder="Describe your movement, who it helps, and what you hope to achieve."
                     aria-invalid={Boolean(fieldErrors.description)}
-                    className={`${inputClass} resize-y min-h-[140px] ${fieldErrors.description ? inputErrorClass : ''}`}
+                    className={`${inputClass} resize-y min-h-35 ${fieldErrors.description ? inputErrorClass : ''}`}
                   />
                   <CharCount current={description.length} max={POST_LIMITS.descriptionMax} />
                   {!fieldErrors.description &&
@@ -559,17 +559,17 @@ export default function CreatePost() {
                 aria-invalid={Boolean(fieldErrors.authorName)}
                 className={`${inputClass} ${fieldErrors.authorName ? inputErrorClass : ''}`}
               />
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-muted">
                 Prefilled from your profile. You can change it for this movement only.
               </p>
             </FormField>
           )}
         </fieldset>
 
-        <div className="flex flex-col-reverse gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:justify-end">
+        <div className="flex flex-col-reverse gap-3 border-t border-default pt-6 sm:flex-row sm:justify-end">
           <Link
             to="/feed"
-            className="inline-flex min-h-[48px] items-center justify-center rounded-xl border border-slate-300 px-6 py-3 text-center text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            className="inline-flex min-h-12 items-center justify-center rounded-xl border border-default px-6 py-3 text-center text-sm font-semibold text-secondary transition hover:bg-muted"
           >
             Cancel
           </Link>

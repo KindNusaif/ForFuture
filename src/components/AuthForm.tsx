@@ -1,6 +1,7 @@
 import type { FormEvent, ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import Logo from './Logo'
+import Alert from './ui/Alert'
 
 interface AuthFormProps {
   title: string
@@ -32,7 +33,7 @@ export default function AuthForm({
   belowFooter,
 }: AuthFormProps) {
   return (
-    <main className="mx-auto flex min-h-[calc(100vh-12rem)] max-w-md flex-col justify-center px-4 py-12">
+    <main className="auth-shell page-enter">
       <div className="mb-8 flex justify-center">
         <Logo to="/" />
       </div>
@@ -45,23 +46,17 @@ export default function AuthForm({
       <form
         onSubmit={onSubmit}
         noValidate
-        className="card-surface p-6 sm:p-8"
+        className="auth-card"
       >
         {success && (
-          <div
-            className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800"
-            role="status"
-          >
+          <Alert variant="success" className="mb-4">
             {success}
-          </div>
+          </Alert>
         )}
         {error && (
-          <div
-            className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
-            role="alert"
-          >
+          <Alert variant="error" className="mb-4">
             {error}
-          </div>
+          </Alert>
         )}
 
         <fieldset className="space-y-4" disabled={loading}>
@@ -129,7 +124,7 @@ export function FormField({
 }
 
 export const inputClass =
-  'mt-1 w-full min-h-[44px] rounded-xl border border-default bg-surface px-3 py-2.5 text-primary transition outline-none placeholder:text-muted focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 aria-invalid:border-red-400'
+  'mt-1 w-full min-h-11 rounded-xl border border-default bg-surface px-3 py-2.5 text-primary transition outline-none placeholder:text-muted focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 aria-invalid:border-red-400'
 
 export const inputErrorClass = 'border-red-400 focus:border-red-500 focus:ring-red-500/20'
 

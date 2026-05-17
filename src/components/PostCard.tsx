@@ -27,14 +27,14 @@ import MovementMediaDetail from './media/MovementMediaDetail'
 import type { Post } from '../types'
 
 const categoryColors: Record<string, string> = {
-  Education: 'bg-blue-50/90 text-blue-800 ring-blue-200/80',
-  Environment: 'bg-emerald-50/90 text-emerald-800 ring-emerald-200/80',
-  Health: 'bg-rose-50/90 text-rose-800 ring-rose-200/80',
-  Justice: 'bg-purple-50/90 text-purple-800 ring-purple-200/80',
-  Technology: 'bg-violet-50/90 text-violet-800 ring-violet-200/80',
-  Community: 'bg-amber-50/90 text-amber-900 ring-amber-200/80',
-  Economy: 'bg-orange-50/90 text-orange-900 ring-orange-200/80',
-  Other: 'bg-slate-50/90 text-slate-700 ring-slate-200/80',
+  Education: 'bg-blue-50/90 text-blue-800 ring-blue-200/80 dark:bg-blue-950/50 dark:text-blue-200 dark:ring-blue-800/50',
+  Environment: 'bg-emerald-50/90 text-emerald-800 ring-emerald-200/80 dark:bg-emerald-950/50 dark:text-emerald-200 dark:ring-emerald-800/50',
+  Health: 'bg-rose-50/90 text-rose-800 ring-rose-200/80 dark:bg-rose-950/50 dark:text-rose-200 dark:ring-rose-800/50',
+  Justice: 'bg-purple-50/90 text-purple-800 ring-purple-200/80 dark:bg-purple-950/50 dark:text-purple-200 dark:ring-purple-800/50',
+  Technology: 'bg-violet-50/90 text-violet-800 ring-violet-200/80 dark:bg-violet-950/50 dark:text-violet-200 dark:ring-violet-800/50',
+  Community: 'bg-amber-50/90 text-amber-900 ring-amber-200/80 dark:bg-amber-950/50 dark:text-amber-200 dark:ring-amber-800/50',
+  Economy: 'bg-orange-50/90 text-orange-900 ring-orange-200/80 dark:bg-orange-950/50 dark:text-orange-200 dark:ring-orange-800/50',
+  Other: 'chip-muted',
 }
 
 interface PostCardProps {
@@ -100,10 +100,8 @@ export default function PostCard({
 
   return (
     <article
-      className={`card-surface group min-w-0 max-w-full overflow-hidden border-l-4 transition duration-200 ${visual.accentBar} ${
-        highlight
-          ? 'border-accent-300/80 ring-2 ring-accent-500/15 shadow-lg shadow-accent-900/5'
-          : 'hover:border-slate-300/80 hover:shadow-md'
+      className={`post-card-interactive group min-w-0 max-w-full border-l-4 ${visual.accentBar} ${
+        highlight ? 'border-accent-300/80 ring-2 ring-accent-500/15 shadow-lg shadow-accent-900/5' : ''
       }`}
     >
       <div
@@ -150,7 +148,7 @@ export default function PostCard({
           </div>
           <div className="flex shrink-0 items-center gap-1">
             <ReportContentButton post={post} />
-            <time className="text-xs font-medium text-slate-400" dateTime={post.created_at}>
+            <time className="text-xs font-medium text-muted" dateTime={post.created_at}>
               {date}
             </time>
           </div>
@@ -163,7 +161,7 @@ export default function PostCard({
             {detailPath ? (
               <Link
                 to={detailPath}
-                className="transition hover:text-accent-700 focus-visible:rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+                className="transition hover:text-accent-700 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
               >
                 {post.title}
               </Link>
@@ -225,15 +223,15 @@ export default function PostCard({
           </Link>
         )}
 
-        <footer className="mt-5 flex flex-col gap-4 border-t border-slate-100 pt-4 sm:flex-row sm:items-end sm:justify-between">
+        <footer className="mt-5 flex flex-col gap-4 border-t border-default pt-4 sm:flex-row sm:items-end sm:justify-between">
           <PostAuthor post={post} className="min-w-0 max-w-full flex-1" compact />
 
           {isPoll ? (
             <div className="text-right">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-muted">
                 Community poll
               </p>
-              <p className="mt-0.5 text-sm font-semibold tabular-nums text-slate-700">
+              <p className="mt-0.5 text-sm font-semibold tabular-nums text-primary">
                 {pollVotes} {pollVotes === 1 ? 'vote' : 'votes'}
               </p>
             </div>
@@ -266,7 +264,7 @@ export default function PostCard({
               onClick={() => onSupport(post.id)}
             />
           ) : actionCount > 0 ? (
-            <p className="text-xs font-medium text-slate-500 sm:text-right">
+            <p className="text-xs font-medium text-muted sm:text-right">
               {movement.countLabel(actionCount)}
             </p>
           ) : null}

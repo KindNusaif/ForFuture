@@ -70,7 +70,7 @@ export default function ImpactPulseDistricts({ districts, loading, unavailable }
                   )}
                 </span>
                 <div className="min-w-0">
-                  <p className="font-bold text-primary [overflow-wrap:anywhere]">{item.district}</p>
+                  <p className="font-bold text-primary wrap-anywhere">{item.district}</p>
                   <p className="text-sm text-secondary">
                     {t('impactPulse.districts.activeMovements', {
                       count: formatImpactCountFull(item.count),

@@ -40,10 +40,10 @@ export default function ReliefHub({ mode = 'member' }: ReliefHubProps) {
               <HeartHandshake className="h-4 w-4" aria-hidden />
               {t('relief.eyebrow')}
             </p>
-            <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
+            <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-primary sm:text-3xl">
               {t('relief.title')}
             </h1>
-            <p className="mt-3 max-w-xl text-sm leading-relaxed text-slate-600">
+            <p className="mt-3 max-w-xl text-sm leading-relaxed text-secondary">
               {t('relief.subtitle')}
             </p>
           </div>
@@ -58,7 +58,7 @@ export default function ReliefHub({ mode = 'member' }: ReliefHubProps) {
       </header>
 
       <div className="mt-6 space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted">
           {t('relief.filterLabel')}
         </p>
         <div className="-mx-1 flex gap-2 overflow-x-auto pb-1">

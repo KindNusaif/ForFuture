@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import PostFeed, { type FeedToast } from '../components/PostFeed'
 import TrendingPanel from '../components/TrendingPanel'
+import PageContainer from '../components/ui/PageContainer'
 import { useAuth } from '../hooks/useAuth'
 import { useAuthUser } from '../hooks/useAuthUser'
 
@@ -25,10 +26,10 @@ export default function Feed() {
   const firstName = profile?.display_name?.split(' ')[0] ?? 'changemaker'
 
   return (
-    <div className="px-4 py-6 sm:px-6 lg:py-8">
-      <div className="mx-auto flex max-w-7xl gap-8">
+    <PageContainer className="!py-6 lg:!py-8">
+      <div className="flex gap-8">
         <section className="min-w-0 flex-1">
-          <header className="mb-6 card-surface overflow-hidden p-6 sm:p-8">
+          <header className="feed-header mb-6">
             <p className="eyebrow">ForFuture</p>
             <h1 className="page-title mt-2">
               Good to see you, {firstName}
@@ -55,6 +56,6 @@ export default function Feed() {
         </section>
         <TrendingPanel />
       </div>
-    </div>
+    </PageContainer>
   )
 }

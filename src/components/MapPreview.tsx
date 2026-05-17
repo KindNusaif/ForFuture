@@ -37,7 +37,7 @@ export default function MapPreview({ post, className = '' }: MapPreviewProps) {
   const mapsUrl = name ? buildMapsUrl(post, name) : null
 
   return (
-    <div className={`overflow-hidden rounded-xl border border-slate-200/90 bg-white ${className}`}>
+    <div className={`overflow-hidden rounded-xl border border-default bg-surface ${className}`}>
       {staticUrl ? (
         <img
           src={staticUrl}
@@ -50,10 +50,10 @@ export default function MapPreview({ post, className = '' }: MapPreviewProps) {
       {name && (
         <div
           className={`flex flex-wrap items-center justify-between gap-2 px-3 py-2.5 ${
-            staticUrl ? 'border-t border-slate-100' : ''
+            staticUrl ? 'border-t border-default' : ''
           }`}
         >
-          <p className="wrap-user-text flex min-w-0 items-start gap-2 text-sm font-medium text-slate-800">
+          <p className="wrap-user-text flex min-w-0 items-start gap-2 text-sm font-medium text-primary">
             <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-teal-600" aria-hidden />
             <span>{name}</span>
           </p>

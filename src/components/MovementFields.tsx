@@ -52,7 +52,7 @@ export default function MovementFields({
         rows={3}
         maxLength={POST_LIMITS.fieldMax}
         placeholder={placeholder}
-        className={`${inputClass} resize-y min-h-[80px]`}
+        className={`${inputClass} resize-y min-h-20`}
       />
     </Field>
   )

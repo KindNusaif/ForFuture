@@ -248,16 +248,16 @@ export default function CreateReliefPost() {
 
   return (
     <section className="mx-auto min-w-0 max-w-2xl px-4 py-8 sm:px-6">
-      <Link to="/relief" className="btn-ghost mb-6 min-h-[40px]! px-0!">
+      <Link to="/relief" className="btn-ghost mb-6 min-h-10! px-0!">
         <ArrowLeft className="h-4 w-4" />
         {t('relief.backToHub')}
       </Link>
 
       <header className="mb-8">
-        <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
+        <h1 className="text-2xl font-extrabold tracking-tight text-primary sm:text-3xl">
           {t('relief.createTitle')}
         </h1>
-        <p className="mt-2 text-sm leading-relaxed text-slate-600">{t('relief.createSubtitle')}</p>
+        <p className="mt-2 text-sm leading-relaxed text-secondary">{t('relief.createSubtitle')}</p>
       </header>
 
       <form ref={formRef} onSubmit={(e) => void handleSubmit(e)} noValidate className="space-y-6">
@@ -276,7 +276,7 @@ export default function CreateReliefPost() {
           </p>
         )}
         <div>
-          <p className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-500">
+          <p className="mb-3 text-xs font-bold uppercase tracking-wide text-muted">
             {t('relief.chooseSubtype')}
           </p>
           <ReliefSubtypePicker value={subtype} onChange={handleSubtypeChange} disabled={loading} />
@@ -321,7 +321,7 @@ export default function CreateReliefPost() {
                 rows={4}
                 maxLength={POST_LIMITS.descriptionMax}
                 aria-invalid={Boolean(fieldErrors.description)}
-                className={`${inputClass} min-h-[100px] resize-y ${fieldErrors.description ? inputErrorClass : ''}`}
+                className={`${inputClass} min-h-25 resize-y ${fieldErrors.description ? inputErrorClass : ''}`}
                 disabled={loading}
               />
               {!fieldErrors.description &&

@@ -23,7 +23,7 @@ export default function PollVoteBlock({
 
   if (!poll) {
     return (
-      <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600 ring-1 ring-slate-200/80">
+      <p className="alert-info mt-3 px-3 py-2 text-sm">
         Poll details could not be loaded. Try refreshing the page.
       </p>
     )
@@ -31,7 +31,7 @@ export default function PollVoteBlock({
 
   if (poll.options.length === 0) {
     return (
-      <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600 ring-1 ring-slate-200/80">
+      <p className="alert-info mt-3 px-3 py-2 text-sm">
         This poll has no voting options yet.
       </p>
     )
@@ -49,23 +49,23 @@ export default function PollVoteBlock({
 
   return (
     <section
-      className="mt-3 rounded-xl border border-cyan-100/90 bg-cyan-50/25 p-3.5 sm:p-4"
+      className="mt-3 rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-3.5 sm:p-4 dark:border-cyan-400/25 dark:bg-cyan-950/25"
       aria-labelledby={`poll-${post.id}-heading`}
     >
       <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <p
             id={`poll-${post.id}-heading`}
-            className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-cyan-800"
+            className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-cyan-800 dark:text-cyan-300"
           >
             <BarChart3 className="h-3.5 w-3.5" aria-hidden />
             Quick Youth Poll
           </p>
-          <p className="wrap-user-text mt-1 text-base font-semibold leading-snug text-slate-900">
+          <p className="wrap-user-text mt-1 text-base font-semibold leading-snug text-primary">
             {detailPath ? (
               <Link
                 to={detailPath}
-                className="transition hover:text-accent-700 focus-visible:rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+                className="transition hover:text-accent-700 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
               >
                 {post.title}
               </Link>
@@ -74,7 +74,7 @@ export default function PollVoteBlock({
             )}
           </p>
         </div>
-        <span className="rounded-full bg-white px-2.5 py-0.5 text-xs font-bold tabular-nums text-slate-600 ring-1 ring-slate-200/80">
+        <span className="chip-muted tabular-nums">
           {totalVotes} {totalVotes === 1 ? 'vote' : 'votes'}
         </span>
       </div>
@@ -89,10 +89,10 @@ export default function PollVoteBlock({
             return (
               <li
                 key={option.id}
-                className={`relative overflow-hidden rounded-lg border bg-white ${
+                className={`relative overflow-hidden rounded-lg border bg-surface ${
                   isMyVote
-                    ? 'border-cyan-300 ring-1 ring-cyan-500/20'
-                    : 'border-slate-100'
+                    ? 'border-cyan-400 ring-1 ring-cyan-500/25 dark:border-cyan-500/40'
+                    : 'border-default'
                 }`}
               >
                 <div
@@ -103,7 +103,7 @@ export default function PollVoteBlock({
                 <div className="relative flex items-center justify-between gap-2 px-3 py-2.5">
                   <span
                     className={`wrap-user-text text-sm font-medium ${
-                      isMyVote ? 'text-cyan-900' : 'text-slate-800'
+                      isMyVote ? 'text-cyan-900 dark:text-cyan-200' : 'text-primary'
                     }`}
                   >
                     {isMyVote && (
@@ -111,7 +111,7 @@ export default function PollVoteBlock({
                     )}
                     {option.option_text}
                   </span>
-                  <span className="shrink-0 text-xs font-bold tabular-nums text-slate-600">
+                  <span className="shrink-0 text-xs font-bold tabular-nums text-muted">
                     {pct}%
                   </span>
                 </div>
@@ -122,10 +122,10 @@ export default function PollVoteBlock({
           return (
             <li key={option.id}>
               <label
-                className={`flex min-h-[44px] cursor-pointer items-center gap-2.5 rounded-lg border px-3 py-2.5 transition ${
+                className={`flex min-h-11 cursor-pointer items-center gap-2.5 rounded-lg border px-3 py-2.5 transition ${
                   isSelected
-                    ? 'border-cyan-400 bg-white ring-1 ring-cyan-500/25'
-                    : 'border-slate-200/90 bg-white hover:border-cyan-200'
+                    ? 'border-cyan-400 bg-surface ring-1 ring-cyan-500/25 dark:border-cyan-500/50'
+                    : 'border-default bg-surface hover:border-cyan-300 dark:hover:border-cyan-600'
                 } ${voting ? 'pointer-events-none opacity-60' : ''}`}
               >
                 <input
@@ -135,9 +135,9 @@ export default function PollVoteBlock({
                   checked={isSelected}
                   onChange={() => setSelectedOptionId(option.id)}
                   disabled={voting || guestMode}
-                  className="h-4 w-4 shrink-0 border-slate-300 text-cyan-600 focus:ring-cyan-500"
+                  className="h-4 w-4 shrink-0 border-default text-cyan-600 focus:ring-cyan-500"
                 />
-                <span className="wrap-user-text text-sm font-medium text-slate-800">
+                <span className="wrap-user-text text-sm font-medium text-primary">
                   {option.option_text}
                 </span>
               </label>
@@ -176,11 +176,11 @@ export default function PollVoteBlock({
       )}
 
       {guestMode && showResults && (
-        <p className="mt-3 rounded-lg bg-white/80 px-3 py-2 text-center text-xs text-slate-600 ring-1 ring-slate-200/70">
+        <p className="alert-info mt-3 px-3 py-2 text-center text-xs">
           <button
             type="button"
             onClick={() => onVote?.(post.id, '')}
-            className="font-semibold text-accent-600 hover:text-accent-700"
+            className="link-primary"
           >
             Join ForFuture
           </button>{' '}
@@ -189,7 +189,7 @@ export default function PollVoteBlock({
       )}
 
       {hasVoted && !guestMode && (
-        <p className="mt-2 text-center text-xs font-medium text-brand-700">
+        <p className="mt-2 text-center text-xs font-medium text-brand-700 dark:text-brand-400">
           Thanks — your vote is counted.
         </p>
       )}

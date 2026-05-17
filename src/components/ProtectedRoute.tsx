@@ -4,6 +4,7 @@ import { Loader2 } from 'lucide-react'
 import AsyncLoadHint from './AsyncLoadHint'
 import { useAuth } from '../hooks/useAuth'
 import { useLoadingProgress } from '../hooks/useLoadingProgress'
+import { sanitizeErrorForDisplay } from '../lib/supabaseErrors'
 
 export default function ProtectedRoute({ children }: { children: ReactNode }) {
   const { user, loading, configured, authError, profileError } = useAuth()
@@ -12,16 +13,20 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
 
   if (!configured) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-4">
-        <div className="max-w-md rounded-2xl border border-amber-200 bg-amber-50 p-8 text-center">
-          <h1 className="text-lg font-semibold text-slate-900">Setup required</h1>
-          <p className="mt-2 text-sm text-slate-600">
-            Add <code className="rounded bg-white px-1">VITE_SUPABASE_URL</code> and{' '}
-            <code className="rounded bg-white px-1">VITE_SUPABASE_ANON_KEY</code> to{' '}
-            <code className="rounded bg-white px-1">.env</code>, then run{' '}
-            <code className="rounded bg-surface px-1">supabase/APPLY_ALL_MIGRATIONS.sql</code> in the
-            Supabase SQL Editor.
+      <main className="flex min-h-screen flex-col items-center justify-center bg-muted px-4">
+        <div className="alert-warning max-w-md p-8 text-center">
+          <h1 className="text-lg font-semibold text-primary">Setup required</h1>
+          <p className="mt-2 text-sm text-secondary">
+            Add <code className="rounded bg-surface px-1">VITE_SUPABASE_URL</code> and{' '}
+            <code className="rounded bg-surface px-1">VITE_SUPABASE_ANON_KEY</code> to your{' '}
+            <code className="rounded bg-surface px-1">.env</code> file, then restart the app.
           </p>
+          {import.meta.env.DEV && (
+            <p className="mt-3 text-xs text-muted">
+              Developers: apply migrations from <code className="rounded bg-surface px-1">supabase/</code>{' '}
+              in the Supabase SQL Editor.
+            </p>
+          )}
         </div>
       </main>
     )
@@ -29,9 +34,9 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-slate-50 px-4">
+      <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-muted px-4">
         <Loader2 className="h-10 w-10 animate-spin text-brand-600" aria-label="Loading" />
-        <p className="text-sm text-slate-500">Loading your session…</p>
+        <p className="text-sm text-muted">Loading your session…</p>
         <AsyncLoadHint
           className="w-full max-w-md"
           showSlowHint={showSlowHint}
@@ -45,9 +50,9 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
 
   if (authError) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-4">
+      <main className="flex min-h-screen flex-col items-center justify-center bg-muted px-4">
         <div className="max-w-md rounded-2xl border border-red-200 bg-red-50 p-8 text-center">
-          <h1 className="text-lg font-semibold text-slate-900">Could not connect</h1>
+          <h1 className="text-lg font-semibold text-primary">Could not connect</h1>
           <p className="mt-2 text-sm text-red-800">{authError}</p>
           <div className="mt-4 flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
             <Link to="/login" className="text-sm font-semibold text-brand-700 hover:underline">
@@ -56,7 +61,7 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
             <button
               type="button"
               onClick={() => window.location.reload()}
-              className="text-sm font-semibold text-slate-600 hover:text-slate-900"
+              className="text-sm font-semibold text-secondary hover:text-primary"
             >
               Retry connection
             </button>
@@ -82,7 +87,7 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
           }`}
           role="alert"
         >
-          {profileError}
+          {sanitizeErrorForDisplay(profileError)}
         </div>
       )}
       {children}

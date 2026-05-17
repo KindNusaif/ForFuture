@@ -24,8 +24,8 @@ export default function MovementMediaFeedPreview({
         <div
           className={
             images.length === 1
-              ? 'overflow-hidden rounded-xl border border-slate-200/80 bg-slate-100'
-              : 'grid grid-cols-2 gap-1.5 overflow-hidden rounded-xl border border-slate-200/80'
+              ? 'overflow-hidden rounded-xl border border-default bg-muted'
+              : 'grid grid-cols-2 gap-1.5 overflow-hidden rounded-xl border border-default'
           }
         >
           {images.slice(0, compact ? 4 : 8).map((img) => (
@@ -40,7 +40,7 @@ export default function MovementMediaFeedPreview({
             href={documents[0].public_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex min-w-0 max-w-full items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-accent-200 hover:bg-accent-50 hover:text-accent-800"
+            className="inline-flex min-w-0 max-w-full items-center gap-2 rounded-lg border border-default bg-muted px-3 py-2 text-xs font-semibold text-secondary transition hover:border-accent-200 hover:bg-accent-50 hover:text-accent-800"
           >
             <FileText className="h-4 w-4 shrink-0 text-rose-600" aria-hidden />
             <span className="truncate">
@@ -69,7 +69,7 @@ function FeedImage({
   if (failed) {
     return (
       <div
-        className={`flex items-center justify-center bg-slate-100 text-xs text-slate-500 ${
+        className={`flex items-center justify-center bg-muted text-xs text-muted ${
           single ? 'aspect-[2/1] max-h-48 w-full' : 'aspect-square'
         }`}
       >

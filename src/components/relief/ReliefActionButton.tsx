@@ -43,7 +43,7 @@ export default function ReliefActionButton({
     <div
       className={`min-w-0 rounded-xl border p-3 sm:min-w-[15rem] sm:p-3.5 ${visual.actionZone} ${className}`}
     >
-      <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">
+      <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-muted">
         {t('relief.takeAction')}
       </p>
       <button
@@ -66,14 +66,14 @@ export default function ReliefActionButton({
         ) : null}
         <span className="truncate">{label}</span>
         {count > 0 && (
-          <span className="rounded-full bg-white/90 px-2 py-0.5 text-xs font-bold tabular-nums ring-1 ring-slate-200/90">
+          <span className="rounded-full bg-surface/90 px-2 py-0.5 text-xs font-bold tabular-nums ring-1 ring-default">
             {count}
           </span>
         )}
       </button>
-      <p className="mt-2 text-center text-xs font-medium text-slate-600 sm:text-right">{countLabel}</p>
+      <p className="mt-2 text-center text-xs font-medium text-secondary sm:text-right">{countLabel}</p>
       {showHint && disclaimer && (
-        <p className="mt-1.5 text-center text-[11px] leading-snug text-slate-500 sm:text-right">
+        <p className="mt-1.5 text-center text-[11px] leading-snug text-muted sm:text-right">
           {disclaimer}
         </p>
       )}

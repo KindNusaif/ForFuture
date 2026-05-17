@@ -27,8 +27,8 @@ interface MovementCardExtrasProps {
 function Detail({ label, value }: { label: string; value: string }) {
   return (
     <div className="wrap-user-text min-w-0">
-      <dt className="text-[10px] font-bold uppercase tracking-wide text-slate-500">{label}</dt>
-      <dd className="mt-0.5 text-sm leading-relaxed text-slate-700">{value}</dd>
+      <dt className="text-[10px] font-bold uppercase tracking-wide text-muted">{label}</dt>
+      <dd className="mt-0.5 text-sm leading-relaxed text-secondary">{value}</dd>
     </div>
   )
 }
@@ -41,7 +41,7 @@ function EventMetaRow({
   children: ReactNode
 }) {
   return (
-    <li className="wrap-user-text flex min-w-0 items-start gap-2 text-sm text-slate-700">
+    <li className="wrap-user-text flex min-w-0 items-start gap-2 text-sm text-secondary">
       <Icon className="mt-0.5 h-4 w-4 shrink-0 opacity-80" aria-hidden />
       <span>{children}</span>
     </li>
@@ -82,7 +82,7 @@ export default function MovementCardExtras({ post }: MovementCardExtrasProps) {
       if (!hasMeta && !post.contact_note) return null
       return (
         <div className={`mt-4 overflow-hidden rounded-xl border ${panel}`}>
-          <div className="border-b border-inherit bg-white/50 px-4 py-2">
+          <div className="border-b border-inherit bg-surface/50 px-4 py-2">
             <p className="text-[10px] font-bold uppercase tracking-wide text-teal-800">
               Volunteer event
             </p>
@@ -96,7 +96,7 @@ export default function MovementCardExtras({ post }: MovementCardExtrasProps) {
                     {post.event_time ? (
                       <>
                         {' '}
-                        <span className="text-slate-500">·</span> {post.event_time}
+                        <span className="text-muted">·</span> {post.event_time}
                       </>
                     ) : null}
                   </EventMetaRow>
@@ -115,7 +115,7 @@ export default function MovementCardExtras({ post }: MovementCardExtrasProps) {
               </ul>
             )}
             {post.contact_note && (
-              <p className="wrap-user-text rounded-lg bg-white/70 px-3 py-2 text-xs leading-relaxed text-slate-600 ring-1 ring-slate-200/60">
+              <p className="wrap-user-text rounded-lg bg-surface/70 px-3 py-2 text-xs leading-relaxed text-secondary ring-1 ring-default/60">
                 {post.contact_note}
               </p>
             )}
@@ -144,21 +144,21 @@ export default function MovementCardExtras({ post }: MovementCardExtrasProps) {
               />
             </div>
           ) : showNotReviewed ? (
-            <p className="mb-3 text-xs text-slate-500">{TRUST_TOOLTIPS.fundraisingNotReviewed}</p>
+            <p className="mb-3 text-xs text-muted">{TRUST_TOOLTIPS.fundraisingNotReviewed}</p>
           ) : null}
           {post.fundraising_purpose && (
-            <p className="wrap-user-text text-sm font-semibold text-slate-800">
+            <p className="wrap-user-text text-sm font-semibold text-primary">
               {post.fundraising_purpose}
             </p>
           )}
           {post.beneficiary_description && (
-            <p className="wrap-user-text mt-1.5 text-xs leading-relaxed text-slate-600">
+            <p className="wrap-user-text mt-1.5 text-xs leading-relaxed text-secondary">
               {post.beneficiary_description}
             </p>
           )}
           {goal > 0 && (
             <div className="mt-3">
-              <div className="flex justify-between text-xs font-semibold text-slate-600">
+              <div className="flex justify-between text-xs font-semibold text-secondary">
                 <span>{formatCurrency(raised)} raised</span>
                 <span>Goal {formatCurrency(goal)}</span>
               </div>
@@ -174,7 +174,7 @@ export default function MovementCardExtras({ post }: MovementCardExtrasProps) {
                   style={{ width: `${pct}%` }}
                 />
               </div>
-              <p className="mt-2 text-[11px] leading-relaxed text-slate-500">
+              <p className="mt-2 text-[11px] leading-relaxed text-muted">
                 Support intent only — payments are not live on ForFuture yet.
               </p>
             </div>
@@ -208,7 +208,7 @@ export default function MovementCardExtras({ post }: MovementCardExtrasProps) {
           )}
           {closingLabel && (
             <p
-              className={`text-xs font-semibold ${closed ? 'text-slate-500' : 'text-fuchsia-800'}`}
+              className={`text-xs font-semibold ${closed ? 'text-muted' : 'text-fuchsia-800'}`}
             >
               {closed ? 'Closed' : closingLabel}
             </p>
@@ -221,7 +221,7 @@ export default function MovementCardExtras({ post }: MovementCardExtrasProps) {
           )}
           {goal != null && goal > 0 && (
             <div>
-              <p className="text-xs font-semibold text-slate-600">
+              <p className="text-xs font-semibold text-secondary">
                 {formatPetitionSupporterCount(count, goal)}
               </p>
               <div
@@ -238,7 +238,7 @@ export default function MovementCardExtras({ post }: MovementCardExtrasProps) {
               </div>
             </div>
           )}
-          <p className="text-[11px] leading-relaxed text-slate-500">{PETITION_DISCLAIMER}</p>
+          <p className="text-[11px] leading-relaxed text-muted">{PETITION_DISCLAIMER}</p>
         </div>
       )
     }
@@ -254,7 +254,7 @@ export default function MovementCardExtras({ post }: MovementCardExtrasProps) {
             Civic action details
           </p>
           {post.action_purpose && (
-            <p className="wrap-user-text text-sm font-semibold leading-relaxed text-slate-800">
+            <p className="wrap-user-text text-sm font-semibold leading-relaxed text-primary">
               {post.action_purpose}
             </p>
           )}
@@ -272,7 +272,7 @@ export default function MovementCardExtras({ post }: MovementCardExtrasProps) {
             </ul>
           )}
           {post.safety_note && (
-            <p className="wrap-user-text rounded-lg bg-white/60 px-3 py-2 text-xs text-orange-900/90 ring-1 ring-orange-200/50">
+            <p className="wrap-user-text rounded-lg bg-surface/60 px-3 py-2 text-xs text-orange-900/90 ring-1 ring-orange-200/50">
               {post.safety_note}
             </p>
           )}

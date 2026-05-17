@@ -9,11 +9,18 @@ interface EmptyStateProps {
 export default function EmptyState({ icon: Icon, title, description }: EmptyStateProps) {
   return (
     <article className="card-surface border-dashed px-6 py-16 text-center sm:py-20">
-      <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-br from-accent-100 to-brand-100 text-accent-600 shadow-inner">
-        <Icon className="h-8 w-8" aria-hidden />
+      <span
+        className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl shadow-inner"
+        style={{
+          background: 'linear-gradient(135deg, var(--ff-glow-accent), var(--ff-glow-brand))',
+          color: 'var(--ff-metric-icon-accent-text)',
+        }}
+        aria-hidden
+      >
+        <Icon className="h-8 w-8" />
       </span>
-      <h3 className="mt-6 text-lg font-extrabold tracking-tight text-slate-900">{title}</h3>
-      <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-slate-600">{description}</p>
+      <h3 className="mt-6 text-lg font-extrabold tracking-tight text-primary">{title}</h3>
+      <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-secondary">{description}</p>
     </article>
   )
 }

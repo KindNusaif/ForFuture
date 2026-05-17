@@ -94,7 +94,7 @@ export default function PollFields({
           type="button"
           onClick={addOption}
           disabled={disabled}
-          className="poll-add-option inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-dashed px-4 py-2 text-sm font-semibold transition hover:opacity-90 disabled:opacity-50 sm:w-auto"
+          className="poll-add-option inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-dashed px-4 py-2 text-sm font-semibold transition hover:opacity-90 disabled:opacity-50 sm:w-auto"
         >
           <Plus className="h-4 w-4" aria-hidden />
           Add option

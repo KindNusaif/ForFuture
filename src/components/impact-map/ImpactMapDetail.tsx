@@ -17,17 +17,17 @@ interface ImpactMapDetailProps {
 export default function ImpactMapDetail({ entry, detailPath, onClose }: ImpactMapDetailProps) {
   return (
     <div className="card-surface flex flex-col overflow-hidden lg:max-h-[min(420px,50vh)]">
-      <div className="flex items-start justify-between gap-3 border-b border-slate-100 p-4">
+      <div className="flex items-start justify-between gap-3 border-b border-default p-4">
         <div className="min-w-0">
           <p className="text-[10px] font-bold uppercase tracking-wide text-accent-600">
             {getLayerLabel(entry.layerType)}
           </p>
-          <h2 className="wrap-user-text mt-1 text-lg font-bold text-slate-900">{entry.title}</h2>
+          <h2 className="wrap-user-text mt-1 text-lg font-bold text-primary">{entry.title}</h2>
         </div>
         <button
           type="button"
           onClick={onClose}
-          className="shrink-0 rounded-lg p-2 text-slate-400 hover:bg-slate-100"
+          className="shrink-0 rounded-lg p-2 text-muted hover:bg-muted"
           aria-label="Close details"
         >
           <X className="h-5 w-5" />
@@ -36,7 +36,7 @@ export default function ImpactMapDetail({ entry, detailPath, onClose }: ImpactMa
 
       <div className="space-y-3 overflow-y-auto p-4 text-sm">
         <div className="flex flex-wrap gap-2">
-          <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
+          <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold text-secondary">
             {getStatusLabel(entry.status)}
           </span>
           <span className="rounded-full bg-accent-50 px-2.5 py-0.5 text-xs font-semibold text-accent-800 ring-1 ring-accent-200">
@@ -50,8 +50,8 @@ export default function ImpactMapDetail({ entry, detailPath, onClose }: ImpactMa
         </div>
 
         {(entry.district || entry.locationLabel) && (
-          <p className="text-slate-600">
-            <span className="font-semibold text-slate-800">Location: </span>
+          <p className="text-secondary">
+            <span className="font-semibold text-primary">Location: </span>
             {entry.locationLabel ?? entry.district}
             {entry.district && entry.locationLabel && entry.locationLabel !== entry.district
               ? ` · ${entry.district}`
@@ -60,23 +60,23 @@ export default function ImpactMapDetail({ entry, detailPath, onClose }: ImpactMa
         )}
 
         {formatImpactDate(entry) && (
-          <p className="text-slate-600">
-            <span className="font-semibold text-slate-800">When: </span>
+          <p className="text-secondary">
+            <span className="font-semibold text-primary">When: </span>
             {formatImpactDate(entry)}
             {entry.scheduledTime ? ` · ${entry.scheduledTime}` : ''}
           </p>
         )}
 
-        <p className="wrap-user-text leading-relaxed text-slate-600">{entry.description}</p>
+        <p className="wrap-user-text leading-relaxed text-secondary">{entry.description}</p>
 
         {entry.issueSummary && (
-          <p className="wrap-user-text rounded-lg bg-rose-50/80 p-3 text-slate-700">
+          <p className="wrap-user-text rounded-lg bg-rose-50/80 p-3 text-secondary">
             <span className="font-semibold">Issue: </span>
             {entry.issueSummary}
           </p>
         )}
 
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-muted">
           {entry.authorName.startsWith('Youth Voice') ? (
             <>Shared via {entry.authorName}</>
           ) : (
@@ -87,7 +87,7 @@ export default function ImpactMapDetail({ entry, detailPath, onClose }: ImpactMa
         </p>
       </div>
 
-      <div className="border-t border-slate-100 p-4">
+      <div className="border-t border-default p-4">
         <Link to={detailPath} className="btn-primary w-full text-center">
           {getCtaLabel(entry.layerType)}
         </Link>

@@ -37,7 +37,7 @@ export default function MovementActionButton({
     <div
       className={`min-w-0 rounded-xl border p-3 sm:min-w-[15rem] sm:p-3.5 ${visual.actionZone} ${className}`}
     >
-      <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">
+      <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-muted">
         Take action
       </p>
 
@@ -72,8 +72,8 @@ export default function MovementActionButton({
           <span
             className={`rounded-full px-2 py-0.5 text-xs font-bold tabular-nums ring-1 ${
               active
-                ? 'bg-white/80 text-brand-800 ring-brand-200/90'
-                : 'bg-white/90 text-slate-700 ring-slate-200/90'
+                ? 'bg-surface/80 text-brand-800 ring-brand-200/90'
+                : 'bg-surface/90 text-secondary ring-default'
             }`}
           >
             {count}
@@ -82,17 +82,17 @@ export default function MovementActionButton({
       </button>
 
       <p
-        className="mt-2 text-center text-xs font-medium text-slate-600 sm:text-right"
+        className="mt-2 text-center text-xs font-medium text-secondary sm:text-right"
         aria-live="polite"
       >
         {count > 0 ? countText : emptyText}
       </p>
 
       {showHint && (
-        <p className="mt-1.5 text-center text-[11px] leading-snug text-slate-500 sm:text-right">
+        <p className="mt-1.5 text-center text-[11px] leading-snug text-muted sm:text-right">
           {movement.engagementHint}
           {movement.actionDisclaimer && (
-            <span className="mt-0.5 block font-medium text-slate-600">
+            <span className="mt-0.5 block font-medium text-secondary">
               {movement.actionDisclaimer}
             </span>
           )}
