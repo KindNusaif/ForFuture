@@ -52,21 +52,21 @@ export const BLOOD_GROUPS: { value: BloodGroup; labelKey: string }[] = [
 ]
 
 export const URGENCY_LEVELS: { value: UrgencyLevel; labelKey: string }[] = [
-  { value: 'urgent_today', labelKey: 'relief.urgency.urgentToday' },
-  { value: 'within_24_hours', labelKey: 'relief.urgency.within24Hours' },
-  { value: 'scheduled_drive', labelKey: 'relief.urgency.scheduledDrive' },
-  { value: 'general_awareness', labelKey: 'relief.urgency.generalAwareness' },
+  { value: 'urgent_today', labelKey: 'relief.urgency.urgent_today' },
+  { value: 'within_24_hours', labelKey: 'relief.urgency.within_24_hours' },
+  { value: 'scheduled_drive', labelKey: 'relief.urgency.scheduled_drive' },
+  { value: 'general_awareness', labelKey: 'relief.urgency.general_awareness' },
 ]
 
 export const ITEM_CATEGORIES: { value: ItemCategory; labelKey: string }[] = [
-  { value: 'school_supplies', labelKey: 'relief.itemCategories.schoolSupplies' },
-  { value: 'food_rations', labelKey: 'relief.itemCategories.foodRations' },
+  { value: 'school_supplies', labelKey: 'relief.itemCategories.school_supplies' },
+  { value: 'food_rations', labelKey: 'relief.itemCategories.food_rations' },
   { value: 'clothing', labelKey: 'relief.itemCategories.clothing' },
   { value: 'hygiene', labelKey: 'relief.itemCategories.hygiene' },
   { value: 'books', labelKey: 'relief.itemCategories.books' },
-  { value: 'disaster_relief', labelKey: 'relief.itemCategories.disasterRelief' },
-  { value: 'medical_supplies', labelKey: 'relief.itemCategories.medicalSupplies' },
-  { value: 'other_essentials', labelKey: 'relief.itemCategories.other' },
+  { value: 'disaster_relief', labelKey: 'relief.itemCategories.disaster_relief' },
+  { value: 'medical_supplies', labelKey: 'relief.itemCategories.medical_supplies' },
+  { value: 'other_essentials', labelKey: 'relief.itemCategories.other_essentials' },
 ]
 
 export function isReliefPost(post: Pick<Post, 'movement_type'>): boolean {

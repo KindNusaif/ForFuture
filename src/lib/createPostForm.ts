@@ -12,6 +12,17 @@ const FIELD_SCROLL_ORDER: { key: string; id: string }[] = [
   { key: 'petition_requested_change', id: 'petition_requested_change' },
   { key: 'petition_target_authority', id: 'petition_target_authority' },
   { key: 'pollOptions', id: 'poll-option-0' },
+  { key: 'blood_group', id: 'blood_group' },
+  { key: 'hospital_or_organizer', id: 'hospital_or_organizer' },
+  { key: 'urgency_level', id: 'urgency_level' },
+  { key: 'donors_needed', id: 'donors_needed' },
+  { key: 'contact_note', id: 'contact_note' },
+  { key: 'items_needed', id: 'items_needed' },
+  { key: 'beneficiary_group', id: 'beneficiary_group' },
+  { key: 'collection_location', id: 'collection_location' },
+  { key: 'fundraising_goal_amount', id: 'fundraising_goal_amount' },
+  { key: 'organizer_transparency_note', id: 'organizer_transparency_note' },
+  { key: 'beneficiary_description', id: 'beneficiary_description' },
 ]
 
 export function scrollToFirstFieldError(errors: CreatePostFieldErrors): void {

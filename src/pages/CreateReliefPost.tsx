@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Loader2, Send } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -17,7 +17,9 @@ import {
   requiresProfileForReliefSubtype,
   type ReliefCreateSubtype,
 } from '../lib/reliefHub'
+import { scrollToFirstFieldError } from '../lib/createPostForm'
 import { createPost } from '../lib/posts'
+import { ensureYouthVoiceId } from '../lib/auth'
 import { uploadMovementAttachments } from '../lib/movementAttachments'
 import MovementMediaUploader from '../components/media/MovementMediaUploader'
 import { usePendingMovementMedia } from '../hooks/usePendingMovementMedia'
@@ -36,7 +38,9 @@ interface ActionPathReliefDraft {
 
 export default function CreateReliefPost() {
   const { t } = useTranslation()
-  const { user, profile } = useAuth()
+  const { user, profile, refreshProfile } = useAuth()
+  const submittingRef = useRef(false)
+  const formRef = useRef<HTMLFormElement>(null)
   const navigate = useNavigate()
   const location = useLocation()
   const [searchParams] = useSearchParams()
@@ -65,6 +69,7 @@ export default function CreateReliefPost() {
     longitude: null,
   })
   const [loading, setLoading] = useState(false)
+  const [voiceIdBootstrapping, setVoiceIdBootstrapping] = useState(false)
   const [uploadingMedia, setUploadingMedia] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string | undefined>>({})
@@ -87,25 +92,72 @@ export default function CreateReliefPost() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!user || !profile || !subtype) return
+    if (submittingRef.current || loading) return
+
+    if (!user) {
+      setError(t('relief.loginRequired'))
+      return
+    }
+
+    if (!subtype) {
+      setError(t('relief.chooseSubtype'))
+      return
+    }
+
+    let youthVoiceId = profile?.youth_voice_id
+    if (effectivePostingIdentity === 'youth_voice' && !youthVoiceId) {
+      setVoiceIdBootstrapping(true)
+      setError(null)
+      try {
+        const updated = await ensureYouthVoiceId(user.id)
+        youthVoiceId = updated.youth_voice_id
+        await refreshProfile()
+      } catch (err) {
+        setError(formatError(err) || t('relief.voiceIdRequired'))
+        setVoiceIdBootstrapping(false)
+        return
+      } finally {
+        setVoiceIdBootstrapping(false)
+      }
+    }
+
+    if (effectivePostingIdentity === 'youth_voice' && !youthVoiceId) {
+      setError(t('relief.voiceIdRequired'))
+      return
+    }
+
+    const resolvedAuthorName =
+      effectivePostingIdentity === 'profile' ? (profile?.display_name ?? authorName).trim() : authorName
 
     const errors = validateReliefCreate({
       title,
       description,
       category,
-      authorName,
+      authorName: resolvedAuthorName,
       postingIdentity: effectivePostingIdentity,
       subtype,
       reliefFields,
     })
     setFieldErrors(errors)
-    if (hasFieldErrors(errors)) return
+    if (hasFieldErrors(errors)) {
+      setError(t('relief.fixValidation'))
+      scrollToFirstFieldError(errors)
+      formRef.current?.querySelector('[role="alert"]')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      return
+    }
 
     if (pendingMedia.hasFiles && !pendingMedia.validation.valid) {
       setError(pendingMedia.validation.issues[0]?.message ?? 'Check your attachments.')
       return
     }
 
+    const locationLabel =
+      mapLocation.location_name.trim() ||
+      reliefFields.collection_location.trim() ||
+      reliefFields.hospital_or_organizer.trim() ||
+      undefined
+
+    submittingRef.current = true
     setLoading(true)
     setError(null)
 
@@ -116,9 +168,9 @@ export default function CreateReliefPost() {
         title: title.trim(),
         description: description.trim(),
         category: category as Category,
-        authorName,
+        authorName: resolvedAuthorName,
         postingIdentity: effectivePostingIdentity,
-        youthVoiceId: profile.youth_voice_id,
+        youthVoiceId: youthVoiceId ?? profile?.youth_voice_id ?? '',
         movementType,
         donation_subtype: donationSubtypeForCreate(subtype),
         contact_note: reliefFields.contact_note,
@@ -137,8 +189,8 @@ export default function CreateReliefPost() {
         beneficiary_group: reliefFields.beneficiary_group,
         collection_location: reliefFields.collection_location,
         relief_deadline: reliefFields.relief_deadline || undefined,
-        location: mapLocation.location_name || reliefFields.collection_location,
-        location_name: mapLocation.location_name || undefined,
+        location: locationLabel,
+        location_name: locationLabel,
         latitude: mapLocation.latitude,
         longitude: mapLocation.longitude,
         fundraising_goal_amount: reliefFields.fundraising_goal_amount
@@ -175,7 +227,9 @@ export default function CreateReliefPost() {
       })
     } catch (err) {
       setError(formatError(err))
+      formRef.current?.querySelector('[role="alert"]')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
     } finally {
+      submittingRef.current = false
       setLoading(false)
     }
   }
@@ -194,7 +248,21 @@ export default function CreateReliefPost() {
         <p className="mt-2 text-sm leading-relaxed text-slate-600">{t('relief.createSubtitle')}</p>
       </header>
 
-      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-6">
+      <form ref={formRef} onSubmit={(e) => void handleSubmit(e)} noValidate className="space-y-6">
+        {error && (
+          <p
+            className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-200"
+            role="alert"
+          >
+            {error}
+          </p>
+        )}
+
+        {voiceIdBootstrapping && (
+          <p className="rounded-xl border border-accent-200/80 bg-accent-50/80 px-4 py-3 text-sm text-accent-800 dark:border-accent-700/50 dark:bg-accent-950/40 dark:text-accent-200">
+            {t('create.voiceIdLoading')}
+          </p>
+        )}
         <div>
           <p className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-500">
             {t('relief.chooseSubtype')}
@@ -223,6 +291,7 @@ export default function CreateReliefPost() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 maxLength={POST_LIMITS.titleMax}
+                aria-invalid={Boolean(fieldErrors.title)}
                 className={`${inputClass} ${fieldErrors.title ? inputErrorClass : ''}`}
                 disabled={loading}
               />
@@ -239,9 +308,20 @@ export default function CreateReliefPost() {
                 onChange={(e) => setDescription(e.target.value)}
                 rows={4}
                 maxLength={POST_LIMITS.descriptionMax}
-                className={`${inputClass} min-h-[100px] resize-y`}
+                aria-invalid={Boolean(fieldErrors.description)}
+                className={`${inputClass} min-h-[100px] resize-y ${fieldErrors.description ? inputErrorClass : ''}`}
                 disabled={loading}
               />
+              {!fieldErrors.description &&
+                description.length > 0 &&
+                description.length < POST_LIMITS.descriptionMin && (
+                  <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+                    {t('relief.descriptionMinHint', {
+                      min: POST_LIMITS.descriptionMin,
+                      current: description.length,
+                    })}
+                  </p>
+                )}
             </FormField>
 
             <CategoryPicker
@@ -272,21 +352,21 @@ export default function CreateReliefPost() {
               disabled={loading}
             />
 
-            {error && (
-              <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-                {error}
-              </p>
-            )}
-
             <button
               type="submit"
-              disabled={loading || uploadingMedia}
-              className="btn-primary w-full sm:w-auto"
+              disabled={loading || uploadingMedia || voiceIdBootstrapping}
+              aria-busy={loading || uploadingMedia || voiceIdBootstrapping}
+              className="btn-primary w-full sm:w-auto disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading || uploadingMedia ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                  {t('create.publishing')}
+                  {t('relief.publishing')}
+                </>
+              ) : voiceIdBootstrapping ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                  {t('create.voiceIdLoading')}
                 </>
               ) : (
                 <>
