@@ -13,8 +13,10 @@ export default function Layout() {
       </main>
       <footer className="border-t border-default bg-nav py-10">
         <div className="mx-auto max-w-7xl px-4 text-center sm:px-6">
-          <p className="text-sm font-semibold text-accent-800">{t('landing.eyebrow')}</p>
-          <p className="mt-2 text-sm text-slate-500">{t('landing.whySubtitle')}</p>
+          <p className="text-sm font-semibold text-accent-600 dark:text-accent-300">
+            {t('landing.eyebrow')}
+          </p>
+          <p className="mt-2 text-sm text-secondary">{t('landing.whySubtitle')}</p>
         </div>
       </footer>
     </div>

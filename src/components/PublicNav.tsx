@@ -7,8 +7,7 @@ import LanguageSwitcher from './LanguageSwitcher'
 import Logo from './Logo'
 import { useAuth } from '../hooks/useAuth'
 
-const linkClass =
-  'rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-accent-700'
+const linkClass = 'public-nav-link'
 
 export default function PublicNav() {
   const [open, setOpen] = useState(false)
