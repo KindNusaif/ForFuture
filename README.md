@@ -1,6 +1,31 @@
 # ForFuture
 
-A web app where young people post initiatives for country development. Others explore, support, and filter by category.
+
+ForFuture is a youth-centric civic engagement platform that helps young people turn social concerns into organized action. Users can raise issues, create movements, launch petitions, organize volunteer drives, run polls, and support meaningful community campaigns.
+
+## Features
+
+- **Youth Voice Posts**– Share community issues and social concerns.
+- **Petitions** – Create and support causes that matter.
+- **Volunteer Drives** – Organize and join real-world initiatives.
+- **Polls** – Gather public opinions quickly.
+- **Fundraising Campaigns** – Highlight trusted support needs.
+- **ActionPath AI** – Helps structure rough ideas into clear, action-ready submissions.
+- **Youth Voice ID** – Enables safer anonymous expression.
+- **Responsive UI** – Smooth experience across desktop and mobile.
+
+## How to Use
+
+1. **Sign up or log in** to the platform.
+2. **Browse the feed** to explore posts, petitions, polls, and drives.
+3. **Create a movement** by choosing the relevant category.
+4. **Use ActionPath AI** to improve and organize your submission.
+5. **Engage with others** by voting, signing petitions, joining drives, or supporting campaigns.
+6. **Track your activity and impact** through your profile.
+
+## Purpose
+
+ForFuture empowers youth, students, volunteers, and civic-minded citizens to move beyond discussion and take meaningful action for society.
 
 ## Quick start
 
