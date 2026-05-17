@@ -21,7 +21,9 @@ interface CategoryPickerProps {
 export default function CategoryPicker({ value, onChange, error, disabled }: CategoryPickerProps) {
   return (
     <fieldset id="category" disabled={disabled}>
-      <legend className="text-sm font-medium text-slate-700">Category</legend>
+      <legend className={`text-sm font-medium ${error ? 'text-red-700' : 'text-slate-700'}`}>
+        Category <span className="text-red-600">*</span>
+      </legend>
       <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
         {CATEGORIES.map((cat) => {
           const selected = value === cat

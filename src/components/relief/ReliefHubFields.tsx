@@ -72,7 +72,8 @@ export default function ReliefHubFields({
             value={values.blood_group}
             onChange={(e) => onChange('blood_group', e.target.value)}
             disabled={disabled}
-            className={inputClass}
+            className={`${inputClass} ${errors.blood_group ? inputErrorClass : ''}`}
+            aria-invalid={Boolean(errors.blood_group)}
           >
             <option value="">{t('relief.fields.selectBloodGroup')}</option>
             {BLOOD_GROUPS.map((g) => (
@@ -89,7 +90,7 @@ export default function ReliefHubFields({
             value={values.urgency_level}
             onChange={(e) => onChange('urgency_level', e.target.value)}
             disabled={disabled}
-            className={inputClass}
+            className={`${inputClass} ${errors.urgency_level ? inputErrorClass : ''}`}
           >
             {URGENCY_LEVELS.map((u) => (
               <option key={u.value} value={u.value}>

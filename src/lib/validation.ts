@@ -9,12 +9,45 @@ export const POST_LIMITS = {
   titleMin: 3,
   titleMax: 120,
   descriptionMin: 20,
+  /** Shorter minimum for Donation & Relief (structured fields carry detail). */
+  reliefDescriptionMin: 10,
   descriptionMax: 2000,
   authorMin: 2,
   authorMax: 80,
   fieldMax: 500,
   shortMax: 200,
 } as const
+
+const FIELD_ERROR_LABELS: Record<string, string> = {
+  title: 'Title',
+  description: 'Description',
+  category: 'Category',
+  authorName: 'Author name',
+  blood_group: 'Blood group',
+  hospital_or_organizer: 'Hospital / organizer',
+  donors_needed: 'Donors needed',
+  contact_note: 'Contact note',
+  items_needed: 'Items needed',
+  beneficiary_group: 'Who will benefit',
+  collection_location: 'Collection location',
+  fundraising_goal_amount: 'Fundraising goal',
+  fundraising_purpose: 'Purpose of funds',
+  beneficiary_description: 'Beneficiary description',
+  organizer_transparency_note: 'Transparency note',
+  postingIdentity: 'Posting identity',
+}
+
+/** Human-readable summary for the form error banner (not a generic-only message). */
+export function formatFieldErrorsSummary(errors: CreatePostFieldErrors): string {
+  const entries = Object.entries(errors).filter(([, msg]) => Boolean(msg))
+  if (entries.length === 0) return ''
+  const lines = entries.map(([key, msg]) => {
+    const label = FIELD_ERROR_LABELS[key] ?? key.replace(/_/g, ' ')
+    return `${label}: ${msg}`
+  })
+  if (lines.length === 1) return lines[0]!
+  return lines.slice(0, 4).join(' · ')
+}
 
 export function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
@@ -76,22 +109,26 @@ export interface CreatePostFieldErrors {
   [key: string]: string | undefined
 }
 
-export function validateCreatePost(input: {
-  title: string
-  description: string
-  category: string
-  authorName: string
-  postingIdentity?: 'profile' | 'youth_voice'
-  movementType: MovementType
-  fundraising_goal_amount?: string
-  fundraising_purpose?: string
-  petition_issue?: string
-  petition_requested_change?: string
-  petition_target_authority?: string
-  petition_support_goal?: string
-  petition_closing_date?: string
-  pollOptions?: string[]
-}): CreatePostFieldErrors {
+export function validateCreatePost(
+  input: {
+    title: string
+    description: string
+    category: string
+    authorName: string
+    postingIdentity?: 'profile' | 'youth_voice'
+    movementType: MovementType
+    fundraising_goal_amount?: string
+    fundraising_purpose?: string
+    petition_issue?: string
+    petition_requested_change?: string
+    petition_target_authority?: string
+    petition_support_goal?: string
+    petition_closing_date?: string
+    pollOptions?: string[]
+  },
+  options?: { descriptionMin?: number },
+): CreatePostFieldErrors {
+  const descriptionMin = options?.descriptionMin ?? POST_LIMITS.descriptionMin
   const errors: CreatePostFieldErrors = {}
   const title = input.title.trim()
   const description = input.description.trim()
@@ -127,8 +164,8 @@ export function validateCreatePost(input: {
 
   if (!isPoll && !isPetition) {
     if (!description) errors.description = 'Description is required.'
-    else if (description.length < POST_LIMITS.descriptionMin)
-      errors.description = `Description must be at least ${POST_LIMITS.descriptionMin} characters.`
+    else if (description.length < descriptionMin)
+      errors.description = `Description must be at least ${descriptionMin} characters.`
     else if (description.length > POST_LIMITS.descriptionMax)
       errors.description = `Description must be under ${POST_LIMITS.descriptionMax} characters.`
   } else if (description.length > POST_LIMITS.descriptionMax) {
@@ -222,16 +259,19 @@ export function validateReliefCreate(input: {
   reliefFields: ReliefFieldValues
 }): CreatePostFieldErrors {
   const movementType = input.subtype === 'fundraising' ? 'fundraising' : 'donation_relief'
-  const base = validateCreatePost({
-    title: input.title,
-    description: input.description,
-    category: input.category,
-    authorName: input.authorName,
-    postingIdentity: input.postingIdentity,
-    movementType,
-    fundraising_goal_amount: input.reliefFields.fundraising_goal_amount,
-    fundraising_purpose: input.reliefFields.fundraising_purpose,
-  })
+  const base = validateCreatePost(
+    {
+      title: input.title,
+      description: input.description,
+      category: input.category,
+      authorName: input.authorName,
+      postingIdentity: input.postingIdentity,
+      movementType,
+      fundraising_goal_amount: input.reliefFields.fundraising_goal_amount,
+      fundraising_purpose: input.reliefFields.fundraising_purpose,
+    },
+    { descriptionMin: POST_LIMITS.reliefDescriptionMin },
+  )
 
   const errors: CreatePostFieldErrors = { ...base }
 

@@ -24,7 +24,13 @@ import { uploadMovementAttachments } from '../lib/movementAttachments'
 import MovementMediaUploader from '../components/media/MovementMediaUploader'
 import { usePendingMovementMedia } from '../hooks/usePendingMovementMedia'
 import { formatError } from '../lib/errors'
-import { hasFieldErrors, POST_LIMITS, validateReliefCreate } from '../lib/validation'
+import { enrichReliefDescription } from '../lib/reliefDescription'
+import {
+  formatFieldErrorsSummary,
+  hasFieldErrors,
+  POST_LIMITS,
+  validateReliefCreate,
+} from '../lib/validation'
 import type { Category, PostingIdentity } from '../types'
 
 const SUBTYPES: ReliefCreateSubtype[] = ['blood_donation', 'item_donation', 'fundraising']
@@ -56,6 +62,7 @@ export default function CreateReliefPost() {
   const [title, setTitle] = useState(actionPathDraft?.title ?? '')
   const [description, setDescription] = useState(actionPathDraft?.description ?? '')
   const [category, setCategory] = useState<Category | ''>('')
+  const [authorNameOverride, setAuthorNameOverride] = useState<string | null>(null)
   const [postingIdentity, setPostingIdentity] = useState<PostingIdentity>('profile')
   const [reliefFields, setReliefFields] = useState<ReliefFieldValues>(() => {
     const base = emptyReliefFields()
@@ -77,7 +84,11 @@ export default function CreateReliefPost() {
 
   const requiresProfile = subtype ? requiresProfileForReliefSubtype(subtype) : false
   const effectivePostingIdentity = requiresProfile ? 'profile' : postingIdentity
-  const authorName = profile?.display_name ?? ''
+  const defaultAuthorName = profile?.display_name ?? ''
+  const authorName = authorNameOverride ?? defaultAuthorName
+  const showAuthorField =
+    effectivePostingIdentity === 'profile' &&
+    (!defaultAuthorName.trim() || Boolean(fieldErrors.authorName))
 
   function handleSubtypeChange(next: ReliefCreateSubtype) {
     setSubtype(next)
@@ -127,11 +138,13 @@ export default function CreateReliefPost() {
     }
 
     const resolvedAuthorName =
-      effectivePostingIdentity === 'profile' ? (profile?.display_name ?? authorName).trim() : authorName
+      effectivePostingIdentity === 'profile' ? authorName.trim() : authorName
+
+    const publishDescription = enrichReliefDescription(description, title, subtype, reliefFields)
 
     const errors = validateReliefCreate({
       title,
-      description,
+      description: publishDescription,
       category,
       authorName: resolvedAuthorName,
       postingIdentity: effectivePostingIdentity,
@@ -140,9 +153,8 @@ export default function CreateReliefPost() {
     })
     setFieldErrors(errors)
     if (hasFieldErrors(errors)) {
-      setError(t('relief.fixValidation'))
+      setError(formatFieldErrorsSummary(errors) || t('relief.fixValidation'))
       scrollToFirstFieldError(errors)
-      formRef.current?.querySelector('[role="alert"]')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
       return
     }
 
@@ -166,7 +178,7 @@ export default function CreateReliefPost() {
       const post = await createPost({
         userId: user.id,
         title: title.trim(),
-        description: description.trim(),
+        description: publishDescription,
         category: category as Category,
         authorName: resolvedAuthorName,
         postingIdentity: effectivePostingIdentity,
@@ -314,15 +326,33 @@ export default function CreateReliefPost() {
               />
               {!fieldErrors.description &&
                 description.length > 0 &&
-                description.length < POST_LIMITS.descriptionMin && (
+                description.length < POST_LIMITS.reliefDescriptionMin && (
                   <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
                     {t('relief.descriptionMinHint', {
-                      min: POST_LIMITS.descriptionMin,
+                      min: POST_LIMITS.reliefDescriptionMin,
                       current: description.length,
                     })}
                   </p>
                 )}
+              <p className="mt-1 text-xs text-muted">
+                {t('relief.descriptionReliefHint')}
+              </p>
             </FormField>
+
+            {showAuthorField && (
+              <FormField label={t('relief.authorNameLabel')} id="authorName" error={fieldErrors.authorName}>
+                <input
+                  id="authorName"
+                  value={authorName}
+                  onChange={(e) => setAuthorNameOverride(e.target.value)}
+                  maxLength={POST_LIMITS.authorMax}
+                  placeholder={t('relief.authorNamePh')}
+                  aria-invalid={Boolean(fieldErrors.authorName)}
+                  className={`${inputClass} ${fieldErrors.authorName ? inputErrorClass : ''}`}
+                  disabled={loading}
+                />
+              </FormField>
+            )}
 
             <CategoryPicker
               value={category}
