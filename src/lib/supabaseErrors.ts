@@ -23,7 +23,7 @@ export function isMissingColumn(error: unknown): boolean {
 }
 
 const SCHEMA_FIX_HINT =
-  'In Supabase → SQL Editor, run the entire file supabase/APPLY_ALL_MIGRATIONS.sql (one paste, one Run). New project? You can use supabase/00_fix_all.sql first, then the other scripts listed in that file’s header. Hard-refresh this page (Ctrl+Shift+R) when done.'
+  'In Supabase → SQL Editor, run supabase/fix_missing_features.sql (copy the whole file, one Run). New project? Use supabase/APPLY_ALL_MIGRATIONS.sql instead. Hard-refresh this page (Ctrl+Shift+R) when done.'
 
 export function enhanceSupabaseError(error: unknown): Error {
   if (!isPostgrestError(error)) {

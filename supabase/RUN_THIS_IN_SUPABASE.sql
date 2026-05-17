@@ -1,0 +1,11 @@
+-- =============================================================================
+-- ForFuture — fix "missing columns" / feed errors
+-- =============================================================================
+-- In Supabase Dashboard → SQL Editor:
+--   1. Open this project's file:  supabase/fix_missing_features.sql
+--   2. Copy ALL of it, paste into SQL Editor, click Run
+--   3. Wait for "Success"
+--   4. Hard-refresh your website (Ctrl+Shift+R)
+--
+-- New empty project? Run supabase/APPLY_ALL_MIGRATIONS.sql instead (one file).
+-- =============================================================================

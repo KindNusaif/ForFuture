@@ -112,6 +112,20 @@ export const POST_PUBLIC_COLUMNS_LEGACY = [
   'longitude',
 ].join(', ')
 
+/** Minimal feed columns when the public view predates movement/trust migrations */
+export const POST_PUBLIC_COLUMNS_CORE = [
+  'id',
+  'user_id',
+  'title',
+  'description',
+  'category',
+  'author_name',
+  'posting_identity',
+  'youth_voice_id',
+  'movement_type',
+  'created_at',
+].join(', ')
+
 /**
  * Columns on public.posts / private.posts (owner insert & profile reads).
  * Must NOT include author_is_verified_* — those exist only on posts_public_safe.

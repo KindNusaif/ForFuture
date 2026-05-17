@@ -3,6 +3,7 @@ import {
   POST_OWN_COLUMNS,
   POST_OWN_COLUMNS_LEGACY,
   POST_PUBLIC_COLUMNS,
+  POST_PUBLIC_COLUMNS_CORE,
   POST_PUBLIC_COLUMNS_LEGACY,
 } from './postColumns'
 import { enhanceSupabaseError, isMissingColumn, isMissingRelation } from './supabaseErrors'
@@ -227,29 +228,30 @@ async function fetchPublicFeedRows(params: FetchPostsPageParams): Promise<{
   const pageSize = params.limit ?? DEFAULT_FEED_PAGE_SIZE
   const viewerUserId = params.viewerUserId
 
-  try {
-    const raw = await queryPublicFeedRows(params, POST_PUBLIC_COLUMNS)
-    const hasMore = raw.length > pageSize
-    const slice = raw.slice(0, pageSize)
-    return {
-      rows: slice.map((row) => mapPostRow(row, { viewerUserId })),
-      hasMore,
-    }
-  } catch (error) {
-    if (isMissingRelation(error)) {
-      throw enhanceSupabaseError(error)
-    }
-    if (isMissingColumn(error)) {
-      const raw = await queryPublicFeedRows(params, POST_PUBLIC_COLUMNS_LEGACY)
+  const columnSets = [POST_PUBLIC_COLUMNS, POST_PUBLIC_COLUMNS_LEGACY, POST_PUBLIC_COLUMNS_CORE]
+  let lastError: unknown
+
+  for (const columns of columnSets) {
+    try {
+      const raw = await queryPublicFeedRows(params, columns)
       const hasMore = raw.length > pageSize
       const slice = raw.slice(0, pageSize)
       return {
         rows: slice.map((row) => mapPostRow(row, { viewerUserId })),
         hasMore,
       }
+    } catch (error) {
+      lastError = error
+      if (isMissingRelation(error)) {
+        throw enhanceSupabaseError(error)
+      }
+      if (!isMissingColumn(error)) {
+        throw enhanceSupabaseError(error)
+      }
     }
-    throw enhanceSupabaseError(error)
   }
+
+  throw enhanceSupabaseError(lastError)
 }
 
 async function fetchOwnPostRows(
@@ -324,16 +326,21 @@ export async function enrichPosts(
   if (rows.length === 0) return []
 
   const asPosts = rows as Post[]
+
+  async function safeEnrich<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
+    try {
+      return await withTimeout(fn(), FEED_ENRICH_TIMEOUT_MS, undefined, signal)
+    } catch (err) {
+      if (isRequestAborted(err)) throw err
+      return fallback
+    }
+  }
+
   const [withPolls, withSupport, withPetitions, withAttachments] = await Promise.all([
-    withTimeout(enrichPostsWithPolls(asPosts, viewerUserId), FEED_ENRICH_TIMEOUT_MS, undefined, signal),
-    withTimeout(enrichPostsWithActions(asPosts, viewerUserId), FEED_ENRICH_TIMEOUT_MS, undefined, signal),
-    withTimeout(
-      enrichPostsWithPetitionSignatures(asPosts, viewerUserId),
-      FEED_ENRICH_TIMEOUT_MS,
-      undefined,
-      signal,
-    ),
-    withTimeout(enrichPostsWithAttachmentsAsync(asPosts), FEED_ENRICH_TIMEOUT_MS, undefined, signal),
+    safeEnrich(() => enrichPostsWithPolls(asPosts, viewerUserId), asPosts),
+    safeEnrich(() => enrichPostsWithActions(asPosts, viewerUserId), asPosts),
+    safeEnrich(() => enrichPostsWithPetitionSignatures(asPosts, viewerUserId), asPosts),
+    safeEnrich(() => enrichPostsWithAttachmentsAsync(asPosts), asPosts),
   ])
 
   const pollById = new Map(withPolls.map((p) => [p.id, p.poll]))
