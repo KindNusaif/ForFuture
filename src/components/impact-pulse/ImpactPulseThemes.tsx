@@ -22,7 +22,7 @@ export default function ImpactPulseThemes({ categories, loading, unavailable }: 
         title={t('impactPulse.themes.title')}
         subtitle={t('impactPulse.themes.subtitle')}
       >
-        <p className="card-surface border-dashed px-6 py-10 text-center text-sm text-slate-600">
+        <p className="card-surface border-dashed px-6 py-10 text-center text-sm text-secondary">
           {t('impactPulse.metricsUnavailable')}
         </p>
       </SectionShell>
@@ -36,11 +36,11 @@ export default function ImpactPulseThemes({ categories, loading, unavailable }: 
       subtitle={t('impactPulse.themes.subtitle')}
     >
       {!loading && categories.length === 0 ? (
-        <p className="card-surface border-dashed px-6 py-10 text-center text-sm text-slate-600">
+        <p className="card-surface border-dashed px-6 py-10 text-center text-sm text-secondary">
           {t('impactPulse.themes.empty')}
         </p>
       ) : (
-        <ul className="card-surface divide-y divide-slate-100 p-4 sm:p-6" aria-label={t('impactPulse.themes.title')}>
+        <ul className="card-surface divide-y divide-default p-4 sm:p-6" aria-label={t('impactPulse.themes.title')}>
           {(loading ? Array.from({ length: 5 }) : categories).map((row, index) => {
             if (loading) {
               return (
@@ -57,12 +57,10 @@ export default function ImpactPulseThemes({ categories, loading, unavailable }: 
             return (
               <li key={item.category} className="py-4 first:pt-0 last:pb-0">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="flex min-w-0 items-center gap-2 text-sm font-semibold text-slate-800">
+                  <span className="flex min-w-0 items-center gap-2 text-sm font-semibold text-primary">
                     <span
                       className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
-                        rank <= 3
-                          ? 'bg-accent-100 text-accent-800'
-                          : 'bg-slate-100 text-slate-600'
+                        rank <= 3 ? 'metric-icon-accent' : 'card-inset text-secondary'
                       }`}
                       aria-hidden
                     >
@@ -70,12 +68,12 @@ export default function ImpactPulseThemes({ categories, loading, unavailable }: 
                     </span>
                     <span className="[overflow-wrap:anywhere]">{label}</span>
                   </span>
-                  <span className="text-xs font-medium text-slate-500">
+                  <span className="text-xs font-medium text-muted">
                     {formatImpactCountFull(item.count)} · {formatShare(item.share)}
                   </span>
                 </div>
                 <div
-                  className="mt-2 h-2.5 overflow-hidden rounded-full bg-slate-100"
+                  className="mt-2 h-2.5 overflow-hidden rounded-full bg-muted"
                   role="progressbar"
                   aria-valuenow={item.count}
                   aria-valuemin={0}

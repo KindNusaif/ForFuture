@@ -5,9 +5,8 @@ export default function DiscoverVisitorCta() {
   const { t } = useTranslation()
 
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-accent-200/60 bg-linear-to-br from-accent-50 via-white to-brand-50 px-6 py-12 text-center shadow-lg sm:px-10">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgb(99_102_241/0.12),transparent_50%)]" />
-      <div className="relative mx-auto max-w-xl">
+    <section className="band-promo px-6 py-12 text-center sm:px-10">
+      <div className="mx-auto max-w-xl">
         <h2 className="text-2xl font-extrabold tracking-tight text-primary sm:text-3xl">
           {t('discover.ctaTitle')}
         </h2>

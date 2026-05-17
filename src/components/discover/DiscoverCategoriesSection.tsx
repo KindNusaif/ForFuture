@@ -66,7 +66,7 @@ export default function DiscoverCategoriesSection({ counts, loading }: Props) {
                     to={movementsFilterUrl({ category })}
                     className={`group flex h-full min-h-[7rem] flex-col justify-between rounded-2xl bg-linear-to-br p-4 ring-1 transition hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 ${CARD_ACCENTS[category]}`}
                   >
-                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/80 text-accent-700 shadow-sm ring-1 ring-black/5">
+                    <span className="metric-icon-accent flex h-10 w-10 items-center justify-center rounded-xl shadow-sm ring-1 ring-default">
                       <Icon className="h-5 w-5" aria-hidden />
                     </span>
                     <div>

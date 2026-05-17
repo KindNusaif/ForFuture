@@ -30,7 +30,7 @@ export default function ImpactPulseWeekly({ weekly, loading, unavailable }: Prop
         title={t('impactPulse.weekly.title')}
         subtitle={t('impactPulse.weekly.subtitle')}
       >
-        <p className="card-surface border-dashed px-6 py-10 text-center text-sm text-slate-600">
+        <p className="card-surface border-dashed px-6 py-10 text-center text-sm text-secondary">
           {t('impactPulse.metricsUnavailable')}
         </p>
       </SectionShell>
@@ -46,7 +46,7 @@ export default function ImpactPulseWeekly({ weekly, loading, unavailable }: Prop
       {!loading && !hasWeekly ? (
         <div className="card-surface border-dashed px-6 py-12 text-center">
           <Flame className="mx-auto h-10 w-10 text-accent-500" aria-hidden />
-          <p className="mt-4 text-sm leading-relaxed text-slate-600">{t('impactPulse.weekly.empty')}</p>
+          <p className="mt-4 text-sm leading-relaxed text-secondary">{t('impactPulse.weekly.empty')}</p>
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
@@ -58,10 +58,10 @@ export default function ImpactPulseWeekly({ weekly, loading, unavailable }: Prop
           >
             {weekly.most_supported ? (
               <>
-                <p className="text-lg font-bold text-slate-900 [overflow-wrap:anywhere] [word-break:break-word]">
+                <p className="text-lg font-bold text-primary [overflow-wrap:anywhere] [word-break:break-word]">
                   {weekly.most_supported.title}
                 </p>
-                <p className="mt-2 text-sm text-slate-600">
+                <p className="mt-2 text-sm text-secondary">
                   {t('impactPulse.weekly.supportCount', {
                     count: formatImpactCountFull(weekly.most_supported.engagement_count),
                   })}
@@ -71,7 +71,7 @@ export default function ImpactPulseWeekly({ weekly, loading, unavailable }: Prop
                 </span>
               </>
             ) : (
-              <p className="text-sm text-slate-500">{t('impactPulse.weekly.noPickYet')}</p>
+              <p className="text-sm text-muted">{t('impactPulse.weekly.noPickYet')}</p>
             )}
           </WeeklyCard>
 
@@ -83,17 +83,17 @@ export default function ImpactPulseWeekly({ weekly, loading, unavailable }: Prop
           >
             {weekly.fastest_petition ? (
               <>
-                <p className="text-lg font-bold text-slate-900 [overflow-wrap:anywhere] [word-break:break-word]">
+                <p className="text-lg font-bold text-primary [overflow-wrap:anywhere] [word-break:break-word]">
                   {weekly.fastest_petition.title}
                 </p>
-                <p className="mt-2 text-sm text-slate-600">
+                <p className="mt-2 text-sm text-secondary">
                   {t('impactPulse.weekly.weekSignatures', {
                     count: formatImpactCountFull(weekly.fastest_petition.week_signatures),
                   })}
                 </p>
               </>
             ) : (
-              <p className="text-sm text-slate-500">{t('impactPulse.weekly.noPickYet')}</p>
+              <p className="text-sm text-muted">{t('impactPulse.weekly.noPickYet')}</p>
             )}
           </WeeklyCard>
 
@@ -104,11 +104,11 @@ export default function ImpactPulseWeekly({ weekly, loading, unavailable }: Prop
             featured={Boolean(weekly.top_movement_type)}
           >
             {weekly.top_movement_type ? (
-              <p className="text-lg font-bold text-slate-900">
+              <p className="text-lg font-bold text-primary">
                 {buildMovementConfig(weekly.top_movement_type, t).label}
               </p>
             ) : (
-              <p className="text-sm text-slate-500">{t('impactPulse.weekly.noPickYet')}</p>
+              <p className="text-sm text-muted">{t('impactPulse.weekly.noPickYet')}</p>
             )}
           </WeeklyCard>
 
@@ -119,11 +119,11 @@ export default function ImpactPulseWeekly({ weekly, loading, unavailable }: Prop
             featured={Boolean(weekly.top_category)}
           >
             {weekly.top_category ? (
-              <p className="text-lg font-bold text-slate-900">
+              <p className="text-lg font-bold text-primary">
                 {t(`categories.${weekly.top_category}`, { defaultValue: weekly.top_category })}
               </p>
             ) : (
-              <p className="text-sm text-slate-500">{t('impactPulse.weekly.noPickYet')}</p>
+              <p className="text-sm text-muted">{t('impactPulse.weekly.noPickYet')}</p>
             )}
           </WeeklyCard>
         </div>
@@ -151,7 +151,7 @@ function WeeklyCard({
         featured ? 'ring-2 ring-accent-200/90 shadow-md shadow-accent-900/5' : ''
       }`}
     >
-      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-accent-600">
+      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-accent-600 dark:text-accent-300">
         <Icon className="h-4 w-4 shrink-0" aria-hidden />
         {label}
       </div>

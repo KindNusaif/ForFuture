@@ -86,7 +86,7 @@ export default function Login() {
           <Link
             to="/signup"
             state={location.state}
-            className="font-semibold text-brand-600 hover:text-brand-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+            className="font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
           >
             {t('auth.signUpLink')}
           </Link>
@@ -95,11 +95,11 @@ export default function Login() {
       belowFooter={
         <div className="mt-8 space-y-4">
           <div className="flex items-center gap-3">
-            <span className="h-px flex-1 bg-slate-200" aria-hidden />
-            <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
+            <span className="h-px flex-1 bg-muted" aria-hidden />
+            <span className="text-xs font-medium uppercase tracking-wide text-muted">
               {t('auth.orDivider')}
             </span>
-            <span className="h-px flex-1 bg-slate-200" aria-hidden />
+            <span className="h-px flex-1 bg-muted" aria-hidden />
           </div>
           <Link
             to="/movements"
@@ -108,7 +108,7 @@ export default function Login() {
             <Compass className="h-4 w-4 text-accent-600" aria-hidden />
             {t('landing.exploreCta')}
           </Link>
-          <p className="text-center text-xs leading-relaxed text-slate-500">
+          <p className="text-center text-xs leading-relaxed text-muted">
             {t('auth.loginTrustNote')}
           </p>
         </div>
@@ -139,7 +139,7 @@ export default function Login() {
           <p className="mt-2 text-right">
             <Link
               to="/forgot-password"
-              className="text-sm font-medium text-brand-600 hover:text-brand-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+              className="text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
             >
               {t('auth.forgotPassword')}
             </Link>

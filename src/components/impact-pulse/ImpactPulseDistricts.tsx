@@ -21,7 +21,7 @@ export default function ImpactPulseDistricts({ districts, loading, unavailable }
         title={t('impactPulse.districts.title')}
         subtitle={t('impactPulse.districts.subtitle')}
       >
-        <p className="card-surface border-dashed px-6 py-10 text-center text-sm text-slate-600">
+        <p className="card-surface border-dashed px-6 py-10 text-center text-sm text-secondary">
           {t('impactPulse.metricsUnavailable')}
         </p>
       </SectionShell>
@@ -35,7 +35,7 @@ export default function ImpactPulseDistricts({ districts, loading, unavailable }
       subtitle={t('impactPulse.districts.subtitle')}
     >
       {!loading && districts.length === 0 ? (
-        <p className="card-surface border-dashed px-6 py-10 text-center text-sm text-slate-600">
+        <p className="card-surface border-dashed px-6 py-10 text-center text-sm text-secondary">
           {t('impactPulse.districts.empty')}
         </p>
       ) : (
@@ -60,7 +60,7 @@ export default function ImpactPulseDistricts({ districts, loading, unavailable }
               >
                 <span
                   className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
-                    rank <= 3 ? 'bg-brand-100 text-brand-700' : 'bg-slate-100 text-slate-600'
+                    rank <= 3 ? 'metric-icon-brand' : 'card-inset text-secondary'
                   }`}
                 >
                   {rank <= 3 ? (
@@ -70,8 +70,8 @@ export default function ImpactPulseDistricts({ districts, loading, unavailable }
                   )}
                 </span>
                 <div className="min-w-0">
-                  <p className="font-bold text-slate-900 [overflow-wrap:anywhere]">{item.district}</p>
-                  <p className="text-sm text-slate-600">
+                  <p className="font-bold text-primary [overflow-wrap:anywhere]">{item.district}</p>
+                  <p className="text-sm text-secondary">
                     {t('impactPulse.districts.activeMovements', {
                       count: formatImpactCountFull(item.count),
                     })}

@@ -13,10 +13,10 @@ interface MetricCardProps {
   accent?: 'brand' | 'accent' | 'teal'
 }
 
-const accentRing: Record<NonNullable<MetricCardProps['accent']>, string> = {
-  brand: 'from-brand-100 to-brand-50 text-brand-700',
-  accent: 'from-accent-100 to-accent-50 text-accent-700',
-  teal: 'from-emerald-100 to-teal-50 text-emerald-700',
+const accentIcon: Record<NonNullable<MetricCardProps['accent']>, string> = {
+  brand: 'metric-icon-brand',
+  accent: 'metric-icon-accent',
+  teal: 'metric-icon-teal',
 }
 
 export default function MetricCard({
@@ -34,14 +34,17 @@ export default function MetricCard({
 
   return (
     <article
-      className={`card-surface group relative min-w-0 overflow-hidden ${pad} transition hover:border-accent-200/80 hover:shadow-md ${
+      className={`card-surface group relative min-w-0 overflow-hidden ${pad} ${
         unavailable ? 'opacity-80' : ''
       }`}
     >
-      <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-linear-to-br from-accent-100/40 to-transparent opacity-0 transition group-hover:opacity-100" />
+      <div
+        className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-accent-500/10 opacity-0 transition group-hover:opacity-100 dark:bg-accent-400/15"
+        aria-hidden
+      />
       <div className="relative flex items-start gap-3">
         <span
-          className={`flex shrink-0 items-center justify-center rounded-xl bg-linear-to-br ${accentRing[accent]} shadow-inner ${
+          className={`flex shrink-0 items-center justify-center rounded-xl shadow-inner ${accentIcon[accent]} ${
             compact ? 'h-9 w-9' : 'h-11 w-11'
           }`}
         >
@@ -51,21 +54,16 @@ export default function MetricCard({
           {loading ? (
             <Skeleton className={`${compact ? 'h-7' : 'h-8'} w-20 rounded-lg`} />
           ) : unavailable ? (
-            <p
-              className={`${valueClass} font-extrabold tracking-tight text-slate-400`}
-              aria-label={label}
-            >
+            <p className={`${valueClass} stat-value text-muted`} aria-label={label}>
               —
             </p>
           ) : (
-            <p className={`${valueClass} font-extrabold tracking-tight text-slate-900 tabular-nums`}>
-              {formatImpactCountFull(value)}
-            </p>
+            <p className={`${valueClass} stat-value tabular-nums`}>{formatImpactCountFull(value)}</p>
           )}
-          <p className="mt-1 text-sm font-semibold text-slate-800 [overflow-wrap:anywhere]">{label}</p>
-          {hint && <p className="mt-1 text-xs leading-relaxed text-slate-500">{hint}</p>}
+          <p className="stat-label mt-1 text-sm [overflow-wrap:anywhere]">{label}</p>
+          {hint && <p className="mt-1 text-xs leading-relaxed text-muted">{hint}</p>}
         </div>
-        </div>
+      </div>
     </article>
   )
 }

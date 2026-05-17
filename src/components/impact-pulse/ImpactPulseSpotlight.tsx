@@ -26,7 +26,7 @@ export default function ImpactPulseSpotlight({
   if (unavailable && !loading) {
     return (
       <SectionShell id="spotlight" title={t('impactPulse.spotlight.title')}>
-        <p className="card-surface border-dashed px-6 py-10 text-center text-sm text-slate-600">
+        <p className="card-surface border-dashed px-6 py-10 text-center text-sm text-secondary">
           {t('impactPulse.metricsUnavailable')}
         </p>
       </SectionShell>
@@ -42,7 +42,7 @@ export default function ImpactPulseSpotlight({
       {!loading && !spotlight ? (
         <div className="card-surface border-dashed px-6 py-14 text-center">
           <Sparkles className="mx-auto h-10 w-10 text-accent-500" aria-hidden />
-          <p className="mt-4 text-sm leading-relaxed text-slate-600">{t('impactPulse.spotlight.empty')}</p>
+          <p className="mt-4 text-sm leading-relaxed text-secondary">{t('impactPulse.spotlight.empty')}</p>
         </div>
       ) : (
         <article className="relative overflow-hidden rounded-3xl border border-accent-200/80 bg-linear-to-br from-accent-600 via-brand-700 to-slate-900 p-6 text-white shadow-xl sm:p-8">
@@ -87,7 +87,7 @@ export default function ImpactPulseSpotlight({
               </p>
               <Link
                 to={`${detailBase}/${spotlight.id}`}
-                className="mt-6 inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-brand-800 transition hover:bg-accent-50"
+                className="btn-spotlight mt-6"
               >
                 {t('impactPulse.spotlight.cta')}
                 <ArrowRight className="h-4 w-4" aria-hidden />

@@ -38,8 +38,8 @@ export default function AuthForm({
       </div>
 
       <header className="mb-6 text-center">
-        <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">{title}</h1>
-        <p className="mt-2 text-slate-600">{subtitle}</p>
+        <h1 className="text-2xl font-bold text-primary sm:text-3xl">{title}</h1>
+        <p className="mt-2 text-secondary">{subtitle}</p>
       </header>
 
       <form
@@ -88,14 +88,14 @@ export default function AuthForm({
         </button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-slate-600">{footer}</p>
+      <p className="mt-6 text-center text-sm text-secondary">{footer}</p>
 
       {belowFooter}
 
       <p className="mt-5 text-center">
         <Link
           to="/"
-          className="text-sm text-slate-500 transition hover:text-accent-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+          className="auth-link"
         >
           ← Back to home
         </Link>
