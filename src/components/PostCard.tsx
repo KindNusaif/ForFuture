@@ -26,8 +26,6 @@ import MovementMediaFeedPreview from './media/MovementMediaFeedPreview'
 import MovementMediaDetail from './media/MovementMediaDetail'
 import type { Post } from '../types'
 
-const PREVIEW_CHAR_THRESHOLD = 180
-
 const categoryColors: Record<string, string> = {
   Education: 'bg-blue-50/90 text-blue-800 ring-blue-200/80',
   Environment: 'bg-emerald-50/90 text-emerald-800 ring-emerald-200/80',
@@ -98,29 +96,7 @@ export default function PostCard({
   const description = post.description?.trim() ?? ''
   const showDescription =
     (!isPoll && !isPetition) || (description && description !== 'Community poll')
-  const hasExtraSection =
-    isPetition
-      ? Boolean(
-          post.petition_issue ||
-            post.petition_requested_change ||
-            post.petition_target_authority,
-        )
-      : post.movement_type === 'idea_for_change'
-      ? Boolean(post.proposed_solution || post.expected_impact)
-      : post.movement_type === 'raise_voice'
-        ? Boolean(post.issue_summary || post.desired_change)
-        : post.movement_type === 'volunteer_drive'
-          ? Boolean(post.event_date || post.location || post.volunteer_slots)
-          : post.movement_type === 'fundraising'
-            ? Boolean(post.fundraising_goal_amount || post.fundraising_purpose)
-            : post.movement_type === 'peaceful_civic_action'
-              ? Boolean(post.action_date || post.action_location || post.action_purpose)
-              : false
-
-  const showDetailLink =
-    Boolean(detailPath) &&
-    !isPoll &&
-    (description.length > PREVIEW_CHAR_THRESHOLD || hasExtraSection)
+  const showDetailLink = Boolean(detailPath) && !showFullMedia
 
   return (
     <article
@@ -198,23 +174,22 @@ export default function PostCard({
         )}
 
         {showDescription && !isPetition && (
-          <p className="line-clamp-card wrap-user-text mt-2 text-sm leading-relaxed text-secondary">
+          <p
+            className={`wrap-user-text mt-2 text-sm leading-relaxed text-secondary ${
+              showFullMedia ? '' : 'line-clamp-card'
+            }`}
+          >
             {post.description}
           </p>
         )}
         {isPetition && post.petition_issue && (
-          <p className="line-clamp-card wrap-user-text mt-2 text-sm leading-relaxed text-secondary">
+          <p
+            className={`wrap-user-text mt-2 text-sm leading-relaxed text-secondary ${
+              showFullMedia ? '' : 'line-clamp-card'
+            }`}
+          >
             {post.petition_issue}
           </p>
-        )}
-
-        {showDetailLink && (
-          <Link
-            to={detailPath!}
-            className="mt-2 inline-block text-xs font-semibold text-accent-600 hover:text-accent-700"
-          >
-            View full movement →
-          </Link>
         )}
 
         {post.attachments && post.attachments.length > 0 && !showFullMedia && (
@@ -235,9 +210,19 @@ export default function PostCard({
             guestMode={guestMode}
             onVote={onPollVote}
             voting={pollVoting}
+            detailPath={showFullMedia ? undefined : detailPath}
           />
         ) : (
           <MovementCardExtras post={post} />
+        )}
+
+        {showDetailLink && (
+          <Link
+            to={detailPath!}
+            className="mt-4 inline-block text-xs font-semibold text-accent-600 hover:text-accent-700"
+          >
+            {isPoll ? 'View full poll →' : 'View full movement →'}
+          </Link>
         )}
 
         <footer className="mt-5 flex flex-col gap-4 border-t border-slate-100 pt-4 sm:flex-row sm:items-end sm:justify-between">

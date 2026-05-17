@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { BarChart3, Check, Loader2, Lock } from 'lucide-react'
 import type { Post } from '../types'
 
@@ -7,6 +8,7 @@ interface PollVoteBlockProps {
   guestMode?: boolean
   onVote?: (postId: string, optionId: string) => void | Promise<void>
   voting?: boolean
+  detailPath?: string
 }
 
 export default function PollVoteBlock({
@@ -14,6 +16,7 @@ export default function PollVoteBlock({
   guestMode = false,
   onVote,
   voting = false,
+  detailPath,
 }: PollVoteBlockProps) {
   const poll = post.poll
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null)
@@ -59,7 +62,16 @@ export default function PollVoteBlock({
             Quick Youth Poll
           </p>
           <p className="wrap-user-text mt-1 text-base font-semibold leading-snug text-slate-900">
-            {post.title}
+            {detailPath ? (
+              <Link
+                to={detailPath}
+                className="transition hover:text-accent-700 focus-visible:rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+              >
+                {post.title}
+              </Link>
+            ) : (
+              post.title
+            )}
           </p>
         </div>
         <span className="rounded-full bg-white px-2.5 py-0.5 text-xs font-bold tabular-nums text-slate-600 ring-1 ring-slate-200/80">

@@ -34,7 +34,10 @@ function MovementDetailContent({
   const { openJoinModal } = useJoinMovement()
   const isGuest = mode === 'guest'
 
-  const [post, setPost] = useState<Post | null>(null)
+  const [postOverride, setPostOverride] = useState<Post | null>(null)
+  const loadEnabled = Boolean(id) && (isGuest || (!authLoading && Boolean(user)))
+  const waitingForAuth = !isGuest && authLoading
+
   const [supporting, setSupporting] = useState(false)
   const [petitionSigning, setPetitionSigning] = useState(false)
   const [pollVoting, setPollVoting] = useState(false)
@@ -51,21 +54,20 @@ function MovementDetailContent({
   )
 
   const {
+    data,
     error,
     isLoading,
     showSlowHint,
     showRecovery,
     reload,
   } = useAsyncLoad(loadPost, {
-    enabled: Boolean(id),
+    enabled: loadEnabled,
     deps: [id, isGuest, user?.id],
-    onSuccess: (data) => {
-      setPost(data)
-      setActionError(null)
-    },
   })
 
+  const post = postOverride ?? data ?? null
   const displayError = actionError ?? error
+  const showPageLoading = waitingForAuth || (isLoading && !post)
 
   if (!authLoading && isGuest && isMember) {
     return <Navigate to={`/feed/${id}`} replace />
@@ -81,7 +83,7 @@ function MovementDetailContent({
     setPetitionSigning(true)
     try {
       await signPetition(postId, user.id)
-      setPost({
+      setPostOverride({
         ...post,
         supported_by_me: true,
         support_count: (post.support_count ?? 0) + 1,
@@ -110,7 +112,7 @@ function MovementDetailContent({
         Boolean(post.supported_by_me),
         post.donation_subtype,
       )
-      setPost({
+      setPostOverride({
         ...post,
         supported_by_me: nowParticipating,
         support_count: Math.max(0, (post.support_count ?? 0) + (nowParticipating ? 1 : -1)),
@@ -133,7 +135,10 @@ function MovementDetailContent({
     setPollVoting(true)
     try {
       const poll = await castPollVote(postId, optionId, user.id)
-      setPost((p) => (p && p.id === postId ? { ...p, poll } : p))
+      setPostOverride((p) => {
+        const base = p ?? post
+        return base && base.id === postId ? { ...base, poll } : base
+      })
     } catch (err) {
       setActionError(formatError(err))
     } finally {
@@ -154,8 +159,8 @@ function MovementDetailContent({
 
       <AsyncLoadHint
         className="mb-4"
-        showSlowHint={isLoading && showSlowHint && !displayError}
-        showRecovery={isLoading && showRecovery && !displayError}
+        showSlowHint={showPageLoading && showSlowHint && !displayError}
+        showRecovery={showPageLoading && showRecovery && !displayError}
         error={displayError}
         onRetry={reload}
       />
@@ -170,7 +175,7 @@ function MovementDetailContent({
         </div>
       )}
 
-      {isLoading ? (
+      {showPageLoading ? (
         <div className="flex flex-col items-center justify-center gap-3 py-20">
           <Loader2 className="h-10 w-10 animate-spin text-accent-600" />
           <p className="text-sm text-slate-500">Loading movement…</p>
