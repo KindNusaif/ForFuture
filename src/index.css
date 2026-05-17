@@ -465,6 +465,148 @@
   background: var(--ff-landing-why-bg);
 }
 
+@utility landing-hero-glow {
+  @apply pointer-events-none absolute rounded-full blur-3xl;
+}
+
+.landing-hero-glow-accent {
+  top: -4rem;
+  right: -6rem;
+  width: 24rem;
+  height: 24rem;
+  background: var(--ff-glow-accent);
+}
+
+.landing-hero-glow-brand {
+  bottom: -5rem;
+  left: -5rem;
+  width: 20rem;
+  height: 20rem;
+  background: var(--ff-glow-brand);
+}
+
+.landing-hero-visual {
+  position: relative;
+  overflow: hidden;
+}
+
+.landing-hero-visual::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--ff-landing-preview-overlay);
+  pointer-events: none;
+}
+
+@utility landing-value-band {
+  background: var(--ff-landing-stats-bg);
+}
+
+@utility landing-value-card {
+  @apply card-surface p-6 transition hover:-translate-y-0.5 hover:shadow-lg sm:p-8;
+}
+
+@utility landing-feature-card {
+  @apply card-surface h-full p-6 transition hover:-translate-y-0.5 hover:border-accent-400/35 hover:shadow-lg sm:p-7;
+}
+
+.landing-feature-card-featured {
+  background: linear-gradient(
+    145deg,
+    var(--ff-landing-preview-featured),
+    var(--ff-card)
+  );
+}
+
+@utility landing-feature-icon {
+  @apply inline-flex h-12 w-12 items-center justify-center rounded-2xl;
+  background: var(--ff-tip-icon-bg);
+  color: var(--ff-tip-icon-text);
+}
+
+.landing-feature-icon-brand {
+  background: rgb(209 250 229 / 0.9);
+  color: #047857;
+}
+
+[data-theme='dark'] .landing-feature-icon-brand {
+  background: rgb(6 78 59 / 0.35);
+  color: #6ee7b7;
+}
+
+.landing-toolkit-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .landing-toolkit-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .landing-toolkit-grid {
+    grid-template-columns: repeat(3, 1fr);
+    grid-auto-rows: minmax(140px, auto);
+  }
+}
+
+@utility landing-stat-card {
+  @apply card-surface p-5 sm:p-6;
+}
+
+@utility landing-innovation-card {
+  @apply card-surface p-7 transition hover:shadow-lg sm:p-8;
+}
+
+.landing-innovation-card-accent {
+  border-color: rgb(16 185 129 / 0.35);
+  background: linear-gradient(
+    145deg,
+    rgb(236 253 245 / 0.65),
+    var(--ff-card)
+  );
+}
+
+[data-theme='dark'] .landing-innovation-card-accent {
+  background: linear-gradient(145deg, rgb(6 78 59 / 0.2), var(--ff-card));
+}
+
+.landing-final-cta {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  background: linear-gradient(
+    135deg,
+    var(--color-accent-600) 0%,
+    var(--color-accent-700) 45%,
+    var(--color-brand-700) 100%
+  );
+  box-shadow:
+    0 24px 48px rgb(79 70 229 / 0.25),
+    inset 0 1px 0 rgb(255 255 255 / 0.12);
+}
+
+.landing-final-cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle at 20% 30%, rgb(255 255 255 / 0.12) 0%, transparent 45%),
+    radial-gradient(circle at 80% 70%, rgb(16 185 129 / 0.15) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+.landing-final-cta > * {
+  position: relative;
+  z-index: 1;
+}
+
+@utility landing-footer {
+  background: var(--ff-nav);
+}
+
 @utility public-nav-link {
   @apply rounded-lg px-3 py-2 text-sm font-medium transition;
   color: var(--ff-nav-inactive-text);
@@ -838,4 +980,35 @@
   [data-theme='dark'] .text-orange-900 {
     color: inherit;
   }
+}
+
+/* Google Places Autocomplete dropdown (MapPicker) */
+.pac-container {
+  z-index: 10000;
+  margin-top: 4px;
+  border-radius: 0.75rem;
+  border: 1px solid var(--ff-card-border, #e2e8f0);
+  box-shadow: 0 10px 40px rgb(15 23 42 / 0.12);
+  font-family: inherit;
+}
+
+[data-theme='dark'] .pac-container {
+  background: var(--ff-surface, #1e293b);
+  color: var(--ff-text, #f1f5f9);
+}
+
+.pac-item {
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.pac-item:hover,
+.pac-item-selected {
+  background: var(--ff-muted, #f1f5f9);
+}
+
+[data-theme='dark'] .pac-item:hover,
+[data-theme='dark'] .pac-item-selected {
+  background: rgb(51 65 85 / 0.6);
 }

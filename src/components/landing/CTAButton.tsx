@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import type { LucideIcon } from 'lucide-react'
 
@@ -5,7 +6,7 @@ type Variant = 'primary' | 'secondary' | 'inverse' | 'inverse-outline'
 
 interface CTAButtonProps {
   to: string
-  children: React.ReactNode
+  children: ReactNode
   variant?: Variant
   icon?: LucideIcon
   className?: string

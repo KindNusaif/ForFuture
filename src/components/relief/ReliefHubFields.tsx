@@ -103,7 +103,20 @@ export default function ReliefHubFields({
         {inp('needed_by_date', t('relief.fields.neededBy'), '', 'date')}
         {ta('contact_note', t('relief.fields.contact'), t('relief.fields.contactPh'))}
         {mapLocation && onMapChange && (
-          <MapPicker value={mapLocation} onChange={onMapChange} disabled={disabled} />
+          <MapPicker
+            value={{
+              ...mapLocation,
+              location_name: values.hospital_or_organizer || mapLocation.location_name,
+            }}
+            onChange={(loc) => {
+              onMapChange(loc)
+              if (loc.location_name) {
+                onChange('hospital_or_organizer', loc.location_name)
+              }
+            }}
+            disabled={disabled}
+            placeholder={t('relief.fields.hospitalPh')}
+          />
         )}
         <p className="text-[11px] leading-relaxed text-slate-500">{t('relief.bloodSafetyNote')}</p>
       </div>
@@ -139,7 +152,20 @@ export default function ReliefHubFields({
         {inp('relief_deadline', t('relief.fields.deadline'), '', 'date')}
         {ta('contact_note', t('relief.fields.contact'), t('relief.fields.contactPh'))}
         {mapLocation && onMapChange && (
-          <MapPicker value={mapLocation} onChange={onMapChange} disabled={disabled} />
+          <MapPicker
+            value={{
+              ...mapLocation,
+              location_name: values.collection_location || mapLocation.location_name,
+            }}
+            onChange={(loc) => {
+              onMapChange(loc)
+              if (loc.location_name) {
+                onChange('collection_location', loc.location_name)
+              }
+            }}
+            disabled={disabled}
+            placeholder={t('relief.fields.collectionPh')}
+          />
         )}
       </div>
     )
