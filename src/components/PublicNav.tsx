@@ -28,29 +28,12 @@ export default function PublicNav() {
   const { t } = useTranslation()
   const location = useLocation()
   const aboutActive = isAboutActive(location.pathname, location.hash)
+  /** Home page always uses marketing nav so localhost and Netlify match when logged in. */
+  const isMarketingHome = location.pathname === '/'
+  const showMarketingCenterNav = !loading && (!isMember || isMarketingHome)
+  const showAppQuickLinks = !loading && isMember && !isMarketingHome
 
-  const guestCenterLinks = (
-    <>
-      <NavLink to="/movements" className={navClass} end>
-        {t('nav.movements')}
-      </NavLink>
-      <NavLink to="/discover" className={navClass}>
-        {t('nav.discover')}
-      </NavLink>
-      <NavLink to="/impact" className={navClass}>
-        {t('nav.impactNav')}
-      </NavLink>
-      <a
-        href="/#why-forfuture"
-        className={aboutActive ? activeClass : inactiveClass}
-        aria-current={aboutActive ? 'page' : undefined}
-      >
-        {t('nav.about')}
-      </a>
-    </>
-  )
-
-  const guestMobileLinks = (
+  const marketingMobileLinks = (
     <>
       <NavLink
         to="/movements"
@@ -82,6 +65,33 @@ export default function PublicNav() {
       >
         {t('nav.about')}
       </a>
+    </>
+  )
+
+  const guestCenterLinks = (
+    <>
+      <NavLink to="/movements" className={navClass} end>
+        {t('nav.movements')}
+      </NavLink>
+      <NavLink to="/discover" className={navClass}>
+        {t('nav.discover')}
+      </NavLink>
+      <NavLink to="/impact" className={navClass}>
+        {t('nav.impactNav')}
+      </NavLink>
+      <a
+        href="/#why-forfuture"
+        className={aboutActive ? activeClass : inactiveClass}
+        aria-current={aboutActive ? 'page' : undefined}
+      >
+        {t('nav.about')}
+      </a>
+    </>
+  )
+
+  const guestMobileLinks = (
+    <>
+      {marketingMobileLinks}
       <Link to="/login" className="mobile-nav-link" onClick={() => setOpen(false)}>
         {t('nav.login')}
       </Link>
@@ -91,12 +101,24 @@ export default function PublicNav() {
     </>
   )
 
+  const memberMarketingMobileLinks = (
+    <>
+      {marketingMobileLinks}
+      <Link to="/feed" className="btn-primary mt-2 w-full" onClick={() => setOpen(false)}>
+        {t('nav.myFeed')}
+      </Link>
+      <Link to="/profile" className="mobile-nav-link" onClick={() => setOpen(false)}>
+        {t('nav.profile')}
+      </Link>
+    </>
+  )
+
   return (
     <header className="nav-shell">
       <div className="relative mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <Logo to={isMember ? '/feed' : '/'} showTagline={!isMember} />
+        <Logo to={isMember && !isMarketingHome ? '/feed' : '/'} showTagline={!isMember || isMarketingHome} />
 
-        {!loading && !isMember && (
+        {showMarketingCenterNav && (
           <nav
             className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-0.5 lg:flex"
             aria-label={t('nav.appNav')}
@@ -106,7 +128,7 @@ export default function PublicNav() {
         )}
 
         <nav className="ml-auto hidden items-center gap-1 md:flex" aria-label={t('nav.appNav')}>
-          {loading ? null : isMember ? (
+          {loading ? null : showAppQuickLinks ? (
             <>
               <Link to="/feed" className={inactiveClass}>
                 {t('nav.myFeed')}
@@ -119,6 +141,15 @@ export default function PublicNav() {
               </Link>
               <Link to="/create" className={inactiveClass}>
                 {t('nav.create')}
+              </Link>
+              <Link to="/profile" className={inactiveClass}>
+                {t('nav.profile')}
+              </Link>
+            </>
+          ) : isMember && isMarketingHome ? (
+            <>
+              <Link to="/feed" className="btn-primary min-h-10! px-4! py-2!">
+                {t('nav.myFeed')}
               </Link>
               <Link to="/profile" className={inactiveClass}>
                 {t('nav.profile')}
@@ -146,7 +177,7 @@ export default function PublicNav() {
         </nav>
 
         <div className="ml-auto flex items-center gap-2 md:hidden">
-          {!loading && !isMember && (
+          {!loading && (!isMember || isMarketingHome) && (
             <Link
               to="/movements"
               className="rounded-lg p-2 text-secondary ring-1 ring-default hover:bg-muted"
@@ -171,7 +202,7 @@ export default function PublicNav() {
 
       {open && (
         <nav className="space-y-1 border-t border-default px-4 py-4 md:hidden" aria-label={t('nav.mobileNav')}>
-          {!loading && isMember ? (
+          {!loading && showAppQuickLinks ? (
             <>
               <Link to="/feed" className="mobile-nav-link" onClick={() => setOpen(false)}>
                 {t('nav.myFeed')}
@@ -189,6 +220,8 @@ export default function PublicNav() {
                 {t('nav.profile')}
               </Link>
             </>
+          ) : !loading && isMember && isMarketingHome ? (
+            memberMarketingMobileLinks
           ) : (
             guestMobileLinks
           )}

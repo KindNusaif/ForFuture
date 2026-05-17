@@ -943,6 +943,10 @@
     "shared": "Shared",
     "movementText": "Join this youth movement on ForFuture: {{title}}"
   },
+  "deploy": {
+    "missingEnvTitle": "Backend not connected.",
+    "missingEnvBody": "Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in Netlify → Site settings → Environment variables, then trigger a new deploy."
+  },
   "common": {
     "close": "Close",
     "cancel": "Cancel",

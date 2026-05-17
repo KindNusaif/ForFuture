@@ -12,6 +12,7 @@ import AppLayout from './components/AppLayout'
 import ProtectedRoute from './components/ProtectedRoute'
 import GuestRoute from './components/GuestRoute'
 import PageLoader from './components/PageLoader'
+import DeployConfigBanner from './components/DeployConfigBanner'
 
 const Landing = lazy(() => import('./pages/Landing'))
 const Login = lazy(() => import('./pages/Login'))
@@ -49,6 +50,7 @@ export default function App() {
         <JoinMovementProvider>
           <ReportContentProvider>
             <div className="theme-transition min-h-screen">
+              <DeployConfigBanner />
               <Routes>
               <Route element={<Layout />}>
                 <Route
