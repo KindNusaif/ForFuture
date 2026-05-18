@@ -1,12 +1,21 @@
+import { Link } from 'react-router-dom'
 import type { LucideIcon } from 'lucide-react'
+import Button from './ui/Button'
+
+export interface EmptyStateAction {
+  label: string
+  to?: string
+  onClick?: () => void
+}
 
 interface EmptyStateProps {
   icon: LucideIcon
   title: string
   description: string
+  action?: EmptyStateAction
 }
 
-export default function EmptyState({ icon: Icon, title, description }: EmptyStateProps) {
+export default function EmptyState({ icon: Icon, title, description, action }: EmptyStateProps) {
   return (
     <article className="card-surface border-dashed px-6 py-16 text-center sm:py-20">
       <span
@@ -21,6 +30,16 @@ export default function EmptyState({ icon: Icon, title, description }: EmptyStat
       </span>
       <h3 className="mt-6 text-lg font-extrabold tracking-tight text-primary">{title}</h3>
       <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-secondary">{description}</p>
+      {action &&
+        (action.to ? (
+          <Link to={action.to} className="btn-primary mt-6 inline-flex">
+            {action.label}
+          </Link>
+        ) : (
+          <Button type="button" variant="primary" className="mt-6" onClick={action.onClick}>
+            {action.label}
+          </Button>
+        ))}
     </article>
   )
 }

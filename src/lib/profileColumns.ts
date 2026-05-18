@@ -15,8 +15,16 @@ export const PROFILE_COLUMNS = [
 ].join(', ')
 
 /** Includes theme preferences (requires appearance_preferences.sql). */
-export const PROFILE_COLUMNS_WITH_APPEARANCE = [
+export const PROFILE_COLUMNS_ONBOARDING = [
   ...PROFILE_COLUMNS.split(', '),
+  'onboarding_completed_at',
+  'onboarding_skipped_at',
+  'preferred_causes',
+  'participation_preferences',
+].join(', ')
+
+export const PROFILE_COLUMNS_WITH_APPEARANCE = [
+  ...PROFILE_COLUMNS_ONBOARDING.split(', '),
   'appearance_mode',
   'visual_comfort_enabled',
   'reduce_motion_enabled',

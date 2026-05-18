@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import PostFeed, { type FeedToast, type FeedTab } from '../components/PostFeed'
@@ -6,6 +6,7 @@ import TrendingPanel from '../components/TrendingPanel'
 import PageContainer from '../components/ui/PageContainer'
 import { useAuth } from '../hooks/useAuth'
 import { useAuthUser } from '../hooks/useAuthUser'
+import { useToast } from '../hooks/useToast'
 
 function parseFeedTab(value: string | null): FeedTab {
   return value === 'following' ? 'following' : 'discover'
@@ -19,15 +20,18 @@ export default function Feed() {
   const [searchParams, setSearchParams] = useSearchParams()
   const feedTab = parseFeedTab(searchParams.get('tab'))
 
-  const [toast, setToast] = useState<FeedToast | null>(
-    (location.state as { toast?: FeedToast })?.toast ?? null,
-  )
+  const toast = useToast()
 
   useEffect(() => {
-    if ((location.state as { toast?: FeedToast })?.toast) {
-      navigate(location.pathname, { replace: true, state: {} })
+    const navToast = (location.state as { toast?: FeedToast })?.toast
+    if (!navToast) return
+    if (navToast.type === 'success') {
+      toast.success(navToast.message, navToast.detail)
+    } else {
+      toast.error(navToast.message, navToast.detail)
     }
-  }, [location.pathname, location.state, navigate])
+    navigate(location.pathname, { replace: true, state: {} })
+  }, [location.pathname, location.state, navigate, toast])
 
   function handleFeedTabChange(tab: FeedTab) {
     const next = new URLSearchParams(searchParams)
@@ -39,7 +43,7 @@ export default function Feed() {
     setSearchParams(next, { replace: true })
   }
 
-  const firstName = profile?.display_name?.split(' ')[0] ?? 'changemaker'
+  const firstName = profile?.display_name?.split(' ')[0]
 
   return (
     <PageContainer className="!py-6 lg:!py-8">
@@ -47,7 +51,9 @@ export default function Feed() {
         <section className="min-w-0 flex-1">
           <header className="feed-header mb-6">
             <p className="eyebrow">ForFuture</p>
-            <h1 className="page-title mt-2">Good to see you, {firstName}</h1>
+            <h1 className="page-title mt-2">
+              {firstName ? `Good to see you, ${firstName}` : 'Good to see you'}
+            </h1>
             <p className="mt-2 text-secondary">
               {feedTab === 'following'
                 ? 'Movements you are tracking — stay close to the causes you care about.'
@@ -62,8 +68,6 @@ export default function Feed() {
           <PostFeed
             mode="member"
             userId={user?.id}
-            toast={toast}
-            onToastDismiss={() => setToast(null)}
             showCreateButton={false}
             feedTab={feedTab}
             onFeedTabChange={handleFeedTabChange}

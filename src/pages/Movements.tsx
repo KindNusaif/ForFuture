@@ -1,4 +1,4 @@
-import { List } from 'lucide-react'
+import { List, Loader2 } from 'lucide-react'
 import { Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import PostFeed from '../components/PostFeed'
@@ -8,7 +8,15 @@ export default function Movements() {
   const { t } = useTranslation()
   const { isMember, loading } = useAuthUser()
 
-  if (!loading && isMember) {
+  if (loading) {
+    return (
+      <main className="flex min-h-[40vh] items-center justify-center px-4">
+        <Loader2 className="motion-essential h-8 w-8 animate-spin text-accent-600" aria-label="Loading" />
+      </main>
+    )
+  }
+
+  if (isMember) {
     return <Navigate to="/feed" replace />
   }
 

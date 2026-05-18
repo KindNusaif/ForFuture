@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import ActionPathAI from '../components/actionpath/ActionPathAI'
 import { ArrowLeft, Loader2, Send } from 'lucide-react'
@@ -20,6 +20,13 @@ import MovementMediaUploader from '../components/media/MovementMediaUploader'
 import { usePendingMovementMedia } from '../hooks/usePendingMovementMedia'
 import { isPetitionMovement } from '../lib/petitions'
 import { scrollToFirstFieldError } from '../lib/createPostForm'
+import CreateMovementWizard from '../components/create/CreateMovementWizard'
+import {
+  buildCreatePreviewPost,
+  clearCreateMovementDraft,
+  loadCreateMovementDraft,
+  saveCreateMovementDraft,
+} from '../lib/createMovementDraft'
 import { createPost } from '../lib/posts'
 import { ensureYouthVoiceId } from '../lib/auth'
 import { formatError } from '../lib/errors'
@@ -59,6 +66,8 @@ const MOVEMENT_TYPE_VALUES: MovementType[] = [
   'youth_petition',
 ]
 
+const WIZARD_STEPS = 5
+
 export default function CreatePost() {
   const { t } = useTranslation()
   const { user, profile, refreshProfile } = useAuth()
@@ -68,13 +77,17 @@ export default function CreatePost() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const typeFromUrl = searchParams.get('type')
+  const useWizardMode = typeFromUrl !== 'quick_youth_poll'
+
+  const [wizardStep, setWizardStep] = useState(1)
+  const [publishedPostId, setPublishedPostId] = useState<string | null>(null)
 
   const [movementType, setMovementType] = useState<MovementType>(() => {
     if (typeFromUrl === 'quick_youth_poll') return 'quick_youth_poll'
     if (typeFromUrl && MOVEMENT_TYPE_VALUES.includes(typeFromUrl as MovementType)) {
       return typeFromUrl as MovementType
     }
-    return 'idea_for_change'
+    return useWizardMode ? 'raise_voice' : 'idea_for_change'
   })
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -115,10 +128,133 @@ export default function CreatePost() {
   }
 
   useEffect(() => {
+    if (!useWizardMode) return
+    const draft = loadCreateMovementDraft()
+    if (!draft) return
+    setWizardStep(draft.wizardStep)
+    setMovementType(draft.movementType)
+    setTitle(draft.title)
+    setDescription(draft.description)
+    setCategory(draft.category)
+    setPostingIdentity(draft.postingIdentity)
+    setAuthorNameOverride(draft.authorNameOverride)
+    setMovementFields(draft.movementFields)
+    setMapLocation(draft.mapLocation)
+  }, [useWizardMode])
+
+  useEffect(() => {
     if (!isPoll) return
     const timer = window.setTimeout(() => pollQuestionRef.current?.focus(), 50)
     return () => window.clearTimeout(timer)
   }, [isPoll])
+
+  function persistDraft(step = wizardStep) {
+    if (!useWizardMode) return
+    saveCreateMovementDraft({
+      wizardStep: step,
+      movementType,
+      title,
+      description,
+      category,
+      postingIdentity,
+      authorNameOverride,
+      movementFields,
+      mapLocation,
+    })
+  }
+
+  const previewPost = useMemo(() => {
+    if (!user || !useWizardMode) return null
+    return buildCreatePreviewPost({
+      title,
+      description,
+      category,
+      authorName,
+      postingIdentity: effectivePostingIdentity,
+      youthVoiceId: profile?.youth_voice_id ?? null,
+      movementType,
+      movementFields,
+      userId: user.id,
+    })
+  }, [
+    user,
+    useWizardMode,
+    title,
+    description,
+    category,
+    authorName,
+    effectivePostingIdentity,
+    profile?.youth_voice_id,
+    movementType,
+    movementFields,
+  ])
+
+  function wizardStepValid(step: number): boolean {
+    if (step === 1) {
+      return title.trim().length >= POST_LIMITS.titleMin
+    }
+    if (step === 2) {
+      if (isPetition) return true
+      return description.trim().length >= POST_LIMITS.descriptionMin
+    }
+    if (step === 3) return true
+    if (step === 4) {
+      return Boolean(category)
+    }
+    return true
+  }
+
+  function handleWizardContinue() {
+    if (!wizardStepValid(wizardStep)) {
+      setError(t('create.fixValidation'))
+      return
+    }
+    if (wizardStep === 4) {
+      const issueText = movementFields.petition_issue.trim()
+      const petitionDescription = isPetition
+        ? issueText.length >= POST_LIMITS.descriptionMin
+          ? issueText
+          : `${issueText}\n\n${movementFields.petition_requested_change.trim()}`.slice(
+              0,
+              POST_LIMITS.descriptionMax,
+            )
+        : description.trim()
+      const errors = validateCreatePost({
+        title,
+        description: petitionDescription,
+        category,
+        authorName,
+        postingIdentity: effectivePostingIdentity,
+        movementType,
+        fundraising_goal_amount: movementFields.fundraising_goal_amount,
+        fundraising_purpose: movementFields.fundraising_purpose,
+        petition_issue: movementFields.petition_issue,
+        petition_requested_change: movementFields.petition_requested_change,
+        petition_target_authority: movementFields.petition_target_authority,
+        petition_support_goal: movementFields.petition_support_goal,
+        petition_closing_date: movementFields.petition_closing_date,
+      })
+      setFieldErrors(errors)
+      if (hasFieldErrors(errors)) {
+        setError(t('create.fixValidation'))
+        return
+      }
+    }
+    setError(null)
+    const next = Math.min(wizardStep + 1, WIZARD_STEPS)
+    setWizardStep(next)
+    persistDraft(next)
+  }
+
+  function handleWizardBack() {
+    setWizardStep((s) => Math.max(1, s - 1))
+    setError(null)
+  }
+
+  function handleSaveDraftAndExit() {
+    persistDraft()
+    navigate('/feed')
+  }
 
   function updateMovementField(key: keyof MovementFieldValues, value: string) {
     setMovementFields((prev) => ({ ...prev, [key]: value }))
@@ -175,8 +311,8 @@ export default function CreatePost() {
     }
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+  async function publishMovement(e?: React.FormEvent) {
+    e?.preventDefault()
     if (submittingRef.current || loading) return
 
     if (!user) {
@@ -319,24 +455,29 @@ export default function CreatePost() {
         }
       }
 
-      navigate('/feed', {
-        replace: true,
-        state: {
-          toast: {
-            type: 'success' as const,
-            message: isPoll
-              ? 'Poll published!'
-              : isPetition
-                ? 'Petition published!'
-                : 'Movement published!',
-            detail: isPoll
-              ? 'Your community poll is now live.'
-              : isPetition
-                ? 'Your petition is now gathering youth support.'
-                : `"${title.trim()}" is now live on the feed.`,
+      if (useWizardMode) {
+        clearCreateMovementDraft()
+        setPublishedPostId(post.id)
+      } else {
+        navigate('/feed', {
+          replace: true,
+          state: {
+            toast: {
+              type: 'success' as const,
+              message: isPoll
+                ? 'Poll published!'
+                : isPetition
+                  ? 'Petition published!'
+                  : 'Movement published!',
+              detail: isPoll
+                ? 'Your community poll is now live.'
+                : isPetition
+                  ? 'Your petition is now gathering youth support.'
+                  : `"${title.trim()}" is now live on the feed.`,
+            },
           },
-        },
-      })
+        })
+      }
     } catch (err) {
       setError(formatError(err))
       formRef.current?.querySelector('[role="alert"]')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
@@ -344,6 +485,56 @@ export default function CreatePost() {
       submittingRef.current = false
       setLoading(false)
     }
+  }
+
+  if (useWizardMode) {
+    return (
+      <>
+        <div className="mx-auto max-w-2xl px-4 pt-6 sm:px-6">
+          <ActionPathAI
+            currentMovementType={movementType}
+            onApplyDraft={(s) => applyActionPathSuggestion(s, 'draft')}
+            onApplyFields={(s) => applyActionPathSuggestion(s, 'fields')}
+            formDisabled={loading}
+          />
+        </div>
+        <CreateMovementWizard
+          step={wizardStep}
+          totalSteps={WIZARD_STEPS}
+          onBack={handleWizardBack}
+          onContinue={handleWizardContinue}
+          canContinue={wizardStepValid(wizardStep)}
+          movementType={movementType}
+          onMovementTypeChange={handleMovementTypeChange}
+          title={title}
+          onTitleChange={setTitle}
+          description={description}
+          onDescriptionChange={setDescription}
+          movementFields={movementFields}
+          onMovementFieldChange={updateMovementField}
+          category={category}
+          onCategoryChange={setCategory}
+          postingIdentity={effectivePostingIdentity}
+          onPostingIdentityChange={setPostingIdentity}
+          authorName={authorName}
+          onAuthorNameChange={(v) => setAuthorNameOverride(v)}
+          youthVoiceId={profile?.youth_voice_id}
+          requireProfileOnly={requiresProfile}
+          mapLocation={mapLocation}
+          onMapChange={setMapLocation}
+          fieldErrors={fieldErrors}
+          previewPost={previewPost}
+          loading={loading || uploadingMedia}
+          canPublish={canPublish}
+          onSubmit={() => void publishMovement()}
+          onSaveDraft={handleSaveDraftAndExit}
+          pendingMedia={pendingMedia}
+          uploadingMedia={uploadingMedia}
+          error={error}
+          publishedId={publishedPostId}
+        />
+      </>
+    )
   }
 
   return (
@@ -377,7 +568,7 @@ export default function CreatePost() {
 
       <form
         ref={formRef}
-        onSubmit={handleSubmit}
+        onSubmit={(e) => void publishMovement(e)}
         noValidate
         className="card-surface mt-8 space-y-6 p-6 sm:p-8"
       >

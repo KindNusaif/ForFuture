@@ -2,13 +2,13 @@ import { useCallback } from 'react'
 import { useAsyncLoad } from './useAsyncLoad'
 import { EMPTY_DISCOVER_PAGE, fetchDiscoverPageDataSafe } from '../lib/discover'
 
-export function useDiscoverData() {
+export function useDiscoverData(enabled = true) {
   const execute = useCallback(
     (signal: AbortSignal) => fetchDiscoverPageDataSafe({ signal }),
     [],
   )
 
-  const { data, isLoading, error, reload } = useAsyncLoad(execute)
+  const { data, isLoading, error, reload } = useAsyncLoad(execute, { enabled })
 
   return {
     data: data ?? EMPTY_DISCOVER_PAGE,

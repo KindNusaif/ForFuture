@@ -7,6 +7,7 @@ export {
   signIn,
   signOut,
   signUp,
+  type SignUpResult,
 } from './auth'
 export {
   createPost,

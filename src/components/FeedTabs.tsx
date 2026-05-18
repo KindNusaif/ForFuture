@@ -1,5 +1,5 @@
+import { useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-
 export type FeedTab = 'discover' | 'following'
 
 interface FeedTabsProps {
@@ -16,6 +16,7 @@ export default function FeedTabs({
   className = '',
 }: FeedTabsProps) {
   const { t } = useTranslation()
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([])
 
   const tabs: { id: FeedTab; label: string; badge?: number }[] = [
     { id: 'discover', label: t('feed.tabDiscover') },
@@ -26,37 +27,61 @@ export default function FeedTabs({
     },
   ]
 
+  const focusTab = useCallback((index: number) => {
+    const el = tabRefs.current[index]
+    el?.focus()
+    el?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' })
+  }, [])
+
+  function handleKeyDown(e: React.KeyboardEvent, index: number) {
+    const last = tabs.length - 1
+    if (e.key === 'ArrowRight') {
+      e.preventDefault()
+      const next = index >= last ? 0 : index + 1
+      onChange(tabs[next].id)
+      focusTab(next)
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault()
+      const prev = index <= 0 ? last : index - 1
+      onChange(tabs[prev].id)
+      focusTab(prev)
+    } else if (e.key === 'Home') {
+      e.preventDefault()
+      onChange(tabs[0].id)
+      focusTab(0)
+    } else if (e.key === 'End') {
+      e.preventDefault()
+      onChange(tabs[last].id)
+      focusTab(last)
+    }
+  }
+
   return (
     <div
-      className={`flex flex-wrap gap-2 ${className}`}
+      className={`feed-tabs ${className}`}
       role="tablist"
       aria-label={t('feed.tabsLabel', { defaultValue: 'Feed views' })}
     >
-      {tabs.map((tab) => {
+      {tabs.map((tab, index) => {
         const selected = active === tab.id
         return (
           <button
             key={tab.id}
+            ref={(el) => {
+              tabRefs.current[index] = el
+            }}
             type="button"
             role="tab"
+            id={`feed-tab-${tab.id}`}
             aria-selected={selected}
+            aria-controls={`feed-panel-${tab.id}`}
+            tabIndex={selected ? 0 : -1}
             onClick={() => onChange(tab.id)}
-            className={
-              selected
-                ? 'rounded-full bg-accent-600 px-4 py-2 text-sm font-semibold text-white shadow-sm ring-1 ring-accent-500/30 transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 dark:bg-accent-600'
-                : 'rounded-full border border-default bg-surface px-4 py-2 text-sm font-semibold text-secondary transition hover:border-accent-300/60 hover:bg-muted hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500'
-            }
+            onKeyDown={(e) => handleKeyDown(e, index)}
+            className={selected ? 'feed-tab feed-tab-active' : 'feed-tab'}
           >
             {tab.label}
-            {tab.badge != null && (
-              <span
-                className={`ml-1.5 inline-flex min-w-[1.25rem] justify-center rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
-                  selected ? 'bg-white/20 text-white' : 'bg-muted text-muted'
-                }`}
-              >
-                {tab.badge}
-              </span>
-            )}
+            {tab.badge != null && <span className="feed-tab-badge">{tab.badge}</span>}
           </button>
         )
       })}

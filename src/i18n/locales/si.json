@@ -217,6 +217,7 @@
     "signingIn": "Signing in…",
     "signupButton": "ගිණුම තනන්න",
     "pleaseWait": "කරුණාකර රැඳී සිටින්න…",
+    "confirmEmailSent": "Account created! Check your email for a confirmation link, then log in.",
     "showPassword": "Show password",
     "hidePassword": "Hide password",
     "passwordRequired": "Password is required.",

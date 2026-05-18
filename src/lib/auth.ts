@@ -3,6 +3,7 @@ import {
   PROFILE_COLUMNS,
   PROFILE_COLUMNS_LEGACY,
   PROFILE_COLUMNS_MINIMAL,
+  PROFILE_COLUMNS_ONBOARDING,
   PROFILE_COLUMNS_WITH_APPEARANCE,
 } from './profileColumns'
 import { enhanceSupabaseError, isMissingColumn } from './supabaseErrors'
@@ -49,6 +50,14 @@ function mapProfile(row: Record<string, unknown>): Profile {
       row.visual_comfort_enabled == null ? undefined : Boolean(row.visual_comfort_enabled),
     reduce_motion_enabled:
       row.reduce_motion_enabled == null ? undefined : Boolean(row.reduce_motion_enabled),
+    onboarding_completed_at: (row.onboarding_completed_at as string | null) ?? null,
+    onboarding_skipped_at: (row.onboarding_skipped_at as string | null) ?? null,
+    preferred_causes: Array.isArray(row.preferred_causes)
+      ? (row.preferred_causes as string[])
+      : undefined,
+    participation_preferences: Array.isArray(row.participation_preferences)
+      ? (row.participation_preferences as string[])
+      : undefined,
   }
 }
 
@@ -59,74 +68,98 @@ export async function getSession(): Promise<Session | null> {
   return data.session
 }
 
-async function allocateYouthVoiceId(): Promise<string> {
-  const client = requireSupabase()
+export interface SignUpResult {
+  user: User
+  /** True when Supabase requires email confirmation before a session exists. */
+  needsEmailConfirmation: boolean
+}
 
-  for (let attempt = 0; attempt < 12; attempt++) {
-    const candidate = generateYouthVoiceIdCandidate()
+/** Create profile row after auth — retries on Youth Voice ID collision. */
+async function insertProfileForUser(userId: string, displayName: string): Promise<Profile> {
+  const existing = await getProfile(userId)
+  if (existing) return existing
+
+  const client = requireSupabase()
+  const trimmedName = displayName.trim()
+
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const insertRow: Record<string, unknown> = {
+      id: userId,
+      display_name: trimmedName,
+      youth_voice_id: generateYouthVoiceIdCandidate(),
+    }
+
     const { data, error } = await withTimeout(
-      client.from('profiles').select('id').eq('youth_voice_id', candidate).maybeSingle(),
+      client.from('profiles').insert(insertRow).select(PROFILE_COLUMNS).single(),
       DEFAULT_REQUEST_TIMEOUT_MS,
     )
 
-    if (error) {
-      if (isMissingColumn(error)) {
-        throw enhanceSupabaseError(error)
-      }
-      throw error
+    if (!error) {
+      return mapProfile(data as unknown as Record<string, unknown>)
     }
-    if (!data) return candidate
+
+    if (error.code === '23505') {
+      const again = await getProfile(userId)
+      if (again) return again
+      continue
+    }
+
+    if (error.code === '42501') {
+      throw new Error(
+        'Your account was created. Please confirm your email (if required), then log in to finish setup.',
+      )
+    }
+
+    throw enhanceSupabaseError(error)
   }
 
-  throw new Error('Could not generate a unique Youth Voice ID. Please try again.')
+  throw new Error('Could not create your profile. Please try logging in.')
 }
 
 export async function signUp(
   email: string,
   password: string,
   displayName: string,
-): Promise<User> {
+): Promise<SignUpResult> {
   const client = requireSupabase()
-  let youthVoiceId: string | undefined
 
-  try {
-    youthVoiceId = await allocateYouthVoiceId()
-  } catch {
-    youthVoiceId = undefined
-  }
+  const { data, error } = await withTimeout(
+    client.auth.signUp({
+      email: email.trim(),
+      password,
+      options: {
+        data: { display_name: displayName.trim() },
+        emailRedirectTo: `${getAppOrigin()}/login`,
+      },
+    }),
+    DEFAULT_REQUEST_TIMEOUT_MS,
+  )
 
-  const { data, error } = await client.auth.signUp({
-    email: email.trim(),
-    password,
-    options: {
-      data: { display_name: displayName.trim() },
-      emailRedirectTo: `${getAppOrigin()}/login`,
-    },
-  })
   if (error) throw error
   if (!data.user) throw new Error('Sign up failed. Please try again.')
 
-  const insertRow: Record<string, unknown> = {
-    id: data.user.id,
-    display_name: displayName.trim(),
-  }
-  if (youthVoiceId) insertRow.youth_voice_id = youthVoiceId
-
-  const { error: profileError } = await client.from('profiles').insert(insertRow)
-
-  if (profileError && profileError.code !== '23505') {
-    throw enhanceSupabaseError(profileError)
+  if (Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+    throw new Error('An account with this email already exists. Try logging in instead.')
   }
 
-  return data.user
+  const needsEmailConfirmation = !data.session
+
+  if (data.session) {
+    await insertProfileForUser(data.user.id, displayName)
+  }
+
+  return { user: data.user, needsEmailConfirmation }
 }
 
 export async function signIn(email: string, password: string): Promise<User> {
   const client = requireSupabase()
-  const { data, error } = await client.auth.signInWithPassword({
-    email: email.trim(),
-    password,
-  })
+  const { data, error } = await withTimeout(
+    client.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    }),
+    DEFAULT_REQUEST_TIMEOUT_MS,
+  )
   if (error) throw error
   if (!data.user) throw new Error('Login failed. Please try again.')
   return data.user
@@ -179,25 +212,31 @@ export async function ensureYouthVoiceId(userId: string): Promise<Profile> {
   if (!existing) throw new Error('Profile not found.')
   if (existing.youth_voice_id) return existing
 
-  const youthVoiceId = await allocateYouthVoiceId()
-  const { data, error } = await withTimeout(
-    client
-      .from('profiles')
-      .update({ youth_voice_id: youthVoiceId })
-      .eq('id', userId)
-      .select(PROFILE_COLUMNS)
-      .single(),
-    DEFAULT_REQUEST_TIMEOUT_MS,
-  )
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const youthVoiceId = generateYouthVoiceIdCandidate()
+    const { data, error } = await withTimeout(
+      client
+        .from('profiles')
+        .update({ youth_voice_id: youthVoiceId })
+        .eq('id', userId)
+        .select(PROFILE_COLUMNS)
+        .single(),
+      DEFAULT_REQUEST_TIMEOUT_MS,
+    )
 
-  if (error) throw enhanceSupabaseError(error)
-  return mapProfile(data as unknown as Record<string, unknown>)
+    if (!error) return mapProfile(data as unknown as Record<string, unknown>)
+    if (error.code === '23505') continue
+    throw enhanceSupabaseError(error)
+  }
+
+  throw new Error('Could not assign a Youth Voice ID. Please try again.')
 }
 
 async function selectProfileRow(userId: string): Promise<Record<string, unknown> | null> {
   const client = requireSupabase()
   const columnSets = [
     PROFILE_COLUMNS_WITH_APPEARANCE,
+    PROFILE_COLUMNS_ONBOARDING,
     PROFILE_COLUMNS,
     PROFILE_COLUMNS_LEGACY,
     PROFILE_COLUMNS_MINIMAL,
@@ -236,30 +275,7 @@ export async function getProfile(userId: string): Promise<Profile | null> {
 }
 
 export async function ensureProfile(userId: string, displayName: string): Promise<Profile> {
-  const existing = await getProfile(userId)
-  if (existing) return existing
-
-  const client = requireSupabase()
-  let youthVoiceId: string | undefined
-  try {
-    youthVoiceId = await allocateYouthVoiceId()
-  } catch {
-    youthVoiceId = undefined
-  }
-
-  const insertRow: Record<string, unknown> = {
-    id: userId,
-    display_name: displayName.trim(),
-  }
-  if (youthVoiceId) insertRow.youth_voice_id = youthVoiceId
-
-  const { data, error } = await withTimeout(
-    client.from('profiles').insert(insertRow).select(PROFILE_COLUMNS).single(),
-    DEFAULT_REQUEST_TIMEOUT_MS,
-  )
-
-  if (error) throw enhanceSupabaseError(error)
-  return mapProfile(data as unknown as Record<string, unknown>)
+  return insertProfileForUser(userId, displayName)
 }
 
 export async function updateProfileBio(userId: string, bio: string): Promise<Profile> {

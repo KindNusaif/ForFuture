@@ -1,16 +1,18 @@
 import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react'
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import { isPublicMarketingRoute } from './lib/publicRoutes'
 import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 import { JoinMovementProvider } from './context/JoinMovementContext'
 import { ReportContentProvider } from './context/ReportContentContext'
+import { ToastProvider } from './context/ToastProvider'
 import AdminRoute from './components/AdminRoute'
 import Layout from './components/Layout'
 import ExploreLayout from './components/ExploreLayout'
 import ImpactMapLayout from './components/ImpactMapLayout'
 import AppLayout from './components/AppLayout'
 import ProtectedRoute from './components/ProtectedRoute'
+import OnboardingGate from './components/OnboardingGate'
 import GuestRoute from './components/GuestRoute'
 import PageLoader from './components/PageLoader'
 import DeployConfigBanner from './components/DeployConfigBanner'
@@ -29,6 +31,7 @@ const CreatePostRoute = lazy(() =>
   import('./pages/CreatePost').then((m) => ({ default: m.CreatePostRoute })),
 )
 const Profile = lazy(() => import('./pages/Profile'))
+const Onboarding = lazy(() => import('./pages/Onboarding'))
 const MovementDetail = lazy(() => import('./pages/MovementDetail'))
 const AdminModeration = lazy(() => import('./pages/AdminModeration'))
 const AdminTrustReview = lazy(() => import('./pages/AdminTrustReview'))
@@ -65,9 +68,10 @@ export default function App() {
   return (
     <AuthProvider>
       <ThemeProvider>
-        <JoinMovementProvider>
-          <ReportContentProvider>
-            <AppFrame>
+        <ToastProvider>
+          <JoinMovementProvider>
+            <ReportContentProvider>
+              <AppFrame>
               <DeployConfigBanner />
               <Routes>
               <Route element={<Layout />}>
@@ -225,10 +229,21 @@ export default function App() {
               <Route
                 element={
                   <ProtectedRoute>
-                    <AppLayout />
+                    <OnboardingGate>
+                      <Outlet />
+                    </OnboardingGate>
                   </ProtectedRoute>
                 }
               >
+                <Route
+                  path="onboarding"
+                  element={
+                    <LazyPage>
+                      <Onboarding />
+                    </LazyPage>
+                  }
+                />
+                <Route element={<AppLayout />}>
                 <Route
                   path="feed"
                   element={
@@ -297,13 +312,15 @@ export default function App() {
                     </AdminRoute>
                   }
                 />
+                </Route>
               </Route>
 
               <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
-            </AppFrame>
-          </ReportContentProvider>
-        </JoinMovementProvider>
+              </AppFrame>
+            </ReportContentProvider>
+          </JoinMovementProvider>
+        </ToastProvider>
       </ThemeProvider>
     </AuthProvider>
   )

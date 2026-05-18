@@ -1,9 +1,9 @@
-import { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { HeartHandshake, Plus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import PostFeed from '../components/PostFeed'
-import Toast from '../components/Toast'
+import { useToast } from '../hooks/useToast'
 import type { ReliefHubFilter } from '../lib/reliefHub'
 
 const SUBFILTERS: ReliefHubFilter[] = ['all', 'blood_donation', 'item_donation', 'fundraising']
@@ -16,24 +16,22 @@ export default function ReliefHub({ mode = 'member' }: ReliefHubProps) {
   const isGuest = mode === 'guest'
   const { t } = useTranslation()
   const location = useLocation()
-  const toast = (location.state as { toast?: { type: 'success' | 'error'; message: string } })
-    ?.toast
+  const navigate = useNavigate()
+  const toast = useToast()
   const [reliefSubtype, setReliefSubtype] = useState<ReliefHubFilter>('all')
-  const [dismissToast, setDismissToast] = useState(false)
+
+  useEffect(() => {
+    const navToast = (location.state as { toast?: { type: 'success' | 'error'; message: string } })
+      ?.toast
+    if (!navToast) return
+    if (navToast.type === 'success') toast.success(navToast.message)
+    else toast.error(navToast.message)
+    navigate(location.pathname, { replace: true, state: {} })
+  }, [location.pathname, location.state, navigate, toast])
 
   return (
     <section className="mx-auto min-w-0 max-w-3xl px-4 py-6 sm:px-6 sm:py-8">
-      {toast && !dismissToast && (
-        <div className="mb-4">
-          <Toast
-            variant={toast.type}
-            message={toast.message}
-            onDismiss={() => setDismissToast(true)}
-          />
-        </div>
-      )}
-
-      <header className="card-surface overflow-hidden border border-rose-200/60 bg-linear-to-br from-rose-50/80 via-white to-sky-50/50 p-6 sm:p-8">
+      <header className="card-surface trust-panel overflow-hidden p-6 sm:p-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
             <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-rose-700">

@@ -460,6 +460,28 @@ export async function fetchPostById(
   )
 }
 
+/** Same-category movements for detail page (excludes current id). */
+export async function fetchRelatedPosts(
+  category: Category,
+  excludeId: string,
+  viewerUserId?: string,
+  limit = 3,
+  signal?: AbortSignal,
+): Promise<Post[]> {
+  const { rows } = await fetchFeedRowsPage(
+    {
+      viewerUserId,
+      category,
+      offset: 0,
+      limit: limit + 4,
+    },
+    signal,
+  )
+  const filtered = rows.filter((row) => row.id !== excludeId).slice(0, limit)
+  if (filtered.length === 0) return []
+  return enrichPosts(filtered, viewerUserId, signal)
+}
+
 function buildInsertRow(input: CreateMovementInput): Record<string, unknown> {
   const postingIdentity =
     input.movementType === 'fundraising' ? 'profile' : input.postingIdentity

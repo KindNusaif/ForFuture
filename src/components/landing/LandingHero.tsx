@@ -117,9 +117,9 @@ export default function LandingHero() {
                 t('landing.heroMetricPetitions'),
                 t('landing.heroMetricRelief'),
               ].map((label) => (
-                <div key={label} className="rounded-lg bg-surface px-2 py-2 text-center ring-1 ring-default">
+                <div key={label} className="landing-metric-cell">
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">{label}</p>
-                  <p className="mt-0.5 text-sm font-bold text-accent-600 dark:text-accent-300">
+                  <p className="landing-metric-value mt-0.5 text-sm font-bold">
                     {t('landing.heroMetricGrowing')}
                   </p>
                 </div>

@@ -217,6 +217,7 @@
     "signingIn": "Signing in…",
     "signupButton": "கணக்கு உருவாக்கு",
     "pleaseWait": "தயவு செய்து காத்திருக்கவும்…",
+    "confirmEmailSent": "Account created! Check your email for a confirmation link, then log in.",
     "showPassword": "Show password",
     "hidePassword": "Hide password",
     "passwordRequired": "Password is required.",

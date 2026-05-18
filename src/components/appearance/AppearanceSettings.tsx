@@ -41,7 +41,7 @@ function ToggleRow({
         aria-checked={checked}
         onClick={() => onChange(!checked)}
         className={`relative mt-0.5 h-7 w-12 shrink-0 rounded-full transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 ${
-          checked ? 'bg-accent-600' : 'bg-slate-300'
+          checked ? 'bg-accent-600' : 'bg-muted ring-1 ring-default'
         }`}
       >
         <span

@@ -6,6 +6,7 @@ import { useIsAdmin } from '../hooks/useIsAdmin'
 import ThemeQuickToggle from './appearance/ThemeQuickToggle'
 import LanguageSwitcher from './LanguageSwitcher'
 import Logo from './Logo'
+import NotificationCenter from './notifications/NotificationCenter'
 import SkipLink from './SkipLink'
 import { useAuth } from '../hooks/useAuth'
 import { signOut } from '../lib/auth'
@@ -42,8 +43,11 @@ export default function AppShell({ children }: { children?: ReactNode }) {
           <div className="sticky top-6 space-y-6">
             <div className="flex items-center justify-between gap-2">
               <Logo to="/feed" />
-              <ThemeQuickToggle variant="compact" />
-              <LanguageSwitcher variant="compact" />
+              <div className="flex items-center gap-0.5">
+                <NotificationCenter />
+                <ThemeQuickToggle variant="compact" />
+                <LanguageSwitcher variant="compact" />
+              </div>
             </div>
             <nav className="space-y-1" aria-label={t('nav.appNav')}>
               <NavLink to="/feed" end className={navLinkClass}>
@@ -128,7 +132,8 @@ export default function AppShell({ children }: { children?: ReactNode }) {
         </aside>
 
         <main id="main-content" className="min-w-0 flex-1 page-enter">
-          <div className="mb-4 flex justify-end px-4 pt-3 lg:hidden">
+          <div className="mb-4 flex justify-end gap-1 px-4 pt-3 lg:hidden">
+            <NotificationCenter />
             <LanguageSwitcher variant="compact" />
           </div>
           {children ?? <Outlet />}

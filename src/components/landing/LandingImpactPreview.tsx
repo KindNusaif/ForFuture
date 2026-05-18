@@ -81,19 +81,19 @@ export default function LandingImpactPreview() {
               </div>
             </div>
 
-            <aside className="border-t border-default bg-muted/30 p-5 lg:border-t-0 lg:border-l">
+            <aside className="border-t border-default bg-section p-5 lg:border-t-0 lg:border-l">
               <p className="text-xs font-bold uppercase tracking-wider text-secondary">
                 {t('landing.impactLegendTitle')}
               </p>
               <ul className="mt-4 space-y-3">
                 {legend.map(({ icon: Icon, label, count }) => (
-                  <li key={label} className="flex items-center gap-3 rounded-xl bg-surface p-3 ring-1 ring-default">
+                  <li key={label} className="impact-legend-row">
                     <span className="tip-icon h-9! w-9! rounded-lg!">
                       <Icon className="h-4 w-4" aria-hidden />
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold text-primary">{label}</p>
-                      <p className="text-xs text-secondary">{count}</p>
+                      <p className="text-xs font-medium text-secondary">{count}</p>
                     </div>
                   </li>
                 ))}

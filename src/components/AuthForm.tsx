@@ -123,8 +123,7 @@ export function FormField({
   )
 }
 
-export const inputClass =
-  'mt-1 w-full min-h-11 rounded-xl border border-default bg-surface px-3 py-2.5 text-primary transition outline-none placeholder:text-muted focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 aria-invalid:border-red-400'
+export const inputClass = 'ff-input mt-1 w-full'
 
-export const inputErrorClass = 'border-red-400 focus:border-red-500 focus:ring-red-500/20'
+export const inputErrorClass = 'ff-input-error'
 

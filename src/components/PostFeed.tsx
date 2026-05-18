@@ -6,8 +6,8 @@ import EmptyState from './EmptyState'
 import FeedDiscoveryBar from './FeedDiscoveryBar'
 import FeedTabs, { type FeedTab } from './FeedTabs'
 import PostCard from './PostCard'
-import Toast from './Toast'
 import { PostCardSkeleton } from './Skeleton'
+import { useToast } from '../hooks/useToast'
 import { useJoinMovement } from '../hooks/useJoinMovement'
 import { getMovementConfig } from '../lib/movements'
 import type { MovementFilter } from '../lib/movements'
@@ -17,12 +17,7 @@ import { signPetition } from '../lib/petitionSignatures'
 import { castPollVote } from '../lib/polls'
 import AsyncLoadHint from './AsyncLoadHint'
 import { useLoadingProgress } from '../hooks/useLoadingProgress'
-import {
-  DEFAULT_FEED_PAGE_SIZE,
-  enrichPosts,
-  fetchFeedRowsPage,
-  postsAsShell,
-} from '../lib/posts'
+import { DEFAULT_FEED_PAGE_SIZE, enrichPosts, fetchFeedRowsPage } from '../lib/posts'
 import { withAutoRetry } from '../lib/supabaseRequest'
 import { isRequestAborted } from '../lib/supabaseRequest'
 import { getActionSuccessMessage } from '../lib/movements'
@@ -111,12 +106,18 @@ function PostFeedContent({
   const [supportingId, setSupportingId] = useState<string | null>(null)
   const [petitionSigningId, setPetitionSigningId] = useState<string | null>(null)
   const [pollVotingId, setPollVotingId] = useState<string | null>(null)
-  const [actionToast, setActionToast] = useState<FeedToast | null>(null)
+  const toast = useToast()
 
   const requestIdRef = useRef(0)
   const abortRef = useRef<AbortController | null>(null)
+  const followsRef = useRef(movementFollows)
+  followsRef.current = movementFollows
 
-  const displayedToast = actionToast ?? toastProp
+  const followedIdsKey = useMemo(() => {
+    if (!isFollowingFeed) return ''
+    return [...movementFollows.followedIds].sort().join(',')
+  }, [isFollowingFeed, movementFollows.followedIds])
+
   const isRequestActive = loading || enriching || loadingMore
   const { showSlowHint, showRecovery } = useLoadingProgress(isRequestActive)
 
@@ -126,6 +127,7 @@ function PostFeedContent({
       const controller = new AbortController()
       abortRef.current = controller
       const requestId = ++requestIdRef.current
+      const follows = followsRef.current
 
       if (append) {
         setLoadingMore(true)
@@ -138,11 +140,9 @@ function PostFeedContent({
       try {
         const hubActive = reliefHub || movementFilter === 'donation_relief_hub'
         const followedIds =
-          isFollowingFeed && !movementFollows.loading
-            ? [...movementFollows.followedIds]
-            : undefined
+          isFollowingFeed && !follows.loading ? [...follows.followedIds] : undefined
 
-        if (isFollowingFeed && movementFollows.loading) {
+        if (isFollowingFeed && follows.loading) {
           if (!append) {
             setLoading(true)
             setEnriching(false)
@@ -182,8 +182,6 @@ function PostFeedContent({
         if (requestId !== requestIdRef.current || controller.signal.aborted) return
 
         if (!append) {
-          setPosts(postsAsShell(rows))
-          setLoading(false)
           setEnriching(true)
         }
 
@@ -196,17 +194,13 @@ function PostFeedContent({
 
         const withFollow = isGuest
           ? enriched
-          : applyFollowStateToPosts(
-              enriched,
-              movementFollows.followedIds,
-              movementFollows.followerCounts,
-            )
+          : applyFollowStateToPosts(enriched, follows.followedIds, follows.followerCounts)
         setPosts((prev) => (append ? [...prev, ...withFollow] : withFollow))
         setHasMore(more)
         setNextOffset(next)
         setError(null)
         if (!isGuest && withFollow.length > 0) {
-          void movementFollows.refreshCountsForPosts(withFollow.map((p) => p.id))
+          void follows.refreshCountsForPosts(withFollow.map((p) => p.id))
         }
       } catch (err) {
         if (requestId !== requestIdRef.current || isRequestAborted(err)) return
@@ -227,9 +221,7 @@ function PostFeedContent({
       reliefHub,
       reliefSubtype,
       isFollowingFeed,
-      movementFollows.loading,
-      movementFollows.followedIds,
-      movementFollows.followerCounts,
+      followedIdsKey,
     ],
   )
 
@@ -354,10 +346,15 @@ function PostFeedContent({
     openJoinModal(variant)
   }
 
-  function dismissToast() {
-    setActionToast(null)
+  useEffect(() => {
+    if (!toastProp) return
+    if (toastProp.type === 'success') {
+      toast.success(toastProp.message, toastProp.detail)
+    } else {
+      toast.error(toastProp.message, toastProp.detail)
+    }
     onToastDismiss?.()
-  }
+  }, [toastProp, onToastDismiss, toast])
 
   function handleRetry() {
     void loadPage(0, false)
@@ -392,13 +389,9 @@ function PostFeedContent({
     try {
       const poll = await castPollVote(postId, optionId, userId)
       setPosts((prev) => prev.map((p) => (p.id === postId ? { ...p, poll } : p)))
-      setActionToast({
-        type: 'success',
-        message: 'Vote recorded!',
-        detail: 'Thanks for sharing your voice.',
-      })
+      toast.success('Vote recorded!', 'Thanks for sharing your voice.')
     } catch (err) {
-      setActionToast({ type: 'error', message: formatError(err) })
+      toast.error(formatError(err))
     } finally {
       setPollVotingId(null)
     }
@@ -427,13 +420,12 @@ function PostFeedContent({
           }
         }),
       )
-      setActionToast({
-        type: 'success',
-        message: 'You have supported this petition.',
-        detail: 'Thank you for adding your youth voice to this call for change.',
-      })
+      toast.success(
+        'You have supported this petition.',
+        'Thank you for adding your youth voice to this call for change.',
+      )
     } catch (err) {
-      setActionToast({ type: 'error', message: formatError(err) })
+      toast.error(formatError(err))
     } finally {
       setPetitionSigningId(null)
     }
@@ -459,12 +451,9 @@ function PostFeedContent({
           )
           .filter((p) => !(isFollowingFeed && !following && p.id === postId)),
       )
-      setActionToast({
-        type: 'success',
-        message: following ? t('follow.followedToast') : t('follow.unfollowedToast'),
-      })
+      toast.success(following ? t('follow.followedToast') : t('follow.unfollowedToast'))
     } catch (err) {
-      setActionToast({ type: 'error', message: formatError(err) })
+      toast.error(formatError(err))
     }
   }
 
@@ -498,12 +487,9 @@ function PostFeedContent({
           }
         }),
       )
-      setActionToast({
-        type: 'success',
-        message: getActionSuccessMessage(post.movement_type, nowParticipating),
-      })
+      toast.success(getActionSuccessMessage(post.movement_type, nowParticipating))
     } catch (err) {
-      setActionToast({ type: 'error', message: formatError(err) })
+      toast.error(formatError(err))
     } finally {
       setSupportingId(null)
     }
@@ -511,17 +497,6 @@ function PostFeedContent({
 
   return (
     <div className={className}>
-      {displayedToast && (
-        <div className="mb-4">
-          <Toast
-            variant={displayedToast.type}
-            message={displayedToast.message}
-            detail={displayedToast.detail}
-            onDismiss={dismissToast}
-          />
-        </div>
-      )}
-
       {!isGuest && !reliefHub && onFeedTabChange && (
         <FeedTabs
           active={feedTab}
@@ -530,6 +505,13 @@ function PostFeedContent({
           className="mb-4"
         />
       )}
+
+      <div
+        id={`feed-panel-${feedTab}`}
+        role="tabpanel"
+        aria-labelledby={`feed-tab-${feedTab}`}
+        className="min-w-0"
+      >
 
       {!reliefHub && (
         <FeedDiscoveryBar
@@ -553,7 +535,7 @@ function PostFeedContent({
         className="mt-4"
         showSlowHint={isRequestActive && showSlowHint && !error}
         showRecovery={isRequestActive && showRecovery && !error}
-        error={error && !displayedToast ? error : null}
+        error={error}
         onRetry={handleRetry}
       />
 
@@ -574,7 +556,7 @@ function PostFeedContent({
           />
           {isFollowingFeed && (
             <p className="mt-6 text-center">
-              <Link to="/movements" className="btn-primary">
+              <Link to="/discover" className="btn-primary">
                 {t('feed.followingExploreCta')}
               </Link>
             </p>
@@ -611,11 +593,6 @@ function PostFeedContent({
         </div>
       ) : (
         <>
-          {enriching && (
-            <p className="mb-3 text-center text-xs font-medium text-muted" role="status">
-              Loading engagement counts…
-            </p>
-          )}
           <ul className="mt-4 min-w-0 space-y-4 sm:space-y-5">
             {filtered.map((post) => (
               <li key={post.id} className="min-w-0">
@@ -666,14 +643,11 @@ function PostFeedContent({
           )}
         </>
       )}
+      </div>
     </div>
   )
 }
 
 export default function PostFeed(props: PostFeedProps) {
-  const feedKey =
-    props.mode === 'guest'
-      ? 'guest'
-      : `${props.userId ?? 'member'}-${props.feedTab ?? 'discover'}`
-  return <PostFeedContent key={feedKey} {...props} />
+  return <PostFeedContent {...props} />
 }

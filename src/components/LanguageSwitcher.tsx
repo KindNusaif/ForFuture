@@ -49,7 +49,7 @@ export default function LanguageSwitcher({
     variant === 'compact'
       ? 'menu-trigger-compact'
       : variant === 'landing'
-        ? 'menu-trigger backdrop-blur'
+        ? 'menu-trigger-landing'
         : 'menu-trigger'
 
   return (

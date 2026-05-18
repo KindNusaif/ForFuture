@@ -4,6 +4,8 @@
 -- BEFORE this file, run separately (if not already done):
 --   1. fix_missing_features.sql
 --   2. content_reports.sql
+--   3. movement_follows.sql  (Following feed + follow buttons — Phase 2)
+--   4. onboarding_and_notifications.sql  (Onboarding wizard + notification center — Phase 3)
 --
 -- This file = steps 3 + 4 + 5 (constraints, report types, RLS).
 -- Safe to re-run.

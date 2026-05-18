@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react'
 import { Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import DiscoverHero from '../components/discover/DiscoverHero'
@@ -10,19 +11,12 @@ import DiscoverVisitorCta from '../components/discover/DiscoverVisitorCta'
 import { useDiscoverData } from '../hooks/useDiscoverData'
 import { useAuthUser } from '../hooks/useAuthUser'
 
-export default function Discover() {
+function DiscoverGuestContent() {
   const { t } = useTranslation()
-  const { isMember, loading: authLoading } = useAuthUser()
-  const { data, loading, error, reload } = useDiscoverData()
-
-  if (!authLoading && isMember) {
-    return <Navigate to="/feed" replace />
-  }
+  const { data, loading, error, reload } = useDiscoverData(true)
 
   return (
-    <div className="mx-auto min-w-0 max-w-7xl px-4 py-8 sm:px-6 lg:py-10">
-      <DiscoverHero />
-
+    <>
       {error && (
         <div
           role="alert"
@@ -49,6 +43,29 @@ export default function Discover() {
         <DiscoverImpactPreview glance={data.impact.glance} loading={loading} />
         <DiscoverVisitorCta />
       </div>
+    </>
+  )
+}
+
+export default function Discover() {
+  const { isMember, loading: authLoading } = useAuthUser()
+
+  if (authLoading) {
+    return (
+      <main className="flex min-h-[40vh] items-center justify-center px-4">
+        <Loader2 className="motion-essential h-8 w-8 animate-spin text-accent-600" aria-label="Loading" />
+      </main>
+    )
+  }
+
+  if (isMember) {
+    return <Navigate to="/feed" replace />
+  }
+
+  return (
+    <div className="mx-auto min-w-0 max-w-7xl px-4 py-8 sm:px-6 lg:py-10">
+      <DiscoverHero />
+      <DiscoverGuestContent />
     </div>
   )
 }

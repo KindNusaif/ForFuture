@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { Plus, RefreshCw } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import AsyncLoadHint from '../components/AsyncLoadHint'
-import Toast from '../components/Toast'
+import { useToast } from '../hooks/useToast'
 import MyReportsSection from '../components/MyReportsSection'
 import AppearanceSettings from '../components/appearance/AppearanceSettings'
 import DeleteMovementDialog from '../components/profile/DeleteMovementDialog'
@@ -15,6 +15,7 @@ import ProfileDashboardHeader, {
 import ProfileImpactSection, {
   type ProfileImpactStats,
 } from '../components/profile/ProfileImpactSection'
+import MyImpactSection from '../components/profile/MyImpactSection'
 import { ProfileHeaderSkeleton } from '../components/Skeleton'
 import { MODERATION_FEATURE_BLURB } from '../lib/moderation'
 import { useAuth } from '../hooks/useAuth'
@@ -45,9 +46,8 @@ function ProfileContent({ userId, email }: { userId: string; email?: string | nu
 
   const [deleteTarget, setDeleteTarget] = useState<Post | null>(null)
   const [deleting, setDeleting] = useState(false)
-  const [toast, setToast] = useState<{ variant: 'success' | 'error'; message: string } | null>(
-    null,
-  )
+  const [profileTab, setProfileTab] = useState<'overview' | 'impact'>('overview')
+  const toast = useToast()
 
   const abortRef = useRef<AbortController | null>(null)
   const requestIdRef = useRef(0)
@@ -125,9 +125,9 @@ function ProfileContent({ userId, email }: { userId: string; email?: string | nu
       await deletePost(deleteTarget.id, userId)
       setAllPosts((prev) => prev.filter((p) => p.id !== deleteTarget.id))
       setDeleteTarget(null)
-      setToast({ variant: 'success', message: t('profile.deleteSuccess') })
+      toast.success(t('profile.deleteSuccess'))
     } catch {
-      setToast({ variant: 'error', message: t('profile.deleteFailed') })
+      toast.error(t('profile.deleteFailed'))
     } finally {
       setDeleting(false)
     }
@@ -164,16 +164,6 @@ function ProfileContent({ userId, email }: { userId: string; email?: string | nu
         </div>
       </div>
 
-      {toast && (
-        <div className="mb-4">
-          <Toast
-            variant={toast.variant}
-            message={toast.message}
-            onDismiss={() => setToast(null)}
-          />
-        </div>
-      )}
-
       <ProfileDashboardHeader
         profile={profile}
         email={email}
@@ -184,7 +174,32 @@ function ProfileContent({ userId, email }: { userId: string; email?: string | nu
         bioError={bioError}
       />
 
-      <ProfileImpactSection stats={impactStats} loading={movementsLoading} />
+      <div className="profile-tabs mt-6" role="tablist" aria-label="Profile sections">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={profileTab === 'overview'}
+          className={profileTab === 'overview' ? 'profile-tab profile-tab-active' : 'profile-tab'}
+          onClick={() => setProfileTab('overview')}
+        >
+          Overview
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={profileTab === 'impact'}
+          className={profileTab === 'impact' ? 'profile-tab profile-tab-active' : 'profile-tab'}
+          onClick={() => setProfileTab('impact')}
+        >
+          My Impact
+        </button>
+      </div>
+
+      {profileTab === 'overview' ? (
+        <ProfileImpactSection stats={impactStats} loading={movementsLoading} />
+      ) : (
+        <MyImpactSection />
+      )}
 
       <AsyncLoadHint
         className="mt-4"
@@ -195,28 +210,32 @@ function ProfileContent({ userId, email }: { userId: string; email?: string | nu
         slowMessage={t('loading.movements')}
       />
 
-      <MyMovementsSection
-        posts={posts}
-        totalCount={allPosts.length}
-        loading={movementsLoading}
-        loadingMore={false}
-        hasMore={hasMore}
-        onLoadMore={handleLoadMore}
-        onDelete={setDeleteTarget}
-      />
+      {profileTab === 'overview' && (
+        <>
+          <MyMovementsSection
+            posts={posts}
+            totalCount={allPosts.length}
+            loading={movementsLoading}
+            loadingMore={false}
+            hasMore={hasMore}
+            onLoadMore={handleLoadMore}
+            onDelete={setDeleteTarget}
+          />
 
-      <FollowedMovementsSection userId={userId} />
+          <FollowedMovementsSection userId={userId} />
 
-      <AppearanceSettings />
+          <AppearanceSettings />
 
-      <details className="mt-10 rounded-xl border border-default bg-muted/50 px-4 py-3">
-        <summary className="cursor-pointer text-sm font-semibold text-primary">
-          Safe Reporting &amp; Fair Moderation
-        </summary>
-        <p className="mt-2 text-xs leading-relaxed text-secondary">{MODERATION_FEATURE_BLURB}</p>
-      </details>
+          <details className="mt-10 rounded-xl border border-default bg-muted/50 px-4 py-3">
+            <summary className="cursor-pointer text-sm font-semibold text-primary">
+              Safe Reporting &amp; Fair Moderation
+            </summary>
+            <p className="mt-2 text-xs leading-relaxed text-secondary">{MODERATION_FEATURE_BLURB}</p>
+          </details>
 
-      <MyReportsSection userId={userId} />
+          <MyReportsSection userId={userId} />
+        </>
+      )}
 
       <DeleteMovementDialog
         open={deleteTarget !== null}

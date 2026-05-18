@@ -217,6 +217,7 @@
     "signingIn": "Signing in…",
     "signupButton": "Create account",
     "pleaseWait": "Please wait…",
+    "confirmEmailSent": "Account created! Check your email for a confirmation link, then log in.",
     "showPassword": "Show password",
     "hidePassword": "Hide password",
     "passwordRequired": "Password is required.",
@@ -289,9 +290,27 @@
     "tabDiscover": "Discover",
     "tabFollowing": "Following",
     "tabsLabel": "Feed views",
-    "followingEmptyTitle": "No followed movements yet",
-    "followingEmptyDescription": "You are not following any movements yet. Explore causes and follow the ones you care about.",
-    "followingExploreCta": "Explore movements"
+    "followingEmptyTitle": "You're not following any movements yet.",
+    "followingEmptyDescription": "Explore causes that matter to you and follow the ones you want to track.",
+    "followingExploreCta": "Explore Movements"
+  },
+  "movement": {
+    "whyThisMatters": "Why this matters",
+    "desiredOutcome": "Desired outcome",
+    "media": "Photos & documents",
+    "takeAction": "Take action",
+    "statsVotes": "Votes",
+    "statsSignatures": "Signatures",
+    "statsGoal": "Goal",
+    "statsOffers": "Offers",
+    "statsSupporters": "Supporters",
+    "statsVolunteers": "Slots",
+    "statsTracking": "Tracking",
+    "statsLabel": "Movement engagement",
+    "relatedTitle": "Related movements",
+    "relatedSubtitle": "More {{category}} causes you can support.",
+    "relatedEmpty": "No related movements right now.",
+    "backToFeed": "← Back to movements"
   },
   "follow": {
     "follow": "Follow",

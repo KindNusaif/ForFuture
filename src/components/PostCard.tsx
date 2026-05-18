@@ -1,9 +1,10 @@
-import { Link } from 'react-router-dom'
-import { getMovementConfig, isPollMovement } from '../lib/movements'
+import { useNavigate } from 'react-router-dom'
+import { isPollMovement } from '../lib/movements'
 import { isPetitionMovement } from '../lib/petitions'
 import { getMomentumLabel, getMovementVisual, shouldShowMomentumPill } from '../lib/movementVisual'
 import { getReliefDisplaySubtype, isReliefPost } from '../lib/reliefHub'
 import { getPostAuthorPresentation } from '../lib/postIdentity'
+import { getMovementSummary } from '../lib/movementDetailContent'
 import {
   shouldShowAuthorVerification,
   shouldShowCampaignReview,
@@ -25,6 +26,7 @@ import ReportContentButton from './ReportContentButton'
 import FollowMovementButton from './FollowMovementButton'
 import MovementMediaFeedPreview from './media/MovementMediaFeedPreview'
 import MovementMediaDetail from './media/MovementMediaDetail'
+import MovementCardStats from './movement/MovementCardStats'
 import type { Post } from '../types'
 
 const categoryColors: Record<string, string> = {
@@ -52,13 +54,19 @@ interface PostCardProps {
   showIdentityBadge?: boolean
   showEngagementHint?: boolean
   detailPath?: string
-  /** Full gallery + documents on movement detail */
   showFullMedia?: boolean
   showFollow?: boolean
   isFollowing?: boolean
   followLoading?: boolean
   followerCount?: number
   onFollowToggle?: () => void
+}
+
+function isInteractiveTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false
+  return Boolean(
+    target.closest('button, a, input, textarea, select, [role="button"], [data-no-card-nav]'),
+  )
 }
 
 export default function PostCard({
@@ -81,7 +89,7 @@ export default function PostCard({
   followerCount,
   onFollowToggle,
 }: PostCardProps) {
-  const movement = getMovementConfig(post.movement_type)
+  const navigate = useNavigate()
   const visual = getMovementVisual(post.movement_type)
   const isPoll = isPollMovement(post.movement_type)
   const isPetition = isPetitionMovement(post.movement_type)
@@ -92,6 +100,7 @@ export default function PostCard({
   const showUnderReview = shouldShowUnderReviewLabel(post)
   const showAuthorVerified = shouldShowAuthorVerification(post)
   const badgeClass = categoryColors[post.category] ?? categoryColors.Other
+  const summary = getMovementSummary(post)
   const date = new Date(post.created_at).toLocaleDateString(undefined, {
     month: 'short',
     day: 'numeric',
@@ -103,20 +112,40 @@ export default function PostCard({
   const pollVotes = post.poll?.totalVotes ?? 0
   const showMomentum = shouldShowMomentumPill(post.movement_type, actionCount, pollVotes)
   const momentumLabel = getMomentumLabel(post.movement_type, actionCount, pollVotes)
+  const cardNavigable = Boolean(detailPath) && !showFullMedia
 
-  const description = post.description?.trim() ?? ''
-  const showDescription =
-    (!isPoll && !isPetition) || (description && description !== 'Community poll')
-  const showDetailLink = Boolean(detailPath) && !showFullMedia
+  function openDetail() {
+    if (detailPath) navigate(detailPath)
+  }
+
+  function handleCardClick(e: React.MouseEvent) {
+    if (!cardNavigable || isInteractiveTarget(e.target)) return
+    openDetail()
+  }
+
+  function handleCardKeyDown(e: React.KeyboardEvent) {
+    if (!cardNavigable) return
+    if (e.key === 'Enter' || e.key === ' ') {
+      if (isInteractiveTarget(e.target)) return
+      e.preventDefault()
+      openDetail()
+    }
+  }
 
   return (
     <article
       className={`post-card-interactive group min-w-0 max-w-full border-l-4 ${visual.accentBar} ${
-        highlight ? 'border-accent-300/80 ring-2 ring-accent-500/15 shadow-lg shadow-accent-900/5' : ''
-      }`}
+        cardNavigable ? 'movement-card-navigable' : ''
+      } ${highlight ? 'border-accent-300/80 ring-2 ring-accent-500/15 shadow-lg shadow-accent-900/5' : ''}`}
+      onClick={cardNavigable ? handleCardClick : undefined}
+      onKeyDown={cardNavigable ? handleCardKeyDown : undefined}
+      tabIndex={cardNavigable ? 0 : undefined}
+      role={cardNavigable ? 'link' : undefined}
+      aria-label={cardNavigable ? `View movement: ${post.title}` : undefined}
     >
       <div
         className={`card-header-wash bg-linear-to-r px-4 pb-3 pt-4 sm:px-5 sm:pt-5 ${visual.headerWash}`}
+        data-no-card-nav
       >
         <header className="flex flex-wrap items-start justify-between gap-2">
           <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
@@ -152,12 +181,10 @@ export default function PostCard({
               <ProtectedVoicePill youthVoiceId={post.youth_voice_id} />
             )}
             {showMomentum && momentumLabel && (
-              <span className="momentum-pill">
-                {momentumLabel}
-              </span>
+              <span className="momentum-pill">{momentumLabel}</span>
             )}
           </div>
-          <div className="flex shrink-0 items-start gap-2">
+          <div className="flex shrink-0 items-start gap-2" data-no-card-nav>
             {showFollow && onFollowToggle && (
               <FollowMovementButton
                 isFollowing={isFollowing}
@@ -177,43 +204,34 @@ export default function PostCard({
         </header>
       </div>
 
-      <div className="px-4 sm:px-5">
+      <div className={`px-4 sm:px-5 ${cardNavigable ? 'movement-card-body-link' : ''}`}>
         {!isPoll && (
           <h3 className="wrap-user-text pt-3 text-lg font-bold leading-snug text-primary sm:text-xl">
-            {detailPath ? (
-              <Link
-                to={detailPath}
-                className="transition hover:text-accent-700 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
-              >
-                {post.title}
-              </Link>
-            ) : (
-              post.title
-            )}
+            {post.title}
           </h3>
         )}
 
-        {showDescription && !isPetition && (
-          <p
-            className={`wrap-user-text mt-2 text-sm leading-relaxed text-secondary ${
-              showFullMedia ? '' : 'line-clamp-card'
-            }`}
-          >
+        {!showFullMedia && summary && (
+          <p className="wrap-user-text mt-2 text-sm leading-relaxed text-secondary line-clamp-2">
+            {summary}
+          </p>
+        )}
+
+        {showFullMedia && !isPoll && !isPetition && (
+          <p className="wrap-user-text mt-2 text-sm leading-relaxed text-secondary">
             {post.description}
           </p>
         )}
-        {isPetition && post.petition_issue && (
-          <p
-            className={`wrap-user-text mt-2 text-sm leading-relaxed text-secondary ${
-              showFullMedia ? '' : 'line-clamp-card'
-            }`}
-          >
+        {showFullMedia && isPetition && post.petition_issue && (
+          <p className="wrap-user-text mt-2 text-sm leading-relaxed text-secondary">
             {post.petition_issue}
           </p>
         )}
 
         {post.attachments && post.attachments.length > 0 && !showFullMedia && (
-          <MovementMediaFeedPreview attachments={post.attachments} />
+          <div data-no-card-nav>
+            <MovementMediaFeedPreview attachments={post.attachments} />
+          </div>
         )}
       </div>
 
@@ -223,7 +241,9 @@ export default function PostCard({
         </div>
       )}
 
-      <div className="px-4 pb-4 sm:px-5 sm:pb-5">
+      <div className="px-4 pb-4 sm:px-5 sm:pb-5" data-no-card-nav>
+        {!showFullMedia && <MovementCardStats post={post} />}
+
         {isPoll ? (
           <PollVoteBlock
             post={post}
@@ -233,31 +253,13 @@ export default function PostCard({
             detailPath={showFullMedia ? undefined : detailPath}
           />
         ) : (
-          <MovementCardExtras post={post} />
-        )}
-
-        {showDetailLink && (
-          <Link
-            to={detailPath!}
-            className="mt-4 inline-block text-xs font-semibold text-accent-600 hover:text-accent-700"
-          >
-            {isPoll ? 'View full poll →' : 'View full movement →'}
-          </Link>
+          !showFullMedia && <MovementCardExtras post={post} />
         )}
 
         <footer className="mt-5 flex flex-col gap-4 border-t border-default pt-4 sm:flex-row sm:items-end sm:justify-between">
           <PostAuthor post={post} className="min-w-0 max-w-full flex-1" compact />
 
-          {isPoll ? (
-            <div className="text-right">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-muted">
-                Community poll
-              </p>
-              <p className="mt-0.5 text-sm font-semibold tabular-nums text-primary">
-                {pollVotes} {pollVotes === 1 ? 'vote' : 'votes'}
-              </p>
-            </div>
-          ) : isPetition && showSupport && onPetitionSign ? (
+          {isPoll ? null : isPetition && showSupport && onPetitionSign ? (
             <PetitionActionButton
               post={post}
               loading={petitionSigning}
@@ -285,10 +287,6 @@ export default function PostCard({
               showHint={showEngagementHint}
               onClick={() => onSupport(post.id)}
             />
-          ) : actionCount > 0 ? (
-            <p className="text-xs font-medium text-muted sm:text-right">
-              {movement.countLabel(actionCount)}
-            </p>
           ) : null}
         </footer>
       </div>

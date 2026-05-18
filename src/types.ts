@@ -102,6 +102,10 @@ export interface Profile {
   verified_at?: string | null
   /** Platform moderation access — set only via Supabase SQL by administrators */
   is_admin?: boolean
+  onboarding_completed_at?: string | null
+  onboarding_skipped_at?: string | null
+  preferred_causes?: string[]
+  participation_preferences?: string[]
 }
 
 export interface Post {

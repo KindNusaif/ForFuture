@@ -183,6 +183,23 @@
   @apply inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-default bg-surface px-2.5 py-1.5 text-xs font-medium text-secondary shadow-sm transition hover:border-accent-300 hover:bg-muted;
 }
 
+@utility menu-trigger-landing {
+  @apply inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium shadow-sm transition;
+  border-color: color-mix(in srgb, var(--ff-border) 70%, transparent);
+  background: color-mix(in srgb, var(--ff-nav) 55%, transparent);
+  color: var(--ff-nav-inactive-text);
+}
+
+.menu-trigger-landing:hover {
+  border-color: color-mix(in srgb, #6366f1 35%, var(--ff-border));
+  background: var(--ff-nav-hover-bg);
+  color: var(--ff-nav-active-text);
+}
+
+@utility bg-section {
+  background: var(--ff-muted-soft);
+}
+
 @utility theme-menu {
   @apply absolute right-0 z-50 mt-2 min-w-[10.5rem] overflow-hidden rounded-xl border p-1 shadow-xl;
   border-color: var(--ff-card-border);
@@ -338,4 +355,409 @@ html:not([data-reduce-motion='true']) .post-card-interactive:hover {
 
 [data-reduce-motion='true'] .landing-stagger > * {
   animation: none;
+}
+
+/* ─── Toast notifications ─── */
+@utility toast-item {
+  @apply rounded-xl border px-4 py-3.5 shadow-lg backdrop-blur-md;
+}
+
+.toast-item-success {
+  border-color: var(--ff-success-border);
+  background: var(--ff-success-bg);
+  color: var(--ff-success-text);
+}
+
+.toast-item-error {
+  border-color: var(--ff-danger-border);
+  background: var(--ff-danger-bg);
+  color: var(--ff-danger-text);
+}
+
+.toast-item-info {
+  border-color: var(--ff-info-border);
+  background: var(--ff-info-bg);
+  color: var(--ff-info-text);
+}
+
+.toast-item-warning {
+  border-color: var(--ff-warning-border);
+  background: var(--ff-warning-bg);
+  color: var(--ff-warning-text);
+}
+
+.toast-dismiss {
+  opacity: 0.75;
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+  color: inherit;
+}
+
+.toast-dismiss:hover {
+  opacity: 1;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.toast-enter {
+  animation: ff-toast-enter 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes ff-toast-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+[data-reduce-motion='true'] .toast-enter {
+  animation: none;
+}
+
+@utility impact-legend-row {
+  @apply flex items-center gap-3 rounded-xl p-3 ring-1;
+  background: var(--ff-muted-soft);
+  --tw-ring-color: var(--ff-border);
+}
+
+@utility landing-metric-cell {
+  @apply rounded-lg px-2 py-2 text-center ring-1 ring-default;
+  background: var(--ff-muted-soft);
+}
+
+.landing-metric-value {
+  color: var(--ff-metric-icon-accent-text);
+}
+
+/* Feed tabs — premium pill with active indicator */
+.feed-tabs {
+  @apply flex gap-1 overflow-x-auto rounded-2xl border border-default p-1;
+  background: var(--ff-muted-soft);
+  scrollbar-width: none;
+}
+
+.feed-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.feed-tab {
+  @apply relative inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold transition;
+  color: var(--ff-text-secondary);
+}
+
+.feed-tab:hover {
+  color: var(--ff-text-primary);
+  background: color-mix(in srgb, var(--ff-surface) 70%, transparent);
+}
+
+.feed-tab:focus-visible {
+  @apply outline-2 outline-offset-2 outline-accent-500;
+}
+
+.feed-tab-active {
+  color: var(--ff-text-primary);
+  background: var(--ff-surface);
+  box-shadow: 0 1px 3px rgb(15 23 42 / 0.08);
+}
+
+.feed-tab-badge {
+  @apply inline-flex min-w-[1.25rem] justify-center rounded-full px-1.5 py-0.5 text-[10px] font-bold;
+  background: var(--ff-muted);
+  color: var(--ff-text-muted);
+}
+
+.feed-tab-active .feed-tab-badge {
+  background: color-mix(in srgb, var(--ff-accent-600, #4f46e5) 15%, var(--ff-muted));
+  color: var(--ff-accent-600, #4f46e5);
+}
+
+/* Movement detail hub */
+.movement-detail-panel {
+  @apply rounded-2xl border p-5 sm:p-6;
+  border-color: var(--ff-border);
+  background: var(--ff-surface);
+}
+
+.movement-detail-eyebrow {
+  @apply text-xs font-bold uppercase tracking-wider;
+  color: var(--ff-accent-600, #4f46e5);
+}
+
+.movement-detail-label {
+  @apply text-[10px] font-bold uppercase tracking-wide text-muted;
+}
+
+.movement-detail-value {
+  @apply mt-1 text-sm leading-relaxed text-secondary;
+}
+
+.movement-detail-callout {
+  @apply text-base font-semibold leading-snug text-primary sm:text-lg;
+}
+
+.movement-detail-guidance {
+  @apply text-sm leading-relaxed text-secondary;
+}
+
+.movement-detail-stat {
+  @apply rounded-xl border border-default px-4 py-3 text-center;
+  background: var(--ff-muted-soft);
+}
+
+.movement-detail-stat-label {
+  @apply text-[10px] font-bold uppercase tracking-wide text-muted;
+}
+
+.movement-detail-stat-value {
+  @apply mt-1 text-2xl font-extrabold tabular-nums text-primary;
+}
+
+.movement-detail-row {
+  @apply flex items-start gap-2 text-sm text-secondary;
+}
+
+.movement-detail-row-icon {
+  @apply mt-0.5 h-4 w-4 shrink-0 opacity-80;
+}
+
+.movement-card-stats {
+  @apply mt-4 flex flex-wrap gap-3 border-t border-default pt-4;
+}
+
+.movement-card-stat {
+  @apply min-w-[4.5rem] rounded-lg px-3 py-2 text-center;
+  background: var(--ff-muted-soft);
+}
+
+.movement-card-stat-label {
+  @apply text-[10px] font-bold uppercase tracking-wide text-muted;
+}
+
+.movement-card-stat-value {
+  @apply mt-0.5 text-sm font-bold tabular-nums text-primary;
+}
+
+.movement-card-body-link {
+  @apply block cursor-pointer rounded-lg transition;
+}
+
+.movement-card-body-link:focus-visible {
+  @apply outline-2 outline-offset-2 outline-accent-500;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .post-card-interactive.movement-card-navigable:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgb(15 23 42 / 0.1);
+  }
+}
+
+/* Notifications */
+.notification-badge {
+  @apply absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-bold text-white;
+  background: var(--ff-danger, #dc2626);
+}
+
+.notification-dropdown {
+  @apply absolute right-0 z-50 mt-2 w-[min(22rem,calc(100vw-2rem))];
+}
+
+.notification-panel {
+  @apply overflow-hidden rounded-2xl border border-default shadow-xl;
+  background: var(--ff-card-elevated, var(--ff-surface));
+}
+
+.notification-item {
+  @apply block px-4 py-3 transition;
+}
+
+.notification-item-unread {
+  border-left: 3px solid var(--ff-accent-600, #4f46e5);
+  background: color-mix(in srgb, var(--ff-accent-600, #4f46e5) 6%, transparent);
+}
+
+.notification-item-read {
+  @apply opacity-80;
+}
+
+.notification-sheet {
+  @apply fixed inset-0 z-50 flex flex-col justify-end;
+}
+
+.notification-sheet-backdrop {
+  @apply absolute inset-0 bg-black/40;
+}
+
+.notification-sheet .notification-panel {
+  @apply relative z-10 rounded-b-none rounded-t-2xl;
+}
+
+/* Onboarding wizard */
+.onboarding-shell {
+  @apply mx-auto min-h-screen max-w-lg px-4 py-8 sm:py-12;
+}
+
+.onboarding-progress {
+  @apply mb-8 h-1.5 overflow-hidden rounded-full bg-muted;
+}
+
+.onboarding-progress-fill {
+  @apply h-full rounded-full bg-accent-600 transition-all duration-300 ease-out;
+}
+
+.onboarding-step {
+  animation: onboarding-enter 0.35s ease-out both;
+}
+
+@keyframes onboarding-enter {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.onboarding-pill {
+  @apply inline-flex min-h-11 items-center gap-2 rounded-xl border border-default px-4 py-2.5 text-sm font-semibold transition;
+  background: var(--ff-surface);
+}
+
+.onboarding-pill-selected {
+  @apply border-accent-500 bg-accent-600 text-white shadow-sm;
+}
+
+.onboarding-card-option {
+  @apply flex w-full gap-3 rounded-2xl border border-default p-4 text-left transition;
+  background: var(--ff-surface);
+}
+
+.onboarding-card-option-selected {
+  @apply border-accent-500 ring-2 ring-accent-500/20;
+  background: color-mix(in srgb, var(--ff-accent-600, #4f46e5) 8%, var(--ff-surface));
+}
+
+/* Profile tabs */
+.profile-tabs {
+  @apply flex gap-1 overflow-x-auto rounded-2xl border border-default p-1;
+  background: var(--ff-muted-soft);
+}
+
+.profile-tab {
+  @apply shrink-0 rounded-xl px-4 py-2 text-sm font-semibold text-secondary transition;
+}
+
+.profile-tab-active {
+  @apply bg-surface text-primary shadow-sm;
+}
+
+/* Notifications */
+.notification-badge {
+  @apply absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold text-white;
+  background: var(--ff-danger, #dc2626);
+}
+
+.notification-dropdown {
+  @apply absolute right-0 z-50 mt-2 w-[min(22rem,calc(100vw-2rem))];
+}
+
+.notification-panel {
+  @apply overflow-hidden rounded-2xl border border-default bg-surface shadow-xl ring-1 ring-default;
+}
+
+.notification-item {
+  @apply block px-4 py-3 transition;
+}
+
+.notification-item-unread {
+  border-left: 3px solid var(--ff-accent-600, #4f46e5);
+  background: color-mix(in srgb, var(--ff-accent-600, #4f46e5) 6%, var(--ff-surface));
+}
+
+.notification-item-read {
+  @apply opacity-80;
+}
+
+.notification-sheet {
+  @apply fixed inset-0 z-50 flex flex-col justify-end;
+}
+
+.notification-sheet-backdrop {
+  @apply absolute inset-0 bg-black/40;
+}
+
+.notification-sheet .notification-panel {
+  @apply relative z-10 rounded-b-none;
+}
+
+/* Onboarding */
+.onboarding-progress {
+  @apply h-1.5 w-full overflow-hidden rounded-full bg-muted;
+}
+
+.onboarding-progress-fill {
+  @apply h-full rounded-full bg-accent-600 transition-all duration-300 ease-out;
+}
+
+.onboarding-step {
+  animation: onboarding-enter 0.35s ease-out both;
+}
+
+@keyframes onboarding-enter {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.onboarding-pill {
+  @apply inline-flex min-h-11 items-center gap-2 rounded-xl border border-default px-4 py-2.5 text-sm font-semibold transition;
+}
+
+.onboarding-pill-selected {
+  @apply border-accent-500 bg-accent-600 text-white shadow-sm;
+}
+
+.onboarding-card-option {
+  @apply flex w-full gap-3 rounded-2xl border border-default p-4 text-left transition hover:border-accent-300;
+}
+
+.onboarding-card-option-selected {
+  @apply border-accent-500 ring-2 ring-accent-500/20;
+  background: color-mix(in srgb, var(--ff-accent-600, #4f46e5) 8%, var(--ff-surface));
+}
+
+/* Profile tabs */
+.profile-tabs {
+  @apply flex gap-1 overflow-x-auto border-b border-default;
+}
+
+.profile-tab {
+  @apply shrink-0 border-b-2 border-transparent px-4 py-3 text-sm font-semibold text-secondary transition;
+}
+
+.profile-tab-active {
+  border-color: var(--ff-accent-600, #4f46e5);
+  color: var(--ff-text-primary);
+}
+
+/* Create wizard */
+.create-wizard-progress {
+  @apply mb-8 flex gap-1;
+}
+
+.create-wizard-step-dot {
+  @apply h-1 flex-1 rounded-full bg-muted transition;
+}
+
+.create-wizard-step-dot-active {
+  background: var(--ff-accent-600, #4f46e5);
 }

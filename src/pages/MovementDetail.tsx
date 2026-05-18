@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
-import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
+import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Loader2 } from 'lucide-react'
-import PostCard from '../components/PostCard'
+import MovementDetailView from '../components/movement/MovementDetailView'
 import ShareMovementButton from '../components/ShareMovementButton'
-import FollowMovementButton from '../components/FollowMovementButton'
+import EmptyState from '../components/EmptyState'
+import { Inbox } from 'lucide-react'
 import { useMovementFollows } from '../hooks/useMovementFollows'
+import { useRelatedMovements } from '../hooks/useRelatedMovements'
 import { getMovementShareUrl } from '../lib/share'
-import Toast from '../components/Toast'
+import { useToast } from '../hooks/useToast'
 import AsyncLoadHint from '../components/AsyncLoadHint'
 import { useJoinMovement } from '../hooks/useJoinMovement'
 import { useAuthUser } from '../hooks/useAuthUser'
@@ -18,6 +20,7 @@ import { togglePostAction } from '../lib/postActions'
 import { signPetition } from '../lib/petitionSignatures'
 import { isPetitionMovement } from '../lib/petitions'
 import { formatError } from '../lib/errors'
+
 interface MovementDetailProps {
   mode: 'guest' | 'member'
   backTo: string
@@ -54,14 +57,22 @@ function MovementDetailContent({
   const [supporting, setSupporting] = useState(false)
   const [petitionSigning, setPetitionSigning] = useState(false)
   const [pollVoting, setPollVoting] = useState(false)
-  const [actionMessage, setActionMessage] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
+  const toast = useToast()
   const movementFollows = useMovementFollows(isGuest ? undefined : user?.id)
 
   const post = fetchedPost
   const displayError = actionError ?? error
   const showPageLoading = waitingForAuth || loading
   const { showSlowHint, showRecovery } = useLoadingProgress(showPageLoading)
+
+  const relatedDetailBase = isGuest ? '/movements' : '/feed'
+  const { posts: relatedPosts, loading: relatedLoading } = useRelatedMovements(
+    post?.id,
+    post?.category,
+    user?.id,
+    Boolean(post) && !showPageLoading,
+  )
 
   if (!authLoading && isGuest && isMember) {
     return <Navigate to={`/feed/${id}`} replace />
@@ -83,7 +94,7 @@ function MovementDetailContent({
         support_count: (post.support_count ?? 0) + 1,
       })
       setActionError(null)
-      setActionMessage('You have supported this petition.')
+      toast.success('You have supported this petition.')
     } catch (err) {
       setActionError(formatError(err))
     } finally {
@@ -112,7 +123,7 @@ function MovementDetailContent({
         support_count: Math.max(0, (post.support_count ?? 0) + (nowParticipating ? 1 : -1)),
       })
       setActionError(null)
-      setActionMessage(getActionSuccessMessage(post.movement_type, nowParticipating))
+      toast.success(getActionSuccessMessage(post.movement_type, nowParticipating))
     } catch (err) {
       setActionError(formatError(err))
     } finally {
@@ -133,7 +144,7 @@ function MovementDetailContent({
         current && current.id === postId ? { ...current, poll } : current,
       )
       setActionError(null)
-      setActionMessage('Vote recorded! Thanks for sharing your voice.')
+      toast.success('Vote recorded!', 'Thanks for sharing your voice.')
     } catch (err) {
       setActionError(formatError(err))
     } finally {
@@ -156,8 +167,11 @@ function MovementDetailContent({
     }
     try {
       const { following } = await movementFollows.toggleFollow(post.id)
+      setPost((current) =>
+        current ? { ...current, followed_by_me: following } : current,
+      )
       setActionError(null)
-      setActionMessage(
+      toast.success(
         following ? 'You are now tracking this movement.' : 'You stopped tracking this movement.',
       )
     } catch (err) {
@@ -177,17 +191,7 @@ function MovementDetailContent({
           {backLabel}
         </button>
         {post && (
-          <div className="flex flex-wrap items-center gap-2">
-            {!isGuest && (
-              <FollowMovementButton
-                isFollowing={movementFollows.isFollowing(post.id)}
-                loading={movementFollows.processingId === post.id}
-                followerCount={movementFollows.followerCounts[post.id] ?? post.follower_count}
-                onClick={() => void handleFollowToggle()}
-              />
-            )}
-            <ShareMovementButton url={shareUrl} title={post.title} variant="secondary" />
-          </div>
+          <ShareMovementButton url={shareUrl} title={post.title} variant="secondary" />
         )}
       </div>
 
@@ -199,34 +203,30 @@ function MovementDetailContent({
         onRetry={reload}
       />
 
-      {actionMessage && !displayError && (
-        <div className="mb-4">
-          <Toast
-            variant="success"
-            message={actionMessage}
-            onDismiss={() => setActionMessage(null)}
-          />
-        </div>
-      )}
-
       {showPageLoading ? (
         <div className="flex flex-col items-center justify-center gap-3 py-20">
-          <Loader2 className="h-10 w-10 animate-spin text-accent-600" />
+          <Loader2 className="motion-essential h-10 w-10 animate-spin text-accent-600" aria-hidden />
           <p className="text-sm text-muted">Loading movement…</p>
         </div>
       ) : !post && !displayError ? (
-        <div className="card-surface p-10 text-center">
-          <p className="text-lg font-bold text-primary">Movement not found</p>
-          <p className="mt-2 text-sm text-secondary">It may have been removed or is unavailable.</p>
-          <Link to={backTo} className="btn-primary mt-6">
-            {backLabel}
-          </Link>
-        </div>
+        <EmptyState
+          icon={Inbox}
+          title="Movement not found"
+          description="It may have been removed or is unavailable."
+          action={{ label: backLabel, to: backTo }}
+        />
       ) : post ? (
-        <PostCard
+        <MovementDetailView
           post={post}
-          highlight
           guestMode={isGuest}
+          relatedPosts={relatedPosts}
+          relatedLoading={relatedLoading}
+          relatedDetailBase={relatedDetailBase}
+          showFollow={!isGuest}
+          isFollowing={movementFollows.isFollowing(post.id)}
+          followLoading={movementFollows.processingId === post.id}
+          followerCount={movementFollows.followerCounts[post.id] ?? post.follower_count}
+          onFollowToggle={() => void handleFollowToggle()}
           onSupport={isPetitionMovement(post.movement_type) ? undefined : handleSupport}
           onPetitionSign={
             isPetitionMovement(post.movement_type) ? handlePetitionSign : undefined
@@ -235,9 +235,6 @@ function MovementDetailContent({
           supporting={supporting}
           petitionSigning={petitionSigning}
           pollVoting={pollVoting}
-          showIdentityBadge
-          showEngagementHint
-          showFullMedia
         />
       ) : null}
     </>
@@ -256,7 +253,7 @@ export default function MovementDetail(props: MovementDetailProps) {
   }
 
   return (
-    <section className="mx-auto min-w-0 max-w-3xl px-4 py-8 sm:px-6">
+    <section className="mx-auto min-w-0 max-w-3xl px-4 py-8 sm:px-6 lg:max-w-4xl">
       <MovementDetailContent key={`${props.mode}-${id}`} id={id} {...props} />
     </section>
   )

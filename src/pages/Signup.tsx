@@ -15,6 +15,7 @@ export default function Signup() {
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? '/feed'
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<{
     name?: string
     email?: string
@@ -27,6 +28,7 @@ export default function Signup() {
 
     setFieldErrors({})
     setError(null)
+    setSuccess(null)
 
     if (!isSupabaseConfigured) {
       setError('Supabase is not configured. Check your .env file.')
@@ -66,8 +68,12 @@ export default function Signup() {
 
     setLoading(true)
     try {
-      await signUp(email, password, name)
-      navigate(from, { replace: true })
+      const result = await signUp(email, password, name)
+      if (result.needsEmailConfirmation) {
+        setSuccess(t('auth.confirmEmailSent'))
+        return
+      }
+      navigate('/onboarding', { replace: true, state: { from: { pathname: from } } })
     } catch (err) {
       setError(formatError(err))
     } finally {
@@ -83,6 +89,7 @@ export default function Signup() {
       loadingLabel={t('auth.pleaseWait')}
       loading={loading}
       error={error}
+      success={success}
       onSubmit={handleSubmit}
       footer={
         <>

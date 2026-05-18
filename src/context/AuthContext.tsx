@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { User } from '@supabase/supabase-js'
-import { ensureProfile, getProfile, getSession } from '../lib/auth'
+import { ensureProfile, getProfile } from '../lib/auth'
 import { formatError } from '../lib/errors'
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
 import type { Profile } from '../types'
@@ -15,9 +15,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [authError, setAuthError] = useState<string | null>(null)
   const [profileError, setProfileError] = useState<string | null>(null)
 
+  const profileUserIdRef = useRef<string | null>(null)
+
   const finishLoading = useCallback(() => setLoading(false), [])
 
-  const loadProfile = useCallback(async (user: User) => {
+  const loadProfile = useCallback(async (user: User, force = false) => {
+    if (!force && profileUserIdRef.current === user.id) return
+
     setProfileError(null)
     try {
       let data = await getProfile(user.id)
@@ -28,8 +32,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           'User'
         data = await ensureProfile(user.id, name)
       }
+      profileUserIdRef.current = user.id
       setProfile(data)
     } catch (err) {
+      profileUserIdRef.current = null
       setProfile(null)
       setProfileError(formatError(err))
     }
@@ -37,7 +43,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshProfile = useCallback(async () => {
     if (session?.user) {
-      await loadProfile(session.user)
+      profileUserIdRef.current = null
+      await loadProfile(session.user, true)
     }
   }, [session, loadProfile])
 
@@ -47,42 +54,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     let mounted = true
+    let sessionResolved = false
+
     const timeout = window.setTimeout(() => {
-      if (mounted) finishLoading()
-    }, AUTH_BOOTSTRAP_TIMEOUT_MS)
-
-    async function init() {
-      try {
-        const currentSession = await getSession()
-        if (!mounted) return
-        setSession(currentSession)
-        setAuthError(null)
+      if (mounted && !sessionResolved) {
+        sessionResolved = true
         finishLoading()
-        if (currentSession?.user) {
-          void loadProfile(currentSession.user)
-        }
-      } catch (err) {
-        if (mounted) {
-          setAuthError(formatError(err))
-          setSession(null)
-          setProfile(null)
-          finishLoading()
-        }
       }
-    }
-
-    void init()
+    }, AUTH_BOOTSTRAP_TIMEOUT_MS)
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      if (!mounted) return
+
       if (event === 'INITIAL_SESSION') {
+        sessionResolved = true
         setSession(nextSession)
         setAuthError(null)
         finishLoading()
         if (nextSession?.user) {
           void loadProfile(nextSession.user)
         } else {
+          profileUserIdRef.current = null
           setProfile(null)
           setProfileError(null)
         }
@@ -92,9 +86,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(nextSession)
       setAuthError(null)
       finishLoading()
+
       if (nextSession?.user) {
-        void loadProfile(nextSession.user)
+        const userId = nextSession.user.id
+        if (event === 'SIGNED_IN' || event === 'USER_UPDATED' || userId !== profileUserIdRef.current) {
+          void loadProfile(nextSession.user)
+        }
       } else {
+        profileUserIdRef.current = null
         setProfile(null)
         setProfileError(null)
       }
