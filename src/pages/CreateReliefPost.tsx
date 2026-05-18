@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Loader2, Send } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -8,6 +8,7 @@ import ReliefHubFields from '../components/relief/ReliefHubFields'
 import ReliefSubtypePicker from '../components/relief/ReliefSubtypePicker'
 import { FormField, inputClass, inputErrorClass } from '../components/AuthForm'
 import { useAuth } from '../hooks/useAuth'
+import { useAsyncAction } from '../hooks/useAsyncAction'
 import { emptyReliefFields } from '../lib/reliefFieldValues'
 import type { ReliefFieldValues } from '../lib/reliefFieldValues'
 import type { MapLocation } from '../lib/googleMaps'
@@ -45,7 +46,6 @@ interface ActionPathReliefDraft {
 export default function CreateReliefPost() {
   const { t } = useTranslation()
   const { user, profile, refreshProfile } = useAuth()
-  const submittingRef = useRef(false)
   const formRef = useRef<HTMLFormElement>(null)
   const navigate = useNavigate()
   const location = useLocation()
@@ -75,7 +75,6 @@ export default function CreateReliefPost() {
     latitude: null,
     longitude: null,
   })
-  const [loading, setLoading] = useState(false)
   const [voiceIdBootstrapping, setVoiceIdBootstrapping] = useState(false)
   const [uploadingMedia, setUploadingMedia] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -101,9 +100,101 @@ export default function CreateReliefPost() {
     setReliefFields((prev) => ({ ...prev, [key]: value }))
   }
 
+  const [runPublish, publishing] = useAsyncAction(
+    useCallback(async () => {
+      if (!user || !subtype) return
+
+      const resolvedAuthorName =
+        effectivePostingIdentity === 'profile' ? authorName.trim() : authorName
+      const publishDescription = enrichReliefDescription(description, title, subtype, reliefFields)
+      const locationLabel =
+        mapLocation.location_name.trim() ||
+        reliefFields.collection_location.trim() ||
+        reliefFields.hospital_or_organizer.trim() ||
+        undefined
+
+      const movementType = movementTypeForReliefSubtype(subtype)
+      const post = await createPost({
+        userId: user.id,
+        title: title.trim(),
+        description: publishDescription,
+        category: category as Category,
+        authorName: resolvedAuthorName,
+        postingIdentity: effectivePostingIdentity,
+        youthVoiceId: profile?.youth_voice_id ?? '',
+        movementType,
+        donation_subtype: donationSubtypeForCreate(subtype),
+        contact_note: reliefFields.contact_note,
+        blood_group: reliefFields.blood_group,
+        hospital_or_organizer: reliefFields.hospital_or_organizer,
+        urgency_level: reliefFields.urgency_level,
+        donors_needed: reliefFields.donors_needed
+          ? parseInt(reliefFields.donors_needed, 10)
+          : null,
+        needed_by_date: reliefFields.needed_by_date || undefined,
+        item_category: reliefFields.item_category,
+        items_needed: reliefFields.items_needed,
+        quantity_needed: reliefFields.quantity_needed
+          ? parseInt(reliefFields.quantity_needed, 10)
+          : null,
+        beneficiary_group: reliefFields.beneficiary_group,
+        collection_location: reliefFields.collection_location,
+        relief_deadline: reliefFields.relief_deadline || undefined,
+        location: locationLabel,
+        location_name: locationLabel,
+        latitude: mapLocation.latitude,
+        longitude: mapLocation.longitude,
+        fundraising_goal_amount: reliefFields.fundraising_goal_amount
+          ? parseFloat(reliefFields.fundraising_goal_amount)
+          : null,
+        fundraising_purpose: reliefFields.fundraising_purpose,
+        beneficiary_description: reliefFields.beneficiary_description,
+        organizer_transparency_note: reliefFields.organizer_transparency_note,
+      })
+
+      if (pendingMedia.hasFiles) {
+        setUploadingMedia(true)
+        try {
+          await uploadMovementAttachments({
+            movementId: post.id,
+            userId: user.id,
+            files: pendingMedia.files,
+          })
+          pendingMedia.clearFiles()
+        } catch (uploadErr) {
+          setError(
+            `${formatError(uploadErr)} Your relief post was published, but some files could not be attached.`,
+          )
+          setUploadingMedia(false)
+          return
+        } finally {
+          setUploadingMedia(false)
+        }
+      }
+
+      navigate('/relief', {
+        state: { toast: { type: 'success', message: t('relief.publishSuccess') } },
+      })
+    }, [
+      user,
+      subtype,
+      profile?.youth_voice_id,
+      effectivePostingIdentity,
+      authorName,
+      description,
+      title,
+      reliefFields,
+      mapLocation,
+      category,
+      pendingMedia,
+      navigate,
+      t,
+    ]),
+  )
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (submittingRef.current || loading) return
+    if (publishing || voiceIdBootstrapping) return
 
     if (!user) {
       setError(t('relief.loginRequired'))
@@ -163,86 +254,12 @@ export default function CreateReliefPost() {
       return
     }
 
-    const locationLabel =
-      mapLocation.location_name.trim() ||
-      reliefFields.collection_location.trim() ||
-      reliefFields.hospital_or_organizer.trim() ||
-      undefined
-
-    submittingRef.current = true
-    setLoading(true)
     setError(null)
-
     try {
-      const movementType = movementTypeForReliefSubtype(subtype)
-      const post = await createPost({
-        userId: user.id,
-        title: title.trim(),
-        description: publishDescription,
-        category: category as Category,
-        authorName: resolvedAuthorName,
-        postingIdentity: effectivePostingIdentity,
-        youthVoiceId: youthVoiceId ?? profile?.youth_voice_id ?? '',
-        movementType,
-        donation_subtype: donationSubtypeForCreate(subtype),
-        contact_note: reliefFields.contact_note,
-        blood_group: reliefFields.blood_group,
-        hospital_or_organizer: reliefFields.hospital_or_organizer,
-        urgency_level: reliefFields.urgency_level,
-        donors_needed: reliefFields.donors_needed
-          ? parseInt(reliefFields.donors_needed, 10)
-          : null,
-        needed_by_date: reliefFields.needed_by_date || undefined,
-        item_category: reliefFields.item_category,
-        items_needed: reliefFields.items_needed,
-        quantity_needed: reliefFields.quantity_needed
-          ? parseInt(reliefFields.quantity_needed, 10)
-          : null,
-        beneficiary_group: reliefFields.beneficiary_group,
-        collection_location: reliefFields.collection_location,
-        relief_deadline: reliefFields.relief_deadline || undefined,
-        location: locationLabel,
-        location_name: locationLabel,
-        latitude: mapLocation.latitude,
-        longitude: mapLocation.longitude,
-        fundraising_goal_amount: reliefFields.fundraising_goal_amount
-          ? parseFloat(reliefFields.fundraising_goal_amount)
-          : null,
-        fundraising_purpose: reliefFields.fundraising_purpose,
-        beneficiary_description: reliefFields.beneficiary_description,
-        organizer_transparency_note: reliefFields.organizer_transparency_note,
-      })
-
-      if (pendingMedia.hasFiles) {
-        setUploadingMedia(true)
-        try {
-          await uploadMovementAttachments({
-            movementId: post.id,
-            userId: user.id,
-            files: pendingMedia.files,
-          })
-          pendingMedia.clearFiles()
-        } catch (uploadErr) {
-          setError(
-            `${formatError(uploadErr)} Your relief post was published, but some files could not be attached.`,
-          )
-          setLoading(false)
-          setUploadingMedia(false)
-          return
-        } finally {
-          setUploadingMedia(false)
-        }
-      }
-
-      navigate('/relief', {
-        state: { toast: { type: 'success', message: t('relief.publishSuccess') } },
-      })
+      await runPublish()
     } catch (err) {
       setError(formatError(err))
       formRef.current?.querySelector('[role="alert"]')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-    } finally {
-      submittingRef.current = false
-      setLoading(false)
     }
   }
 
@@ -279,7 +296,7 @@ export default function CreateReliefPost() {
           <p className="mb-3 text-xs font-bold uppercase tracking-wide text-muted">
             {t('relief.chooseSubtype')}
           </p>
-          <ReliefSubtypePicker value={subtype} onChange={handleSubtypeChange} disabled={loading} />
+          <ReliefSubtypePicker value={subtype} onChange={handleSubtypeChange} disabled={publishing} />
         </div>
 
         {subtype && (
@@ -293,7 +310,7 @@ export default function CreateReliefPost() {
                 value={postingIdentity}
                 onChange={setPostingIdentity}
                 youthVoiceId={profile?.youth_voice_id}
-                disabled={loading}
+                disabled={publishing}
               />
             )}
 
@@ -305,7 +322,7 @@ export default function CreateReliefPost() {
                 maxLength={POST_LIMITS.titleMax}
                 aria-invalid={Boolean(fieldErrors.title)}
                 className={`${inputClass} ${fieldErrors.title ? inputErrorClass : ''}`}
-                disabled={loading}
+                disabled={publishing}
               />
             </FormField>
 
@@ -322,7 +339,7 @@ export default function CreateReliefPost() {
                 maxLength={POST_LIMITS.descriptionMax}
                 aria-invalid={Boolean(fieldErrors.description)}
                 className={`${inputClass} min-h-25 resize-y ${fieldErrors.description ? inputErrorClass : ''}`}
-                disabled={loading}
+                disabled={publishing}
               />
               {!fieldErrors.description &&
                 description.length > 0 &&
@@ -349,7 +366,7 @@ export default function CreateReliefPost() {
                   placeholder={t('relief.authorNamePh')}
                   aria-invalid={Boolean(fieldErrors.authorName)}
                   className={`${inputClass} ${fieldErrors.authorName ? inputErrorClass : ''}`}
-                  disabled={loading}
+                  disabled={publishing}
                 />
               </FormField>
             )}
@@ -358,7 +375,7 @@ export default function CreateReliefPost() {
               value={category}
               onChange={setCategory}
               error={fieldErrors.category}
-              disabled={loading}
+              disabled={publishing}
             />
 
             <MovementMediaUploader
@@ -368,7 +385,7 @@ export default function CreateReliefPost() {
               onAddFiles={pendingMedia.addFiles}
               onRemoveFile={pendingMedia.removeFile}
               validationIssues={pendingMedia.allIssues}
-              disabled={loading}
+              disabled={publishing}
               uploading={uploadingMedia}
             />
 
@@ -379,16 +396,16 @@ export default function CreateReliefPost() {
               mapLocation={mapLocation}
               onMapChange={setMapLocation}
               errors={fieldErrors}
-              disabled={loading}
+              disabled={publishing}
             />
 
             <button
               type="submit"
-              disabled={loading || uploadingMedia || voiceIdBootstrapping}
-              aria-busy={loading || uploadingMedia || voiceIdBootstrapping}
+              disabled={publishing || uploadingMedia || voiceIdBootstrapping}
+              aria-busy={publishing || uploadingMedia || voiceIdBootstrapping}
               className="btn-primary w-full sm:w-auto disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {loading || uploadingMedia ? (
+              {publishing || uploadingMedia ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
                   {t('relief.publishing')}

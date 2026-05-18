@@ -33,7 +33,7 @@ type PostRowBase = Omit<Post, 'support_count' | 'supported_by_me'>
 
 const FEED_SOURCE = 'posts_public_safe' as const
 
-export const DEFAULT_FEED_PAGE_SIZE = 25
+export const DEFAULT_FEED_PAGE_SIZE = 16
 export const PROFILE_POSTS_LIMIT = 100
 export const PROFILE_MOVEMENTS_PAGE_SIZE = 12
 

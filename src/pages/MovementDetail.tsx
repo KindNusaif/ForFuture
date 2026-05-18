@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Loader2 } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import MovementDetailView from '../components/movement/MovementDetailView'
 import ShareMovementButton from '../components/ShareMovementButton'
 import EmptyState from '../components/EmptyState'
+import { MovementDetailSkeleton } from '../components/Skeleton'
 import { Inbox } from 'lucide-react'
 import { useMovementFollows } from '../hooks/useMovementFollows'
 import { useRelatedMovements } from '../hooks/useRelatedMovements'
@@ -83,7 +84,7 @@ function MovementDetailContent({
       openJoinModal('petition')
       return
     }
-    if (!user || !post || post.supported_by_me) return
+    if (!user || !post || post.supported_by_me || petitionSigning) return
 
     setPetitionSigning(true)
     try {
@@ -107,7 +108,7 @@ function MovementDetailContent({
       openJoinModal()
       return
     }
-    if (!user || !post || isPetitionMovement(post.movement_type)) return
+    if (!user || !post || isPetitionMovement(post.movement_type) || supporting) return
     setSupporting(true)
     try {
       const nowParticipating = await togglePostAction(
@@ -136,7 +137,7 @@ function MovementDetailContent({
       openJoinModal()
       return
     }
-    if (!user) return
+    if (!user || pollVoting) return
     setPollVoting(true)
     try {
       const poll = await castPollVote(postId, optionId, user.id)
@@ -165,6 +166,7 @@ function MovementDetailContent({
       openJoinModal()
       return
     }
+    if (movementFollows.processingId) return
     try {
       const { following } = await movementFollows.toggleFollow(post.id)
       setPost((current) =>
@@ -204,15 +206,12 @@ function MovementDetailContent({
       />
 
       {showPageLoading ? (
-        <div className="flex flex-col items-center justify-center gap-3 py-20">
-          <Loader2 className="motion-essential h-10 w-10 animate-spin text-accent-600" aria-hidden />
-          <p className="text-sm text-muted">Loading movement…</p>
-        </div>
+        <MovementDetailSkeleton />
       ) : !post && !displayError ? (
         <EmptyState
           icon={Inbox}
-          title="Movement not found"
-          description="It may have been removed or is unavailable."
+          title="This movement is unavailable"
+          description="It may have been removed or is no longer available."
           action={{ label: backLabel, to: backTo }}
         />
       ) : post ? (

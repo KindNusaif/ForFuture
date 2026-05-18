@@ -7,7 +7,8 @@ import EmptyState from './EmptyState'
 import FeedDiscoveryBar from './FeedDiscoveryBar'
 import FeedTabs, { type FeedTab } from './FeedTabs'
 import PostCard from './PostCard'
-import { PostCardSkeleton } from './Skeleton'
+import { FeedPostListSkeleton } from './Skeleton'
+import { useDebouncedValue } from '../hooks/useDebouncedValue'
 import { useToast } from '../hooks/useToast'
 import { useJoinMovement } from '../hooks/useJoinMovement'
 import { getMovementConfig } from '../lib/movements'
@@ -32,6 +33,12 @@ import {
 import type { ReliefHubFilter } from '../lib/reliefHub'
 import { applyFollowStateToPosts } from '../lib/movementFollows'
 import { useMovementFollows } from '../hooks/useMovementFollows'
+import {
+  buildFeedCacheKey,
+  getFeedCache,
+  invalidateFeedCache,
+  setFeedCache,
+} from '../lib/feedTabCache'
 import type { Category, MovementType, Post } from '../types'
 
 export type { FeedTab }
@@ -104,6 +111,7 @@ function PostFeedContent({
     ? parseMovementFilterFromUrl(searchParams.get('type'))
     : localMovementFilter
   const [search, setSearch] = useState('')
+  const debouncedSearch = useDebouncedValue(search, 300)
   const [supportingId, setSupportingId] = useState<string | null>(null)
   const [petitionSigningId, setPetitionSigningId] = useState<string | null>(null)
   const [pollVotingId, setPollVotingId] = useState<string | null>(null)
@@ -122,8 +130,28 @@ function PostFeedContent({
   const isRequestActive = loading || enriching || loadingMore
   const { showSlowHint, showRecovery } = useLoadingProgress(isRequestActive)
 
+  const feedCacheKey = useMemo(() => {
+    if (isGuest || reliefHub) return ''
+    return buildFeedCacheKey({
+      feedTab,
+      movementFilter,
+      category,
+      reliefHub,
+      reliefSubtype,
+      followedIdsKey,
+    })
+  }, [
+    isGuest,
+    reliefHub,
+    feedTab,
+    movementFilter,
+    category,
+    reliefSubtype,
+    followedIdsKey,
+  ])
+
   const loadPage = useCallback(
-    async (offset: number, append: boolean) => {
+    async (offset: number, append: boolean, options?: { silent?: boolean }) => {
       abortRef.current?.abort()
       const controller = new AbortController()
       abortRef.current = controller
@@ -132,6 +160,9 @@ function PostFeedContent({
 
       if (append) {
         setLoadingMore(true)
+      } else if (options?.silent) {
+        setEnriching(true)
+        setError(null)
       } else {
         setLoading(true)
         setEnriching(false)
@@ -200,13 +231,20 @@ function PostFeedContent({
         setHasMore(more)
         setNextOffset(next)
         setError(null)
+        if (!append && feedCacheKey) {
+          setFeedCache(feedCacheKey, {
+            posts: withFollow,
+            hasMore: more,
+            nextOffset: next,
+          })
+        }
         if (!isGuest && withFollow.length > 0) {
           void follows.refreshCountsForPosts(withFollow.map((p) => p.id))
         }
       } catch (err) {
         if (requestId !== requestIdRef.current || isRequestAborted(err)) return
         setError(formatError(err))
-        if (!append) setPosts([])
+        if (!append && !options?.silent) setPosts([])
       } finally {
         if (requestId === requestIdRef.current) {
           setLoading(false)
@@ -223,6 +261,7 @@ function PostFeedContent({
       reliefSubtype,
       isFollowingFeed,
       followedIdsKey,
+      feedCacheKey,
     ],
   )
 
@@ -268,14 +307,25 @@ function PostFeedContent({
       setLoading(true)
       return
     }
+
+    const cached = feedCacheKey ? getFeedCache(feedCacheKey) : null
+    if (cached) {
+      setPosts(cached.posts)
+      setHasMore(cached.hasMore)
+      setNextOffset(cached.nextOffset)
+      setLoading(false)
+      setEnriching(false)
+      setError(null)
+    }
+
     const timer = window.setTimeout(() => {
-      void loadPage(0, false)
+      void loadPage(0, false, cached ? { silent: true } : undefined)
     }, 0)
     return () => {
       window.clearTimeout(timer)
       abortRef.current?.abort()
     }
-  }, [loadPage, isFollowingFeed, movementFollows.loading])
+  }, [loadPage, isFollowingFeed, movementFollows.loading, feedCacheKey])
 
   useEffect(() => {
     if (isGuest) return
@@ -285,7 +335,7 @@ function PostFeedContent({
   }, [movementFollows.followerCounts, movementFollows.followedIds, isGuest])
 
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase()
+    const q = debouncedSearch.trim().toLowerCase()
     if (!q) return posts
 
     return posts.filter(
@@ -296,7 +346,10 @@ function PostFeedContent({
         p.category.toLowerCase().includes(q) ||
         getMovementConfig(p.movement_type).label.toLowerCase().includes(q),
     )
-  }, [posts, search])
+  }, [posts, debouncedSearch])
+
+  const showFeedLoading =
+    loading || (isFollowingFeed && movementFollows.loading) || (enriching && posts.length === 0)
 
   const emptyState = useMemo(() => {
     if (isFollowingFeed) {
@@ -305,12 +358,12 @@ function PostFeedContent({
         description: t('feed.followingEmptyDescription'),
       }
     }
-    if (search) {
+    if (debouncedSearch.trim()) {
       return {
-        title: 'No matching movements',
+        title: 'No movements matched your search',
         description: hasMore
-          ? 'Try a different search or load more movements to search further.'
-          : 'Try a different search or filter.',
+          ? 'Try different words or load more movements to search further.'
+          : 'Try different words or reset your filters.',
       }
     }
     if (reliefHub) {
@@ -341,7 +394,7 @@ function PostFeedContent({
         ? 'Check back soon — youth leaders are organizing action every day.'
         : 'Be the first to create a youth movement on ForFuture.',
     }
-  }, [search, movementFilter, category, isGuest, hasMore, reliefHub, isFollowingFeed, t])
+  }, [debouncedSearch, movementFilter, category, isGuest, hasMore, reliefHub, isFollowingFeed, t])
 
   function handleRestrictedAction(variant: 'default' | 'petition' = 'default') {
     openJoinModal(variant)
@@ -384,7 +437,7 @@ function PostFeedContent({
       handleRestrictedAction()
       return
     }
-    if (!userId) return
+    if (!userId || pollVotingId) return
 
     setPollVotingId(postId)
     try {
@@ -403,7 +456,7 @@ function PostFeedContent({
       handleRestrictedAction('petition')
       return
     }
-    if (!userId) return
+    if (!userId || petitionSigningId) return
 
     const post = posts.find((p) => p.id === postId)
     if (!post || post.supported_by_me) return
@@ -437,6 +490,7 @@ function PostFeedContent({
       openJoinModal()
       return
     }
+    if (movementFollows.processingId) return
     try {
       const { following } = await movementFollows.toggleFollow(postId)
       setPosts((prev) =>
@@ -453,6 +507,7 @@ function PostFeedContent({
           .filter((p) => !(isFollowingFeed && !following && p.id === postId)),
       )
       toast.success(following ? t('follow.followedToast') : t('follow.unfollowedToast'))
+      if (isFollowingFeed) invalidateFeedCache('following')
     } catch (err) {
       toast.error(formatError(err))
     }
@@ -463,7 +518,7 @@ function PostFeedContent({
       handleRestrictedAction()
       return
     }
-    if (!userId) return
+    if (!userId || supportingId) return
 
     const post = posts.find((p) => p.id === postId)
     if (!post || isPetitionMovement(post.movement_type)) return
@@ -540,15 +595,22 @@ function PostFeedContent({
         onRetry={handleRetry}
       />
 
-      {loading ? (
-        <ul className="mt-6 min-w-0 space-y-4" aria-busy="true" aria-label="Loading movements">
-          {[1, 2, 3].map((i) => (
-            <li key={i} className="min-w-0">
-              <PostCardSkeleton />
-            </li>
-          ))}
-        </ul>
-      ) : filtered.length === 0 && !error && !loading ? (
+      {isFollowingFeed && movementFollows.error && !movementFollows.loading && (
+        <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-200">
+          <p>We couldn&apos;t load your followed movements. Please try again.</p>
+          <button
+            type="button"
+            className="mt-2 font-semibold text-accent-600 underline dark:text-accent-400"
+            onClick={() => void movementFollows.reloadFollowedIds()}
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {showFeedLoading ? (
+        <FeedPostListSkeleton />
+      ) : filtered.length === 0 && !error && !showFeedLoading ? (
         <div className="mt-8">
           <EmptyState
             icon={Inbox}
@@ -576,7 +638,7 @@ function PostFeedContent({
               </button>
             </p>
           )}
-          {!isGuest && movementFilter === 'All' && category === 'All' && !search && !hasMore && (
+          {!isGuest && movementFilter === 'All' && category === 'All' && !debouncedSearch.trim() && !hasMore && (
             <p className="mt-6 flex justify-center">
               <CreateMovementCta />
             </p>
@@ -625,8 +687,9 @@ function PostFeedContent({
               <button
                 type="button"
                 onClick={handleLoadMore}
-                disabled={loadingMore}
+                disabled={loadingMore || loading}
                 className="btn-secondary min-w-[12rem]"
+                aria-busy={loadingMore}
               >
                 {loadingMore ? (
                   <>

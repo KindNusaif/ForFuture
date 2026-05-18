@@ -60,7 +60,31 @@ export function enhanceSupabaseError(error: unknown): Error {
     return new Error('You do not have permission to perform this action. Try signing in again.')
   }
 
-  return new Error('Something went wrong. Please try again.')
+  if (error.code === '23505') {
+    return new Error(
+      'This account or Youth Voice ID is already in use. Try logging in instead.',
+    )
+  }
+
+  if (error.code === '23502' || error.message.includes('null value')) {
+    return new Error(
+      'Your profile could not be saved because the database setup is incomplete. Please try logging in, or contact support if this continues.',
+    )
+  }
+
+  if (error.code === '23514') {
+    return new Error('Some profile information was invalid. Please check your details and try again.')
+  }
+
+  if (import.meta.env?.DEV) {
+    logDeveloperHint('Unhandled PostgREST error', error)
+  }
+
+  return new Error(
+    error.message && error.message.length < 200 && !error.message.includes('SQL')
+      ? error.message
+      : 'Something went wrong. Please try again.',
+  )
 }
 
 /** Strip internal migration paths from any error string shown in the UI */

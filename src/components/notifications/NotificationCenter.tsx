@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Bell, CheckCheck, Loader2, X } from 'lucide-react'
+import { Bell, CheckCheck, Inbox, Loader2, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../hooks/useAuth'
 import { useNotifications } from '../../hooks/useNotifications'
@@ -99,26 +99,51 @@ export default function NotificationCenter() {
 
       <div className="max-h-[min(24rem,60vh)] overflow-y-auto">
         {loading && items.length === 0 && (
-          <p className="flex items-center justify-center gap-2 px-4 py-8 text-sm text-muted">
+          <p className="flex items-center justify-center gap-2 px-4 py-10 text-sm text-muted">
             <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-            Loading…
+            {t('notifications.loading', { defaultValue: 'Loading notifications…' })}
           </p>
         )}
         {error && (
-          <p className="px-4 py-6 text-center text-sm text-red-600" role="alert">
-            {error}
-            <button type="button" onClick={() => void reload()} className="btn-secondary mt-3 w-full">
-              Retry
+          <div
+            className="px-4 py-8 text-center"
+            role="alert"
+            aria-live="polite"
+          >
+            <p className="text-sm font-medium text-primary">
+              {t('notifications.errorTitle', {
+                defaultValue: "We couldn't load notifications",
+              })}
+            </p>
+            <p className="mt-1 text-xs leading-relaxed text-secondary">
+              {t('notifications.errorDescription', {
+                defaultValue: 'Check your connection and try again.',
+              })}
+            </p>
+            <button
+              type="button"
+              onClick={() => void reload()}
+              className="btn-secondary mt-4 min-h-11 w-full sm:w-auto"
+            >
+              {t('notifications.retry', { defaultValue: 'Try again' })}
             </button>
-          </p>
+          </div>
         )}
         {!loading && !error && items.length === 0 && (
-          <p className="px-4 py-10 text-center text-sm leading-relaxed text-secondary">
-            {t('notifications.empty', {
-              defaultValue:
-                "You're all caught up. Follow movements to receive updates here.",
-            })}
-          </p>
+          <div className="flex flex-col items-center px-6 py-10 text-center">
+            <span className="inline-flex rounded-2xl bg-muted p-3 text-muted" aria-hidden>
+              <Inbox className="h-6 w-6" />
+            </span>
+            <p className="mt-4 text-sm font-semibold text-primary">
+              {t('notifications.emptyTitle', { defaultValue: "You're all caught up" })}
+            </p>
+            <p className="mt-1 max-w-xs text-xs leading-relaxed text-secondary">
+              {t('notifications.empty', {
+                defaultValue:
+                  'Follow movements to receive updates when something new happens.',
+              })}
+            </p>
+          </div>
         )}
         <ul className="divide-y divide-default">
           {items.map((n) => {

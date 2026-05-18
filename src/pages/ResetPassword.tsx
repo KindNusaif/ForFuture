@@ -46,7 +46,7 @@ export default function ResetPassword() {
       await signOut()
       setSuccess(true)
     } catch (err) {
-      setError(formatError(err) || t('auth.resetUpdateFailed'))
+      setError(formatError(err, { passwordRecovery: true }) || t('auth.resetUpdateFailed'))
     } finally {
       setLoading(false)
     }

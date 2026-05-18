@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react'
-import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom'
+import { Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import { isPublicMarketingRoute } from './lib/publicRoutes'
 import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
@@ -17,6 +17,7 @@ import GuestRoute from './components/GuestRoute'
 import PageLoader from './components/PageLoader'
 import DeployConfigBanner from './components/DeployConfigBanner'
 import HomeRoute from './components/HomeRoute'
+import SessionExpiryHandler from './components/SessionExpiryHandler'
 
 const Login = lazy(() => import('./pages/Login'))
 const Signup = lazy(() => import('./pages/Signup'))
@@ -42,6 +43,7 @@ const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'))
 const TermsOfUse = lazy(() => import('./pages/TermsOfUse'))
 const CommunityGuidelines = lazy(() => import('./pages/CommunityGuidelines'))
 const Contact = lazy(() => import('./pages/Contact'))
+const NotFound = lazy(() => import('./pages/NotFound'))
 
 function LazyPage({ children }: { children: ReactNode }) {
   return <Suspense fallback={<PageLoader />}>{children}</Suspense>
@@ -69,6 +71,7 @@ export default function App() {
     <AuthProvider>
       <ThemeProvider>
         <ToastProvider>
+          <SessionExpiryHandler />
           <JoinMovementProvider>
             <ReportContentProvider>
               <AppFrame>
@@ -143,6 +146,14 @@ export default function App() {
                   element={
                     <LazyPage>
                       <Contact />
+                    </LazyPage>
+                  }
+                />
+                <Route
+                  path="*"
+                  element={
+                    <LazyPage>
+                      <NotFound />
                     </LazyPage>
                   }
                 />
@@ -315,7 +326,6 @@ export default function App() {
                 </Route>
               </Route>
 
-              <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
               </AppFrame>
             </ReportContentProvider>

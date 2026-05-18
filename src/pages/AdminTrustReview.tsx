@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useAsyncAction } from '../hooks/useAsyncAction'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, BadgeCheck, RefreshCw, ShieldCheck } from 'lucide-react'
 import AsyncLoadHint from '../components/AsyncLoadHint'
@@ -44,8 +45,6 @@ export default function AdminTrustReview() {
   const [profileResults, setProfileResults] = useState<TrustProfileSearchResult[]>([])
   const [selectedProfile, setSelectedProfile] = useState<TrustProfileSearchResult | null>(null)
   const [organizerType, setOrganizerType] = useState<OrganizerVerificationType>('organization')
-  const [profileLoading, setProfileLoading] = useState(false)
-  const [profileSaving, setProfileSaving] = useState(false)
 
   const [queueStatus, setQueueStatus] = useState<CampaignReviewStatus | ''>('')
   const [queueMovement, setQueueMovement] = useState('')
@@ -57,6 +56,37 @@ export default function AdminTrustReview() {
   const [updatingPostId, setUpdatingPostId] = useState<string | null>(null)
 
   const [error, setError] = useState<string | null>(null)
+  const [runProfileSearch, profileLoading] = useAsyncAction(
+    useCallback(async () => {
+      const results = await searchProfilesForTrust(profileQuery)
+      setProfileResults(results)
+      if (results.length === 1) {
+        setSelectedProfile(results[0])
+        if (results[0].organizer_verification_type) {
+          setOrganizerType(results[0].organizer_verification_type)
+        }
+      }
+    }, [profileQuery]),
+  )
+
+  const [runOrganizerUpdate, profileSaving] = useAsyncAction(
+    useCallback(
+      async (isVerified: boolean) => {
+        if (!selectedProfile) return
+        await updateOrganizerVerification(
+          selectedProfile.id,
+          isVerified,
+          isVerified ? organizerType : null,
+        )
+        const results = await searchProfilesForTrust(selectedProfile.id)
+        const updated = results.find((p) => p.id === selectedProfile.id) ?? null
+        setSelectedProfile(updated)
+        setProfileResults(results.length ? results : profileResults)
+      },
+      [selectedProfile, organizerType, profileResults],
+    ),
+  )
+
   const { showSlowHint, showRecovery } = useLoadingProgress(
     profileLoading || queueLoading || queueRefreshing,
   )
@@ -100,45 +130,16 @@ export default function AdminTrustReview() {
     return () => window.clearTimeout(timer)
   }, [loadQueue])
 
-  async function handleProfileSearch(e: React.FormEvent) {
+  function handleProfileSearch(e: React.FormEvent) {
     e.preventDefault()
-    setProfileLoading(true)
     setError(null)
-    try {
-      const results = await searchProfilesForTrust(profileQuery)
-      setProfileResults(results)
-      if (results.length === 1) {
-        setSelectedProfile(results[0])
-        if (results[0].organizer_verification_type) {
-          setOrganizerType(results[0].organizer_verification_type)
-        }
-      }
-    } catch (err) {
-      setError(formatError(err))
-    } finally {
-      setProfileLoading(false)
-    }
+    void runProfileSearch().catch((err) => setError(formatError(err)))
   }
 
-  async function handleOrganizerUpdate(isVerified: boolean) {
+  function handleOrganizerUpdate(isVerified: boolean) {
     if (!selectedProfile) return
-    setProfileSaving(true)
     setError(null)
-    try {
-      await updateOrganizerVerification(
-        selectedProfile.id,
-        isVerified,
-        isVerified ? organizerType : null,
-      )
-      const results = await searchProfilesForTrust(selectedProfile.id)
-      const updated = results.find((p) => p.id === selectedProfile.id) ?? null
-      setSelectedProfile(updated)
-      setProfileResults(results.length ? results : profileResults)
-    } catch (err) {
-      setError(formatError(err))
-    } finally {
-      setProfileSaving(false)
-    }
+    void runOrganizerUpdate(isVerified).catch((err) => setError(formatError(err)))
   }
 
   async function handleCampaignReview(

@@ -2,9 +2,42 @@ export function Skeleton({ className = '' }: { className?: string }) {
   return <div className={`skeleton-shimmer ${className}`} aria-hidden />
 }
 
+const FEED_SKELETON_COUNT = 6
+
+export function FeedPostListSkeleton({ count = FEED_SKELETON_COUNT }: { count?: number }) {
+  return (
+    <ul className="mt-6 min-w-0 space-y-4" aria-busy="true" aria-label="Loading movements">
+      {Array.from({ length: count }, (_, i) => (
+        <li key={i} className="min-w-0">
+          <PostCardSkeleton />
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+export function MovementDetailSkeleton() {
+  return (
+    <div className="space-y-6" aria-busy="true" aria-label="Loading movement">
+      <div className="flex gap-2">
+        <Skeleton className="h-6 w-24 rounded-full" />
+        <Skeleton className="h-6 w-20 rounded-full" />
+      </div>
+      <Skeleton className="h-9 w-4/5 max-w-xl" />
+      <Skeleton className="h-4 w-full" />
+      <Skeleton className="h-4 w-11/12" />
+      <Skeleton className="h-48 w-full rounded-2xl" />
+      <div className="flex gap-3 border-t border-default pt-6">
+        <Skeleton className="h-11 min-w-[10rem] flex-1 rounded-xl" />
+        <Skeleton className="h-11 w-36 rounded-xl" />
+      </div>
+    </div>
+  )
+}
+
 export function PostCardSkeleton() {
   return (
-    <article className="card-surface min-w-0 max-w-full p-5 sm:p-6">
+    <article className="card-surface min-h-[280px] min-w-0 max-w-full p-5 sm:p-6">
       <div className="flex justify-between border-b border-default pb-4">
         <Skeleton className="h-6 w-28 rounded-full" />
         <Skeleton className="h-4 w-16" />

@@ -313,6 +313,17 @@
     "relatedEmpty": "No related movements right now.",
     "backToFeed": "← Back to movements"
   },
+  "notifications": {
+    "title": "Notifications",
+    "open": "Open notifications",
+    "markAllRead": "Mark all as read",
+    "loading": "Loading notifications…",
+    "emptyTitle": "You're all caught up",
+    "empty": "Follow movements to receive updates when something new happens.",
+    "errorTitle": "We couldn't load notifications",
+    "errorDescription": "Check your connection and try again.",
+    "retry": "Try again"
+  },
   "follow": {
     "follow": "Follow",
     "following": "Following",

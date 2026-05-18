@@ -1098,6 +1098,13 @@
   );
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer {
+    animation: none;
+    background: var(--ff-muted);
+  }
+}
+
 @layer components {
   dialog::backdrop {
     background: var(--ff-backdrop);

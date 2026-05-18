@@ -6,7 +6,7 @@ import {
   PROFILE_COLUMNS_ONBOARDING,
   PROFILE_COLUMNS_WITH_APPEARANCE,
 } from './profileColumns'
-import { enhanceSupabaseError, isMissingColumn } from './supabaseErrors'
+import { enhanceSupabaseError, isMissingColumn, isPostgrestError } from './supabaseErrors'
 import { requireSupabase } from './supabase'
 import { DEFAULT_REQUEST_TIMEOUT_MS, withTimeout } from './supabaseRequest'
 import { getAppOrigin, getPasswordResetRedirectUrl } from './appUrl'
@@ -74,6 +74,14 @@ export interface SignUpResult {
   needsEmailConfirmation: boolean
 }
 
+const PROFILE_INSERT_SELECT_SETS = [
+  PROFILE_COLUMNS_MINIMAL,
+  PROFILE_COLUMNS_LEGACY,
+  PROFILE_COLUMNS,
+  PROFILE_COLUMNS_ONBOARDING,
+  PROFILE_COLUMNS_WITH_APPEARANCE,
+] as const
+
 /** Create profile row after auth — retries on Youth Voice ID collision. */
 async function insertProfileForUser(userId: string, displayName: string): Promise<Profile> {
   const existing = await getProfile(userId)
@@ -89,31 +97,56 @@ async function insertProfileForUser(userId: string, displayName: string): Promis
       youth_voice_id: generateYouthVoiceIdCandidate(),
     }
 
-    const { data, error } = await withTimeout(
-      client.from('profiles').insert(insertRow).select(PROFILE_COLUMNS).single(),
-      DEFAULT_REQUEST_TIMEOUT_MS,
-    )
+    let lastError: unknown = null
 
-    if (!error) {
-      return mapProfile(data as unknown as Record<string, unknown>)
+    for (const columns of PROFILE_INSERT_SELECT_SETS) {
+      const { data, error } = await withTimeout(
+        client.from('profiles').insert(insertRow).select(columns).single(),
+        DEFAULT_REQUEST_TIMEOUT_MS,
+      )
+
+      if (!error && data) {
+        const profile = mapProfile(data as unknown as Record<string, unknown>)
+        if (!profile.youth_voice_id) {
+          try {
+            return await ensureYouthVoiceId(userId)
+          } catch {
+            return profile
+          }
+        }
+        return profile
+      }
+
+      lastError = error
+      if (!error) continue
+
+      if (error.code === '23505') {
+        const again = await getProfile(userId)
+        if (again) return again
+        break
+      }
+
+      if (isMissingColumn(error)) continue
+
+      if (error.code === '42501') {
+        throw new Error(
+          'Your account was created. Please confirm your email (if required), then log in to finish setup.',
+        )
+      }
+
+      throw enhanceSupabaseError(error)
     }
 
-    if (error.code === '23505') {
-      const again = await getProfile(userId)
-      if (again) return again
+    if (isPostgrestError(lastError) && lastError.code === '23505') {
       continue
     }
 
-    if (error.code === '42501') {
-      throw new Error(
-        'Your account was created. Please confirm your email (if required), then log in to finish setup.',
-      )
-    }
-
-    throw enhanceSupabaseError(error)
+    if (lastError) throw enhanceSupabaseError(lastError)
   }
 
-  throw new Error('Could not create your profile. Please try logging in.')
+  throw new Error(
+    'Your account may have been created. Please try logging in. If that does not work, contact support.',
+  )
 }
 
 export async function signUp(
@@ -145,7 +178,14 @@ export async function signUp(
   const needsEmailConfirmation = !data.session
 
   if (data.session) {
-    await insertProfileForUser(data.user.id, displayName)
+    try {
+      await insertProfileForUser(data.user.id, displayName)
+    } catch (profileErr) {
+      if (profileErr instanceof Error) throw profileErr
+      throw new Error(
+        'Your account was created. Please log in to complete setup.',
+      )
+    }
   }
 
   return { user: data.user, needsEmailConfirmation }

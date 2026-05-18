@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
-import { Flag, Shield, X } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Flag, Loader2, Shield, X } from 'lucide-react'
 import { useAuthUser } from '../hooks/useAuthUser'
+import { useAsyncAction } from '../hooks/useAsyncAction'
 import { useJoinMovement } from '../hooks/useJoinMovement'
 import { submitContentReport } from '../lib/contentReports'
 import { formatError } from '../lib/errors'
@@ -28,7 +29,6 @@ export default function ReportContentModal({
   const [note, setNote] = useState('')
   const [validationError, setValidationError] = useState<string | null>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
-  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     const dialog = dialogRef.current
@@ -42,8 +42,22 @@ export default function ReportContentModal({
     setNote('')
     setValidationError(null)
     setSubmitError(null)
-    setSubmitting(false)
   }
+
+  const [submitReport, submitting] = useAsyncAction(
+    useCallback(async () => {
+      if (!user || !target || !reason) return
+
+      await submitContentReport(user.id, {
+        contentType: target.contentType,
+        contentId: target.contentId,
+        reason,
+        note,
+      })
+      resetForm()
+      onSuccess()
+    }, [user, target, reason, note, onSuccess]),
+  )
 
   function handleClose() {
     resetForm()
@@ -66,20 +80,11 @@ export default function ReportContentModal({
       return
     }
 
-    setSubmitting(true)
+    setSubmitError(null)
     try {
-      await submitContentReport(user.id, {
-        contentType: target.contentType,
-        contentId: target.contentId,
-        reason,
-        note,
-      })
-      resetForm()
-      onSuccess()
+      await submitReport()
     } catch (err) {
       setSubmitError(formatError(err))
-    } finally {
-      setSubmitting(false)
     }
   }
 
@@ -206,7 +211,14 @@ export default function ReportContentModal({
               disabled={submitting}
               className="btn-primary w-full sm:w-auto"
             >
-              {submitting ? 'Submitting…' : 'Submit Report'}
+              {submitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                  Submitting…
+                </>
+              ) : (
+                'Submit Report'
+              )}
             </button>
           </div>
         </div>
