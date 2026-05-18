@@ -22,6 +22,7 @@ import ReliefSubtypeBadge from './relief/ReliefSubtypeBadge'
 import UnderReviewBadge from './UnderReviewBadge'
 import VerifiedOrganizerBadge from './VerifiedOrganizerBadge'
 import ReportContentButton from './ReportContentButton'
+import FollowMovementButton from './FollowMovementButton'
 import MovementMediaFeedPreview from './media/MovementMediaFeedPreview'
 import MovementMediaDetail from './media/MovementMediaDetail'
 import type { Post } from '../types'
@@ -53,6 +54,11 @@ interface PostCardProps {
   detailPath?: string
   /** Full gallery + documents on movement detail */
   showFullMedia?: boolean
+  showFollow?: boolean
+  isFollowing?: boolean
+  followLoading?: boolean
+  followerCount?: number
+  onFollowToggle?: () => void
 }
 
 export default function PostCard({
@@ -69,6 +75,11 @@ export default function PostCard({
   showEngagementHint = false,
   detailPath,
   showFullMedia = false,
+  showFollow = false,
+  isFollowing = false,
+  followLoading = false,
+  followerCount,
+  onFollowToggle,
 }: PostCardProps) {
   const movement = getMovementConfig(post.movement_type)
   const visual = getMovementVisual(post.movement_type)
@@ -146,11 +157,22 @@ export default function PostCard({
               </span>
             )}
           </div>
-          <div className="flex shrink-0 items-center gap-1">
-            <ReportContentButton post={post} />
-            <time className="text-xs font-medium text-muted" dateTime={post.created_at}>
-              {date}
-            </time>
+          <div className="flex shrink-0 items-start gap-2">
+            {showFollow && onFollowToggle && (
+              <FollowMovementButton
+                isFollowing={isFollowing}
+                loading={followLoading}
+                followerCount={followerCount}
+                onClick={onFollowToggle}
+                compact
+              />
+            )}
+            <div className="flex flex-col items-end gap-1">
+              <ReportContentButton post={post} />
+              <time className="text-xs font-medium text-muted" dateTime={post.created_at}>
+                {date}
+              </time>
+            </div>
           </div>
         </header>
       </div>

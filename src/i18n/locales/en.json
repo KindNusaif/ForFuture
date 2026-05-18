@@ -285,7 +285,26 @@
     "emptyGuest": "Be the first to explore — or join to create the next youth movement.",
     "emptyMember": "Create your first movement and inspire others to join.",
     "createMovement": "Create a Youth Movement",
-    "movementType": "Movement type"
+    "movementType": "Movement type",
+    "tabDiscover": "Discover",
+    "tabFollowing": "Following",
+    "tabsLabel": "Feed views",
+    "followingEmptyTitle": "No followed movements yet",
+    "followingEmptyDescription": "You are not following any movements yet. Explore causes and follow the ones you care about.",
+    "followingExploreCta": "Explore movements"
+  },
+  "follow": {
+    "follow": "Follow",
+    "following": "Following",
+    "followAria": "Follow this movement",
+    "unfollowAria": "Unfollow this movement",
+    "trackingCount": "{{count}} tracking this cause",
+    "followedToast": "You are now tracking this movement.",
+    "unfollowedToast": "You stopped tracking this movement.",
+    "profileSectionTitle": "Movements you follow",
+    "profileSectionSubtitle": "Causes you chose to stay close to on ForFuture.",
+    "profileEmpty": "You have not followed any movements yet. Browse the feed and follow causes that matter to you.",
+    "viewFollowingFeed": "Open following feed"
   },
   "create": {
     "title": "Create a Youth Movement",

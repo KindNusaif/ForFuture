@@ -119,6 +119,10 @@ export interface Post {
   created_at: string
   support_count?: number
   supported_by_me?: boolean
+  /** Whether the signed-in viewer follows this movement */
+  followed_by_me?: boolean
+  /** Subtle follower count for cause tracking (not profile popularity) */
+  follower_count?: number
   // Idea for Change
   proposed_solution?: string | null
   expected_impact?: string | null

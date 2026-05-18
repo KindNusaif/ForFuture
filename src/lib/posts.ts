@@ -46,6 +46,8 @@ export interface FetchPostsPageParams {
   /** Filter Donation & Relief hub (donation_relief + fundraising) */
   reliefHub?: boolean
   reliefSubtype?: ReliefHubFilter
+  /** When set, only return posts whose id is in this list (following feed). */
+  movementIds?: string[]
 }
 
 export interface FetchPostsPageResult {
@@ -176,9 +178,19 @@ function applyFeedFilters<
   Q extends {
     eq: (column: string, value: string) => Q
     or: (filters: string) => Q
+    in: (column: string, values: string[]) => Q
   },
->(query: Q, params: Pick<FetchPostsPageParams, 'movementType' | 'category' | 'reliefHub' | 'reliefSubtype'>): Q {
+>(
+  query: Q,
+  params: Pick<
+    FetchPostsPageParams,
+    'movementType' | 'category' | 'reliefHub' | 'reliefSubtype' | 'movementIds'
+  >,
+): Q {
   let q = query
+  if (params.movementIds) {
+    q = q.in('id', params.movementIds)
+  }
   if (params.reliefHub) {
     const sub = params.reliefSubtype ?? 'all'
     if (sub === 'blood_donation') {
@@ -227,6 +239,10 @@ async function fetchPublicFeedRows(params: FetchPostsPageParams): Promise<{
 }> {
   const pageSize = params.limit ?? DEFAULT_FEED_PAGE_SIZE
   const viewerUserId = params.viewerUserId
+
+  if (params.movementIds && params.movementIds.length === 0) {
+    return { rows: [], hasMore: false }
+  }
 
   const columnSets = [POST_PUBLIC_COLUMNS, POST_PUBLIC_COLUMNS_LEGACY, POST_PUBLIC_COLUMNS_CORE]
   let lastError: unknown

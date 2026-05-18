@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Inbox, Loader2, Plus } from 'lucide-react'
 import EmptyState from './EmptyState'
 import FeedDiscoveryBar from './FeedDiscoveryBar'
+import FeedTabs, { type FeedTab } from './FeedTabs'
 import PostCard from './PostCard'
 import Toast from './Toast'
 import { PostCardSkeleton } from './Skeleton'
@@ -33,7 +34,11 @@ import {
   parseMovementFilterFromUrl,
 } from '../lib/feedUrlFilters'
 import type { ReliefHubFilter } from '../lib/reliefHub'
+import { applyFollowStateToPosts } from '../lib/movementFollows'
+import { useMovementFollows } from '../hooks/useMovementFollows'
 import type { Category, MovementType, Post } from '../types'
+
+export type { FeedTab }
 
 export interface FeedToast {
   type: 'success' | 'error'
@@ -51,6 +56,8 @@ interface PostFeedProps {
   reliefSubtype?: ReliefHubFilter
   /** Read/write ?category= and ?type= on /movements (guest discover links). */
   syncFiltersFromUrl?: boolean
+  feedTab?: FeedTab
+  onFeedTabChange?: (tab: FeedTab) => void
   className?: string
 }
 
@@ -72,12 +79,16 @@ function PostFeedContent({
   reliefHub = false,
   reliefSubtype = 'all',
   syncFiltersFromUrl = false,
+  feedTab = 'discover',
+  onFeedTabChange,
   className = '',
 }: PostFeedProps) {
   const { t } = useTranslation()
   const { openJoinModal } = useJoinMovement()
   const isGuest = mode === 'guest'
   const viewerUserId = isGuest ? undefined : userId
+  const isFollowingFeed = !isGuest && feedTab === 'following'
+  const movementFollows = useMovementFollows(viewerUserId)
   const [searchParams, setSearchParams] = useSearchParams()
 
   const [posts, setPosts] = useState<Post[]>([])
@@ -126,14 +137,41 @@ function PostFeedContent({
 
       try {
         const hubActive = reliefHub || movementFilter === 'donation_relief_hub'
+        const followedIds =
+          isFollowingFeed && !movementFollows.loading
+            ? [...movementFollows.followedIds]
+            : undefined
+
+        if (isFollowingFeed && movementFollows.loading) {
+          if (!append) {
+            setLoading(true)
+            setEnriching(false)
+          }
+          return
+        }
+
+        if (isFollowingFeed && followedIds && followedIds.length === 0) {
+          if (!append) {
+            setPosts([])
+            setHasMore(false)
+            setNextOffset(0)
+            setError(null)
+            setLoading(false)
+            setEnriching(false)
+          }
+          return
+        }
+
         const pageParams = {
           viewerUserId,
           offset,
           limit: DEFAULT_FEED_PAGE_SIZE,
-          movementType: hubActive ? undefined : serverMovementType(movementFilter),
-          category: serverCategory(category),
-          reliefHub: hubActive,
-          reliefSubtype: hubActive ? (reliefHub ? reliefSubtype : 'all') : undefined,
+          movementType:
+            isFollowingFeed || hubActive ? undefined : serverMovementType(movementFilter),
+          category: isFollowingFeed ? serverCategory(category) : serverCategory(category),
+          reliefHub: isFollowingFeed ? false : hubActive,
+          reliefSubtype: hubActive && !isFollowingFeed ? (reliefHub ? reliefSubtype : 'all') : undefined,
+          movementIds: isFollowingFeed ? followedIds : undefined,
         }
 
         const { rows, hasMore: more, nextOffset: next } = await withAutoRetry(
@@ -156,10 +194,20 @@ function PostFeedContent({
 
         if (requestId !== requestIdRef.current || controller.signal.aborted) return
 
-        setPosts((prev) => (append ? [...prev, ...enriched] : enriched))
+        const withFollow = isGuest
+          ? enriched
+          : applyFollowStateToPosts(
+              enriched,
+              movementFollows.followedIds,
+              movementFollows.followerCounts,
+            )
+        setPosts((prev) => (append ? [...prev, ...withFollow] : withFollow))
         setHasMore(more)
         setNextOffset(next)
         setError(null)
+        if (!isGuest && withFollow.length > 0) {
+          void movementFollows.refreshCountsForPosts(withFollow.map((p) => p.id))
+        }
       } catch (err) {
         if (requestId !== requestIdRef.current || isRequestAborted(err)) return
         setError(formatError(err))
@@ -172,7 +220,17 @@ function PostFeedContent({
         }
       }
     },
-    [viewerUserId, movementFilter, category, reliefHub, reliefSubtype],
+    [
+      viewerUserId,
+      movementFilter,
+      category,
+      reliefHub,
+      reliefSubtype,
+      isFollowingFeed,
+      movementFollows.loading,
+      movementFollows.followedIds,
+      movementFollows.followerCounts,
+    ],
   )
 
   const updateUrlFilters = useCallback(
@@ -213,6 +271,10 @@ function PostFeedContent({
   )
 
   useEffect(() => {
+    if (isFollowingFeed && movementFollows.loading) {
+      setLoading(true)
+      return
+    }
     const timer = window.setTimeout(() => {
       void loadPage(0, false)
     }, 0)
@@ -220,7 +282,14 @@ function PostFeedContent({
       window.clearTimeout(timer)
       abortRef.current?.abort()
     }
-  }, [loadPage])
+  }, [loadPage, isFollowingFeed, movementFollows.loading])
+
+  useEffect(() => {
+    if (isGuest) return
+    setPosts((prev) =>
+      applyFollowStateToPosts(prev, movementFollows.followedIds, movementFollows.followerCounts),
+    )
+  }, [movementFollows.followerCounts, movementFollows.followedIds, isGuest])
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -237,6 +306,12 @@ function PostFeedContent({
   }, [posts, search])
 
   const emptyState = useMemo(() => {
+    if (isFollowingFeed) {
+      return {
+        title: t('feed.followingEmptyTitle'),
+        description: t('feed.followingEmptyDescription'),
+      }
+    }
     if (search) {
       return {
         title: 'No matching movements',
@@ -273,7 +348,7 @@ function PostFeedContent({
         ? 'Check back soon — youth leaders are organizing action every day.'
         : 'Be the first to create a youth movement on ForFuture.',
     }
-  }, [search, movementFilter, category, isGuest, hasMore, reliefHub])
+  }, [search, movementFilter, category, isGuest, hasMore, reliefHub, isFollowingFeed, t])
 
   function handleRestrictedAction(variant: 'default' | 'petition' = 'default') {
     openJoinModal(variant)
@@ -364,6 +439,35 @@ function PostFeedContent({
     }
   }
 
+  async function handleFollowToggle(postId: string) {
+    if (isGuest) {
+      openJoinModal()
+      return
+    }
+    try {
+      const { following } = await movementFollows.toggleFollow(postId)
+      setPosts((prev) =>
+        prev
+          .map((p) =>
+            p.id === postId
+              ? {
+                  ...p,
+                  followed_by_me: following,
+                  follower_count: movementFollows.followerCounts[postId] ?? p.follower_count,
+                }
+              : p,
+          )
+          .filter((p) => !(isFollowingFeed && !following && p.id === postId)),
+      )
+      setActionToast({
+        type: 'success',
+        message: following ? t('follow.followedToast') : t('follow.unfollowedToast'),
+      })
+    } catch (err) {
+      setActionToast({ type: 'error', message: formatError(err) })
+    }
+  }
+
   async function handleSupport(postId: string) {
     if (isGuest) {
       handleRestrictedAction()
@@ -418,6 +522,15 @@ function PostFeedContent({
         </div>
       )}
 
+      {!isGuest && !reliefHub && onFeedTabChange && (
+        <FeedTabs
+          active={feedTab}
+          onChange={onFeedTabChange}
+          followingCount={movementFollows.followedIds.size}
+          className="mb-4"
+        />
+      )}
+
       {!reliefHub && (
         <FeedDiscoveryBar
           search={search}
@@ -459,14 +572,21 @@ function PostFeedContent({
             title={emptyState.title}
             description={emptyState.description}
           />
-          {hasActiveFilters && (
+          {isFollowingFeed && (
+            <p className="mt-6 text-center">
+              <Link to="/movements" className="btn-primary">
+                {t('feed.followingExploreCta')}
+              </Link>
+            </p>
+          )}
+          {hasActiveFilters && !isFollowingFeed && (
             <p className="mt-4 text-center">
               <button type="button" onClick={handleClearFilters} className="btn-secondary">
                 {t('feed.clearFilters')}
               </button>
             </p>
           )}
-          {hasMore && (
+          {hasMore && !isFollowingFeed && (
             <p className="mt-4 text-center">
               <button type="button" onClick={handleLoadMore} className="btn-secondary">
                 Load more movements
@@ -515,6 +635,11 @@ function PostFeedContent({
                   petitionSigning={petitionSigningId === post.id}
                   pollVoting={pollVotingId === post.id}
                   guestMode={isGuest}
+                  showFollow={!isGuest}
+                  isFollowing={Boolean(post.followed_by_me)}
+                  followLoading={movementFollows.processingId === post.id}
+                  followerCount={post.follower_count}
+                  onFollowToggle={() => void handleFollowToggle(post.id)}
                 />
               </li>
             ))}
@@ -546,6 +671,9 @@ function PostFeedContent({
 }
 
 export default function PostFeed(props: PostFeedProps) {
-  const feedKey = props.mode === 'guest' ? 'guest' : (props.userId ?? 'member')
+  const feedKey =
+    props.mode === 'guest'
+      ? 'guest'
+      : `${props.userId ?? 'member'}-${props.feedTab ?? 'discover'}`
   return <PostFeedContent key={feedKey} {...props} />
 }

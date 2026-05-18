@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import PostCard from '../components/PostCard'
 import ShareMovementButton from '../components/ShareMovementButton'
+import FollowMovementButton from '../components/FollowMovementButton'
+import { useMovementFollows } from '../hooks/useMovementFollows'
 import { getMovementShareUrl } from '../lib/share'
 import Toast from '../components/Toast'
 import AsyncLoadHint from '../components/AsyncLoadHint'
@@ -54,6 +56,7 @@ function MovementDetailContent({
   const [pollVoting, setPollVoting] = useState(false)
   const [actionMessage, setActionMessage] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
+  const movementFollows = useMovementFollows(isGuest ? undefined : user?.id)
 
   const post = fetchedPost
   const displayError = actionError ?? error
@@ -140,6 +143,28 @@ function MovementDetailContent({
 
   const shareUrl = post ? getMovementShareUrl(post.id, isGuest ? 'guest' : 'member') : ''
 
+  useEffect(() => {
+    if (!post || isGuest) return
+    void movementFollows.refreshCountsForPosts([post.id])
+  }, [post?.id, isGuest, movementFollows])
+
+  async function handleFollowToggle() {
+    if (!post) return
+    if (isGuest) {
+      openJoinModal()
+      return
+    }
+    try {
+      const { following } = await movementFollows.toggleFollow(post.id)
+      setActionError(null)
+      setActionMessage(
+        following ? 'You are now tracking this movement.' : 'You stopped tracking this movement.',
+      )
+    } catch (err) {
+      setActionError(formatError(err))
+    }
+  }
+
   return (
     <>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -152,7 +177,17 @@ function MovementDetailContent({
           {backLabel}
         </button>
         {post && (
-          <ShareMovementButton url={shareUrl} title={post.title} variant="secondary" />
+          <div className="flex flex-wrap items-center gap-2">
+            {!isGuest && (
+              <FollowMovementButton
+                isFollowing={movementFollows.isFollowing(post.id)}
+                loading={movementFollows.processingId === post.id}
+                followerCount={movementFollows.followerCounts[post.id] ?? post.follower_count}
+                onClick={() => void handleFollowToggle()}
+              />
+            )}
+            <ShareMovementButton url={shareUrl} title={post.title} variant="secondary" />
+          </div>
         )}
       </div>
 

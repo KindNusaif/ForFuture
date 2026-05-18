@@ -8,6 +8,7 @@ import MyReportsSection from '../components/MyReportsSection'
 import AppearanceSettings from '../components/appearance/AppearanceSettings'
 import DeleteMovementDialog from '../components/profile/DeleteMovementDialog'
 import MyMovementsSection from '../components/profile/MyMovementsSection'
+import FollowedMovementsSection from '../components/profile/FollowedMovementsSection'
 import ProfileDashboardHeader, {
   type BioSaveStatus,
 } from '../components/profile/ProfileDashboardHeader'
@@ -203,6 +204,8 @@ function ProfileContent({ userId, email }: { userId: string; email?: string | nu
         onLoadMore={handleLoadMore}
         onDelete={setDeleteTarget}
       />
+
+      <FollowedMovementsSection userId={userId} />
 
       <AppearanceSettings />
 
