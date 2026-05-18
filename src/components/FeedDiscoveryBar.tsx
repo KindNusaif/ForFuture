@@ -61,7 +61,7 @@ export default function FeedDiscoveryBar({
           </div>
 
           {!isGuest && showCreateButton && (
-            <CreateMovementCta className="min-h-10.5! shrink-0 py-2!" compact />
+            <CreateMovementCta className="shrink-0 py-2!" compact variant="secondary" />
           )}
 
           {isGuest && onGuestCreate && (

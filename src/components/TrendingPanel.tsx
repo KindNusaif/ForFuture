@@ -21,7 +21,7 @@ export default function TrendingPanel() {
           <p className="mt-2 text-sm leading-relaxed text-secondary">
             Speak freely. Organize boldly. Build the future together.
           </p>
-          <CreateMovementCta className="mt-4" fullWidth compact />
+          <CreateMovementCta className="mt-4" fullWidth compact variant="secondary" />
         </div>
 
         <div className="card-surface p-5">

@@ -18,6 +18,8 @@ export interface CreateMovementFormState {
   movementType: MovementType
   movementFields: MovementFieldValues
   pollOptions?: string[]
+  typeExplicitlyChosen?: boolean
+  goodFaithConfirmed?: boolean
 }
 
 /** Description sent to API (petition body vs standard description). */
@@ -29,12 +31,26 @@ export function resolveCreateDescription(state: CreateMovementFormState): string
     const combined = `${issueText}\n\n${movementFields.petition_requested_change.trim()}`.trim()
     return combined.slice(0, POST_LIMITS.descriptionMax)
   }
+
+  const parts = [
+    movementFields.issue_summary.trim(),
+    description.trim(),
+    movementFields.expected_impact.trim()
+      ? `Why it matters: ${movementFields.expected_impact.trim()}`
+      : '',
+    movementFields.desired_change.trim()
+      ? `Desired change: ${movementFields.desired_change.trim()}`
+      : '',
+  ].filter(Boolean)
+
+  const combined = parts.join('\n\n').slice(0, POST_LIMITS.descriptionMax)
+  if (combined.length >= POST_LIMITS.descriptionMin) return combined
+
   const body = description.trim()
   if (body.length >= POST_LIMITS.descriptionMin) return body
   const summary = movementFields.issue_summary.trim()
   if (summary.length >= POST_LIMITS.descriptionMin) return summary
-  if (body && summary) return `${summary}\n\n${body}`.slice(0, POST_LIMITS.descriptionMax)
-  return body || summary
+  return body || summary || combined
 }
 
 export function validateCreateMovement(
@@ -62,23 +78,77 @@ export function validateCreateMovement(
   })
 }
 
-export function wizardStepCanContinue(
+function storyStepComplete(state: CreateMovementFormState): boolean {
+  if (state.title.trim().length < POST_LIMITS.titleMin) return false
+  if (isPetitionMovement(state.movementType)) return true
+  return resolveCreateDescription(state).length >= POST_LIMITS.descriptionMin
+}
+
+function typeDetailsStepComplete(state: CreateMovementFormState): boolean {
+  const { movementType, movementFields } = state
+  if (isPetitionMovement(movementType)) {
+    return Boolean(
+      movementFields.petition_issue.trim() && movementFields.petition_requested_change.trim(),
+    )
+  }
+  if (movementType === 'fundraising') {
+    return Boolean(
+      movementFields.fundraising_purpose.trim() && movementFields.fundraising_goal_amount.trim(),
+    )
+  }
+  if (movementType === 'volunteer_drive') {
+    return Boolean(movementFields.event_date.trim() && movementFields.location.trim())
+  }
+  if (movementType === 'peaceful_civic_action') {
+    return Boolean(movementFields.action_purpose.trim())
+  }
+  if (movementType === 'idea_for_change') {
+    return Boolean(movementFields.proposed_solution.trim())
+  }
+  if (movementType === 'raise_voice') return true
+  return true
+}
+
+export function wizardStepCanContinue(step: number, state: CreateMovementFormState): boolean {
+  switch (step) {
+    case 1:
+      return state.typeExplicitlyChosen === true
+    case 2:
+      return Boolean(state.category)
+    case 3:
+      return storyStepComplete(state)
+    case 4:
+      return typeDetailsStepComplete(state)
+    case 5:
+      return state.goodFaithConfirmed === true
+    case 6: {
+      const errors = validateCreateMovement(state)
+      return !hasFieldErrors(errors) && state.goodFaithConfirmed === true
+    }
+    default:
+      return false
+  }
+}
+
+export function wizardStepFieldErrors(
   step: number,
   state: CreateMovementFormState,
-): boolean {
-  if (step === 1) {
-    return state.title.trim().length >= POST_LIMITS.titleMin
+  options?: { postingIdentity: PostingIdentity },
+): CreatePostFieldErrors {
+  const all = validateCreateMovement(state, options)
+  const out: CreatePostFieldErrors = {}
+
+  if (step === 2 && all.category) out.category = all.category
+  if (step === 3) {
+    if (all.title) out.title = all.title
+    if (all.description) out.description = all.description
   }
-  if (step === 2) {
-    if (isPetitionMovement(state.movementType)) return true
-    const desc = resolveCreateDescription(state)
-    return desc.length >= POST_LIMITS.descriptionMin
+  if (step === 4) {
+    if (all.petition_issue) out.petition_issue = all.petition_issue
+    if (all.petition_requested_change) out.petition_requested_change = all.petition_requested_change
+    if (all.fundraising_purpose) out.fundraising_purpose = all.fundraising_purpose
+    if (all.fundraising_goal_amount) out.fundraising_goal_amount = all.fundraising_goal_amount
   }
-  if (step === 3) return true
-  if (step === 4) return Boolean(state.category)
-  if (step === 5) {
-    const errors = validateCreateMovement(state)
-    return !hasFieldErrors(errors)
-  }
-  return false
+  if (step === 6) return all
+  return out
 }

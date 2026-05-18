@@ -165,17 +165,98 @@
   z-index: 1;
 }
 
-/* Unified “create movement” CTA — one line, same route (/create) everywhere */
+/* Unified “create movement” CTA — premium civic entry point */
 .create-movement-cta {
-  @apply inline-flex max-w-full items-center justify-center gap-2;
+  @apply inline-flex max-w-full min-h-11 items-center justify-center gap-2.5 rounded-xl px-4 py-2.5 text-sm font-semibold;
   flex-wrap: nowrap;
-  white-space: nowrap;
+  transition:
+    transform 200ms ease,
+    box-shadow 200ms ease,
+    border-color 200ms ease,
+    background 200ms ease,
+    filter 200ms ease;
+}
+
+.create-movement-cta:focus-visible {
+  outline: 2px solid var(--ff-accent-500, #6366f1);
+  outline-offset: 2px;
+}
+
+.create-movement-cta--primary {
+  color: #fff;
+  border: 1px solid transparent;
+  background: linear-gradient(
+    135deg,
+    var(--ff-accent-600, #4f46e5) 0%,
+    var(--ff-accent-700, #4338ca) 55%,
+    #3730a3 100%
+  );
+  box-shadow:
+    0 1px 2px rgb(15 23 42 / 0.08),
+    0 4px 14px rgb(79 70 229 / 0.28);
+}
+
+.create-movement-cta--primary:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+  box-shadow:
+    0 2px 4px rgb(15 23 42 / 0.1),
+    0 8px 22px rgb(79 70 229 / 0.38);
+}
+
+.create-movement-cta--primary:active {
+  transform: translateY(0);
+  filter: brightness(0.98);
+}
+
+.create-movement-cta--secondary {
+  color: var(--ff-accent-700, #4338ca);
+  border: 1px solid var(--ff-accent-200, #c7d2fe);
+  background: color-mix(in srgb, var(--ff-accent-50, #eef2ff) 72%, transparent);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
+}
+
+.dark .create-movement-cta--secondary {
+  color: var(--ff-accent-300, #a5b4fc);
+  border-color: rgb(99 102 241 / 0.35);
+  background: rgb(49 46 129 / 0.22);
+}
+
+.create-movement-cta--secondary:hover {
+  transform: translateY(-1px);
+  border-color: var(--ff-accent-400, #818cf8);
+  box-shadow: 0 4px 16px rgb(79 70 229 / 0.18);
+}
+
+.create-movement-cta--secondary:active {
+  transform: translateY(0);
+}
+
+.create-movement-cta-icon {
+  @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-full;
+  background: rgb(255 255 255 / 0.18);
+}
+
+.create-movement-cta--secondary .create-movement-cta-icon {
+  background: rgb(79 70 229 / 0.12);
+}
+
+.dark .create-movement-cta--secondary .create-movement-cta-icon {
+  background: rgb(99 102 241 / 0.2);
 }
 
 .create-movement-cta-label {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  line-height: 1.25;
+}
+
+@media (max-width: 380px) {
+  .create-movement-cta-label {
+    white-space: normal;
+    text-align: left;
+  }
 }
 
 @utility step-card {
@@ -785,4 +866,50 @@ html:not([data-reduce-motion='true']) .post-card-interactive:hover {
 
 .create-preview-card-header {
   @apply flex flex-wrap items-start justify-between gap-2 border-b border-default px-4 py-3 sm:px-5;
+}
+
+.create-wizard-step-panel {
+  animation: create-wizard-step-in 220ms ease-out;
+}
+
+@keyframes create-wizard-step-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.create-wizard-footer {
+  @apply sticky bottom-0 z-10 border-t border-default pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-sm;
+  background: color-mix(in srgb, var(--ff-page-bg, #f8fafc) 92%, transparent);
+  margin-left: -1rem;
+  margin-right: -1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .create-wizard-footer {
+    position: static;
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
+    border-top: none;
+    background: transparent;
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .create-wizard-step-panel {
+    animation: none;
+  }
+  .create-movement-cta {
+    transition: none;
+  }
 }

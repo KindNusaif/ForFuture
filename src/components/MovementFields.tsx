@@ -14,6 +14,8 @@ interface MovementFieldsProps {
   onMapChange?: (value: MapLocation) => void
   errors: CreatePostFieldErrors
   disabled?: boolean
+  /** Hides fields already collected in the create wizard story step. */
+  wizardMode?: boolean
 }
 
 function Field({
@@ -42,6 +44,7 @@ export default function MovementFields({
   onMapChange,
   errors,
   disabled,
+  wizardMode = false,
 }: MovementFieldsProps) {
   const ta = (id: keyof MovementFieldValues, label: string, placeholder: string) => (
     <Field label={label} id={id} error={errors[id]}>
@@ -79,10 +82,18 @@ export default function MovementFields({
             Idea details
           </p>
           {ta('proposed_solution', 'Proposed solution', 'What practical solution do you propose?')}
-          {ta('expected_impact', 'Expected impact', 'What positive change could this create?')}
+          {!wizardMode &&
+            ta('expected_impact', 'Expected impact', 'What positive change could this create?')}
         </div>
       )
     case 'raise_voice':
+      if (wizardMode) {
+        return (
+          <p className="text-sm leading-relaxed text-secondary">
+            Your story is captured in the previous step. You can continue when ready.
+          </p>
+        )
+      }
       return (
         <div className="space-y-4 rounded-xl border border-rose-100 bg-rose-50/40 p-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-rose-800">Your voice</p>

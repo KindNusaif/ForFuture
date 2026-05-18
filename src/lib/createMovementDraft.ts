@@ -15,6 +15,8 @@ export interface CreateMovementDraft {
   authorNameOverride: string | null
   movementFields: MovementFieldValues
   mapLocation: MapLocation
+  typeExplicitlyChosen?: boolean
+  goodFaithConfirmed?: boolean
 }
 
 function isMovementFieldValues(value: unknown): value is MovementFieldValues {
@@ -25,9 +27,17 @@ function isMovementFieldValues(value: unknown): value is MovementFieldValues {
   )
 }
 
+function readDraftRaw(): string | null {
+  try {
+    return localStorage.getItem(CREATE_MOVEMENT_DRAFT_KEY) ?? sessionStorage.getItem(CREATE_MOVEMENT_DRAFT_KEY)
+  } catch {
+    return null
+  }
+}
+
 export function loadCreateMovementDraft(): CreateMovementDraft | null {
   try {
-    const raw = sessionStorage.getItem(CREATE_MOVEMENT_DRAFT_KEY)
+    const raw = readDraftRaw()
     if (!raw) return null
     const parsed = JSON.parse(raw) as CreateMovementDraft
     if (!isMovementFieldValues(parsed.movementFields)) {
@@ -43,7 +53,9 @@ export function loadCreateMovementDraft(): CreateMovementDraft | null {
 
 export function saveCreateMovementDraft(draft: CreateMovementDraft): void {
   try {
-    sessionStorage.setItem(CREATE_MOVEMENT_DRAFT_KEY, JSON.stringify(draft))
+    const json = JSON.stringify(draft)
+    localStorage.setItem(CREATE_MOVEMENT_DRAFT_KEY, json)
+    sessionStorage.setItem(CREATE_MOVEMENT_DRAFT_KEY, json)
   } catch {
     /* ignore quota */
   }
@@ -51,6 +63,7 @@ export function saveCreateMovementDraft(draft: CreateMovementDraft): void {
 
 export function clearCreateMovementDraft(): void {
   try {
+    localStorage.removeItem(CREATE_MOVEMENT_DRAFT_KEY)
     sessionStorage.removeItem(CREATE_MOVEMENT_DRAFT_KEY)
   } catch {
     /* ignore */
@@ -96,6 +109,7 @@ export function buildCreatePreviewPost(input: {
     issue_summary: input.movementFields.issue_summary || null,
     proposed_solution: input.movementFields.proposed_solution || null,
     expected_impact: input.movementFields.expected_impact || null,
+    desired_change: input.movementFields.desired_change || null,
     petition_issue: input.movementFields.petition_issue || null,
     petition_requested_change: input.movementFields.petition_requested_change || null,
     petition_target_authority: input.movementFields.petition_target_authority || null,

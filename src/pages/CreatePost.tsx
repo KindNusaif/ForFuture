@@ -40,8 +40,11 @@ import {
   resolveCreateDescription,
   validateCreateMovement,
   wizardStepCanContinue,
+  wizardStepFieldErrors,
   type CreateMovementFormState,
 } from '../lib/createMovementValidation'
+import { CREATE_WIZARD_STEP_COUNT } from '../lib/createWizardConfig'
+import type { WizardTypeOption } from '../lib/createWizardConfig'
 import { useToast } from '../hooks/useToast'
 import {
   buildActionPathApplyResult,
@@ -73,7 +76,7 @@ const MOVEMENT_TYPE_VALUES: MovementType[] = [
   'youth_petition',
 ]
 
-const WIZARD_STEPS = 5
+const WIZARD_STEPS = CREATE_WIZARD_STEP_COUNT
 
 export default function CreatePost() {
   const { t } = useTranslation()
@@ -88,6 +91,8 @@ export default function CreatePost() {
 
   const [wizardStep, setWizardStep] = useState(1)
   const [publishedPostId, setPublishedPostId] = useState<string | null>(null)
+  const [typeExplicitlyChosen, setTypeExplicitlyChosen] = useState(false)
+  const [goodFaithConfirmed, setGoodFaithConfirmed] = useState(false)
 
   const [movementType, setMovementType] = useState<MovementType>(() => {
     if (typeFromUrl === 'quick_youth_poll') return 'quick_youth_poll'
@@ -135,6 +140,8 @@ export default function CreatePost() {
       movementType,
       movementFields,
       pollOptions,
+      typeExplicitlyChosen,
+      goodFaithConfirmed,
     }),
     [
       title,
@@ -145,6 +152,8 @@ export default function CreatePost() {
       movementType,
       movementFields,
       pollOptions,
+      typeExplicitlyChosen,
+      goodFaithConfirmed,
     ],
   )
 
@@ -160,6 +169,13 @@ export default function CreatePost() {
 
   useEffect(() => {
     if (!useWizardMode) return
+    if (typeFromUrl && typeFromUrl !== 'quick_youth_poll' && MOVEMENT_TYPE_VALUES.includes(typeFromUrl as MovementType)) {
+      setTypeExplicitlyChosen(true)
+    }
+  }, [useWizardMode, typeFromUrl])
+
+  useEffect(() => {
+    if (!useWizardMode) return
     const draft = loadCreateMovementDraft()
     if (!draft) return
     setWizardStep(draft.wizardStep)
@@ -171,6 +187,8 @@ export default function CreatePost() {
     setAuthorNameOverride(draft.authorNameOverride)
     setMovementFields(draft.movementFields)
     setMapLocation(draft.mapLocation)
+    setTypeExplicitlyChosen(draft.typeExplicitlyChosen ?? false)
+    setGoodFaithConfirmed(draft.goodFaithConfirmed ?? false)
   }, [useWizardMode])
 
   useEffect(() => {
@@ -191,7 +209,34 @@ export default function CreatePost() {
       authorNameOverride,
       movementFields,
       mapLocation,
+      typeExplicitlyChosen,
+      goodFaithConfirmed,
     })
+  }
+
+  function handleWizardTypeSelect(option: WizardTypeOption) {
+    if (option.kind !== 'movement') return
+    setTypeExplicitlyChosen(true)
+    handleMovementTypeChange(option.value)
+  }
+
+  function handleCreateAnother() {
+    clearCreateMovementDraft()
+    setWizardStep(1)
+    setPublishedPostId(null)
+    setTypeExplicitlyChosen(false)
+    setGoodFaithConfirmed(false)
+    setTitle('')
+    setDescription('')
+    setCategory('')
+    setMovementFields(emptyMovementFields())
+    setMovementType('raise_voice')
+    setPostingIdentity('profile')
+    setAuthorNameOverride(null)
+    setMapLocation({ location_name: '', latitude: null, longitude: null })
+    setFieldErrors({})
+    setError(null)
+    pendingMedia.clearFiles()
   }
 
   const previewPost = useMemo(() => {
@@ -228,25 +273,13 @@ export default function CreatePost() {
   }
 
   function handleWizardContinue() {
-    const errors = validateCreateMovement(formState, {
+    const stepErrors = wizardStepFieldErrors(wizardStep, formState, {
       postingIdentity: effectivePostingIdentity,
     })
-    if (wizardStep < 4) {
-      const stepFields: CreatePostFieldErrors = {}
-      if (wizardStep === 1 && errors.title) stepFields.title = errors.title
-      if (wizardStep === 2 && errors.description) stepFields.description = errors.description
-      if (wizardStep === 4 && errors.category) stepFields.category = errors.category
-      if (hasFieldErrors(stepFields)) {
-        setFieldErrors(stepFields)
-        setError(formatFieldErrorsSummary(stepFields) || t('create.fixValidation'))
-        return
-      }
-    } else if (wizardStep === 4) {
-      setFieldErrors(errors)
-      if (hasFieldErrors(errors)) {
-        setError(formatFieldErrorsSummary(errors) || t('create.fixValidation'))
-        return
-      }
+    if (hasFieldErrors(stepErrors)) {
+      setFieldErrors(stepErrors)
+      setError(formatFieldErrorsSummary(stepErrors) || t('create.fixValidation'))
+      return
     }
     if (!wizardStepValid(wizardStep)) {
       setError(t('create.fixValidation'))
@@ -304,6 +337,7 @@ export default function CreatePost() {
       if (getMovementConfig(result.movementType).requiresProfileIdentity) {
         setPostingIdentity('profile')
       }
+      setTypeExplicitlyChosen(true)
       setFieldErrors({})
     } else {
       if (result.movementType !== movementType) {
@@ -491,14 +525,16 @@ export default function CreatePost() {
   if (useWizardMode) {
     return (
       <>
-        <div className="mx-auto max-w-2xl px-4 pt-6 sm:px-6">
-          <ActionPathAI
+        {wizardStep === 3 && (
+          <div className="mx-auto max-w-2xl px-4 pt-6 sm:px-6">
+            <ActionPathAI
             currentMovementType={movementType}
             onApplyDraft={(s) => applyActionPathSuggestion(s, 'draft')}
             onApplyFields={(s) => applyActionPathSuggestion(s, 'fields')}
             formDisabled={loading}
           />
-        </div>
+          </div>
+        )}
         <CreateMovementWizard
           step={wizardStep}
           totalSteps={WIZARD_STEPS}
@@ -506,7 +542,8 @@ export default function CreatePost() {
           onContinue={handleWizardContinue}
           canContinue={wizardStepValid(wizardStep)}
           movementType={movementType}
-          onMovementTypeChange={handleMovementTypeChange}
+          typeExplicitlyChosen={typeExplicitlyChosen}
+          onSelectType={handleWizardTypeSelect}
           title={title}
           onTitleChange={setTitle}
           description={description}
@@ -529,6 +566,9 @@ export default function CreatePost() {
           canPublish={canPublish}
           onSubmit={() => void publishMovement()}
           onSaveDraft={handleSaveDraftAndExit}
+          onCreateAnother={handleCreateAnother}
+          goodFaithConfirmed={goodFaithConfirmed}
+          onGoodFaithChange={setGoodFaithConfirmed}
           pendingMedia={pendingMedia}
           uploadingMedia={uploadingMedia}
           error={error}
