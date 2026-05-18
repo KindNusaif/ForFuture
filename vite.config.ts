@@ -4,8 +4,6 @@ import tailwindcss from '@tailwindcss/vite'
 
 const buildId = new Date().toISOString()
 
-const deploySyncTag = '<script src="/deploy-sync.js"></script>'
-
 function stampBuildMeta(html: string) {
   return html.replace(
     '<meta charset="UTF-8" />',
@@ -13,15 +11,33 @@ function stampBuildMeta(html: string) {
   )
 }
 
-function placeDeploySyncBeforeBundle(html: string) {
-  const withoutDeploySync = html.replace(/\s*<script src="\/deploy-sync\.js"><\/script>\s*/g, '\n')
-  return withoutDeploySync.replace(
-    /(<script type="module"[^>]*><\/script>)/,
-    `    ${deploySyncTag}\n    $1`,
-  )
+/** Production: defer app bundle until boot.js confirms index.html entry matches the server. */
+function bootLoaderPlugin() {
+  return {
+    name: 'forfuture-boot-loader',
+    apply: 'build' as const,
+    transformIndexHtml: {
+      order: 'post',
+      handler(html: string) {
+        const moduleMatch = html.match(/<script type="module" crossorigin src="([^"]+)"><\/script>/)
+        const entry = moduleMatch?.[1]
+        if (!entry) return html
+
+        const withoutModule = html.replace(/\s*<script type="module"[^>]*><\/script>\s*/g, '\n')
+        const withoutDeploySync = withoutModule.replace(
+          /\s*<script src="\/deploy-sync\.js"><\/script>\s*/g,
+          '\n',
+        )
+        const bootTags =
+          `    <meta name="forfuture-entry" content="${entry}" />\n` +
+          '    <script src="/boot.js"></script>\n'
+
+        return withoutDeploySync.replace('</head>', `${bootTags}  </head>`)
+      },
+    },
+  }
 }
 
-/** Build stamp early in head; deploy-sync runs before the hashed app bundle. */
 function buildStampPlugin() {
   return {
     name: 'forfuture-build-stamp',
@@ -34,20 +50,8 @@ function buildStampPlugin() {
   }
 }
 
-function deploySyncOrderPlugin() {
-  return {
-    name: 'forfuture-deploy-sync-order',
-    transformIndexHtml: {
-      order: 'post',
-      handler(html: string) {
-        return placeDeploySyncBeforeBundle(html)
-      },
-    },
-  }
-}
-
 export default defineConfig({
-  plugins: [react(), tailwindcss(), buildStampPlugin(), deploySyncOrderPlugin()],
+  plugins: [react(), tailwindcss(), buildStampPlugin(), bootLoaderPlugin()],
   define: {
     __FORFUTURE_BUILD_ID__: JSON.stringify(buildId),
   },

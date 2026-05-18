@@ -5,6 +5,16 @@
 /
   Cache-Control: no-cache, no-store, must-revalidate
 
+# Boot helpers must never be cached across deploys
+/boot.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/deploy-sync.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/theme-init.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
 # Hashed Vite assets are safe to cache long-term
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
