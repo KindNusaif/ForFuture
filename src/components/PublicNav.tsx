@@ -120,7 +120,7 @@ export default function PublicNav() {
   return (
     <header className="nav-shell">
       <div className="relative mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <Logo to={signedIn && !isMarketingRoute ? '/feed' : '/'} showTagline={isMarketingRoute} />
+        <Logo to={signedIn ? '/feed' : '/'} showTagline={isMarketingRoute && !signedIn} />
 
         {showMarketingCenterNav && (
           <nav

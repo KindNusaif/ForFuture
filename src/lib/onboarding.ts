@@ -45,7 +45,11 @@ const ONBOARDING_COLUMNS =
 
 export function isOnboardingComplete(profile: Profile | null | undefined): boolean {
   if (!profile) return false
-  return Boolean(profile.onboarding_completed_at || profile.onboarding_skipped_at)
+  if (profile.onboarding_completed_at || profile.onboarding_skipped_at) return true
+  const hasOnboardingSchema =
+    profile.preferred_causes !== undefined || profile.participation_preferences !== undefined
+  if (!hasOnboardingSchema) return true
+  return false
 }
 
 export function categoriesFromCauseIds(causeIds: string[]): Category[] {

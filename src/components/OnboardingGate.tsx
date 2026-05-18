@@ -1,14 +1,21 @@
 import type { ReactNode } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { isAuthProfileReady } from '../lib/authReady'
 import { isOnboardingComplete } from '../lib/onboarding'
+import PageLoader from './PageLoader'
 
 /** Redirects members who have not finished onboarding to `/onboarding`. */
 export default function OnboardingGate({ children }: { children: ReactNode }) {
-  const { user, profile, loading } = useAuth()
+  const { user, profile, loading, profileError } = useAuth()
   const location = useLocation()
+  const profileReady = isAuthProfileReady(loading, user?.id, profile, profileError)
 
-  if (loading || !user) return <>{children}</>
+  if (!profileReady) {
+    return <PageLoader />
+  }
+
+  if (!user) return <>{children}</>
 
   const onOnboarding = location.pathname === '/onboarding'
   const complete = isOnboardingComplete(profile)

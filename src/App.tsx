@@ -16,7 +16,7 @@ import OnboardingGate from './components/OnboardingGate'
 import GuestRoute from './components/GuestRoute'
 import PageLoader from './components/PageLoader'
 import DeployConfigBanner from './components/DeployConfigBanner'
-import Landing from './pages/Landing'
+import HomeRoute from './components/HomeRoute'
 
 const Login = lazy(() => import('./pages/Login'))
 const Signup = lazy(() => import('./pages/Signup'))
@@ -75,7 +75,7 @@ export default function App() {
               <DeployConfigBanner />
               <Routes>
               <Route element={<Layout />}>
-                <Route index element={<Landing />} />
+                <Route index element={<HomeRoute />} />
                 <Route
                   path="login"
                   element={

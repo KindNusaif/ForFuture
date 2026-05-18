@@ -4,15 +4,18 @@ import { Loader2 } from 'lucide-react'
 import AsyncLoadHint from './AsyncLoadHint'
 import { useAuth } from '../hooks/useAuth'
 import { useLoadingProgress } from '../hooks/useLoadingProgress'
+import { isOnboardingComplete } from '../lib/onboarding'
+import { isAuthProfileReady } from '../lib/authReady'
 
 /** Redirect logged-in users away from login/signup */
 export default function GuestRoute({ children }: { children: ReactNode }) {
-  const { user, loading, configured } = useAuth()
+  const { user, loading, configured, profile, profileError } = useAuth()
   const { showSlowHint, showRecovery } = useLoadingProgress(loading)
+  const profileReady = isAuthProfileReady(loading, user?.id, profile, profileError)
 
   if (!configured) return <>{children}</>
 
-  if (loading) {
+  if (!profileReady) {
     return (
       <main className="flex min-h-[50vh] flex-col items-center justify-center gap-4 px-4">
         <Loader2 className="h-8 w-8 animate-spin text-brand-600" aria-label="Loading" />
@@ -29,7 +32,8 @@ export default function GuestRoute({ children }: { children: ReactNode }) {
   }
 
   if (user) {
-    return <Navigate to="/feed" replace />
+    const dest = isOnboardingComplete(profile) ? '/feed' : '/onboarding'
+    return <Navigate to={dest} replace />
   }
 
   return <>{children}</>
