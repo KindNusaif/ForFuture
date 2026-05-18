@@ -16,12 +16,26 @@ export interface CreateMovementDraft {
   mapLocation: MapLocation
 }
 
+function isMovementFieldValues(value: unknown): value is MovementFieldValues {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    typeof (value as MovementFieldValues).issue_summary === 'string'
+  )
+}
+
 export function loadCreateMovementDraft(): CreateMovementDraft | null {
   try {
     const raw = sessionStorage.getItem(CREATE_MOVEMENT_DRAFT_KEY)
     if (!raw) return null
-    return JSON.parse(raw) as CreateMovementDraft
+    const parsed = JSON.parse(raw) as CreateMovementDraft
+    if (!isMovementFieldValues(parsed.movementFields)) {
+      clearCreateMovementDraft()
+      return null
+    }
+    return parsed
   } catch {
+    clearCreateMovementDraft()
     return null
   }
 }

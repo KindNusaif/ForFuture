@@ -59,9 +59,12 @@ export default function Feed() {
                 ? 'Movements you are tracking — stay close to the causes you care about.'
                 : 'What future do you want to help build today?'}
             </p>
-            <Link to="/create" className="btn-primary mt-5 inline-flex w-full sm:w-auto">
-              <Plus className="h-5 w-5" />
-              Create a Youth Movement
+            <Link
+              to="/create"
+              className="btn-primary mt-5 inline-flex w-full shrink-0 items-center justify-center gap-2 whitespace-nowrap sm:w-auto"
+            >
+              <Plus className="h-5 w-5 shrink-0" aria-hidden />
+              <span>Create a Youth Movement</span>
             </Link>
           </header>
 

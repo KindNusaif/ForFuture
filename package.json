@@ -13,7 +13,8 @@
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^2.0.2",
-    "@supabase/supabase-js": "^2.105.4",
+    "@supabase/ssr": "^0.10.3",
+    "@supabase/supabase-js": "^2.106.0",
     "i18next": "^26.2.0",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",

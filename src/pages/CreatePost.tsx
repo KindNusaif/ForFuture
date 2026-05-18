@@ -94,7 +94,7 @@ export default function CreatePost() {
   const [category, setCategory] = useState<Category | ''>('')
   const [authorNameOverride, setAuthorNameOverride] = useState<string | null>(null)
   const [postingIdentity, setPostingIdentity] = useState<PostingIdentity>('profile')
-  const [movementFields, setMovementFields] = useState<MovementFieldValues>(emptyMovementFields)
+  const [movementFields, setMovementFields] = useState<MovementFieldValues>(() => emptyMovementFields())
   const [pollOptions, setPollOptions] = useState<string[]>(emptyPollOptions)
   const [loading, setLoading] = useState(false)
   const [uploadingMedia, setUploadingMedia] = useState(false)

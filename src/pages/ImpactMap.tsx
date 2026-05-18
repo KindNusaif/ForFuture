@@ -144,7 +144,10 @@ export default function ImpactMapPage() {
           />
           {isMember && (
             <p className="mt-6 text-center">
-              <Link to="/create" className="btn-primary">
+              <Link
+                to="/create"
+                className="btn-primary inline-flex items-center justify-center gap-2 whitespace-nowrap"
+              >
                 Create a Youth Movement
               </Link>
             </p>

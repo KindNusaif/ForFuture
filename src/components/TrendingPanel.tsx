@@ -20,8 +20,11 @@ export default function TrendingPanel() {
           <p className="mt-2 text-sm leading-relaxed text-secondary">
             Speak freely. Organize boldly. Build the future together.
           </p>
-          <Link to="/create" className="btn-primary mt-4 w-full text-center">
-            Create a Youth Movement
+          <Link
+            to="/create"
+            className="btn-primary mt-4 inline-flex w-full items-center justify-center gap-2 whitespace-nowrap"
+          >
+            {t('nav.createMovement', { defaultValue: 'Create a Youth Movement' })}
           </Link>
         </div>
 

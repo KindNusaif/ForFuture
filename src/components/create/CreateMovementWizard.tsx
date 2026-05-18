@@ -238,7 +238,10 @@ export default function CreateMovementWizard({
                 placeholder="Summarize the problem in a few sentences."
                 className={`${inputClass} resize-y min-h-28`}
               />
-              <CharCount current={movementFields.issue_summary.length} max={POST_LIMITS.descriptionMax} />
+              <CharCount
+                current={movementFields.issue_summary?.length ?? 0}
+                max={POST_LIMITS.descriptionMax}
+              />
             </FormField>
           </>
         )}
