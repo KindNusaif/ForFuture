@@ -3,23 +3,31 @@ import { AlertTriangle } from 'lucide-react'
 
 interface Props {
   children: ReactNode
+  /** When this changes (e.g. route path), clear a caught error without remounting the app tree. */
+  resetKey?: string
 }
 
 interface State {
   hasError: boolean
+  resetKey?: string
 }
 
 export default class ErrorBoundary extends Component<Props, State> {
-  state: State = { hasError: false }
+  state: State = { hasError: false, resetKey: this.props.resetKey }
 
-  static getDerivedStateFromError(): State {
+  static getDerivedStateFromProps(props: Props, state: State): Partial<State> | null {
+    if (props.resetKey !== state.resetKey) {
+      return { resetKey: props.resetKey, hasError: false }
+    }
+    return null
+  }
+
+  static getDerivedStateFromError(): Partial<State> {
     return { hasError: true }
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    if (import.meta.env.DEV) {
-      console.error('[ForFuture] UI error boundary', error, info.componentStack)
-    }
+    console.error('[ForFuture] UI error boundary', error, info.componentStack)
   }
 
   render() {
@@ -40,14 +48,20 @@ export default class ErrorBoundary extends Component<Props, State> {
             <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
               <button
                 type="button"
-                onClick={() => window.location.reload()}
+                onClick={() => this.setState({ hasError: false })}
                 className="btn-primary"
               >
-                Refresh page
+                Try again
               </button>
-              <a href="/" className="btn-secondary">
+              <button
+                type="button"
+                onClick={() => {
+                  window.location.href = '/'
+                }}
+                className="btn-secondary"
+              >
                 Back to home
-              </a>
+              </button>
             </div>
           </div>
         </main>

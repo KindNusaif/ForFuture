@@ -10,7 +10,7 @@ export function isSessionExpiredError(error: unknown): boolean {
       ? (error as { code: string }).code
       : null
 
-  if (code === 'PGRST301' || code === '401') return true
+  if (code === 'PGRST301') return true
 
   const message =
     error instanceof Error
@@ -34,10 +34,17 @@ export function isSessionExpiredError(error: unknown): boolean {
 
 const SESSION_EXPIRED_EVENT = 'ff:session-expired'
 
+let lastNotifyAt = 0
+
 /** Notify app shell once; returns true if this error was a session expiry. */
 export function notifySessionExpiredIfNeeded(error: unknown): boolean {
   if (!isSessionExpiredError(error)) return false
   if (typeof window === 'undefined') return true
+
+  const now = Date.now()
+  if (now - lastNotifyAt < 2000) return true
+  lastNotifyAt = now
+
   window.dispatchEvent(new CustomEvent(SESSION_EXPIRED_EVENT))
   return true
 }
