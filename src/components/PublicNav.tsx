@@ -29,14 +29,13 @@ export default function PublicNav() {
   const { t } = useTranslation()
   const location = useLocation()
   const aboutActive = isAboutActive(location.pathname, location.hash)
-  /** Public marketing pages keep stable chrome while auth resolves (prevents live reload “version swap”). */
+  /** Marketing routes always use the same chrome (no auth-driven nav swap on reload). */
   const isMarketingRoute = isPublicMarketingRoute(location.pathname)
   const authReady = !loading
   const signedIn = authReady && isMember
-  const showMarketingCenterNav = isMarketingRoute || (authReady && !isMember)
-  const showAppQuickLinks = authReady && signedIn && !isMarketingRoute
-  const showMemberOnMarketing = isMarketingRoute && signedIn
-  const showGuestOnMarketing = isMarketingRoute && !signedIn
+  const showMarketingCenterNav = isMarketingRoute
+  const showAppQuickLinks = !isMarketingRoute && authReady && signedIn
+  const showMarketingGuestActions = isMarketingRoute
 
   const marketingMobileLinks = (
     <>
@@ -121,7 +120,7 @@ export default function PublicNav() {
   return (
     <header className="nav-shell">
       <div className="relative mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <Logo to={signedIn && !isMarketingRoute ? '/feed' : '/'} showTagline={isMarketingRoute || !signedIn} />
+        <Logo to={signedIn && !isMarketingRoute ? '/feed' : '/'} showTagline={isMarketingRoute} />
 
         {showMarketingCenterNav && (
           <nav
@@ -151,14 +150,29 @@ export default function PublicNav() {
                 {t('nav.profile')}
               </Link>
             </>
-          ) : showMemberOnMarketing ? (
+          ) : showMarketingGuestActions ? (
             <>
-              <Link to="/feed" className="btn-primary min-h-10! px-4! py-2!">
-                {t('nav.myFeed')}
+              <Link
+                to="/movements"
+                className="rounded-lg p-2 text-secondary transition hover:bg-muted hover:text-primary"
+                aria-label={t('nav.searchMovements')}
+              >
+                <Search className="h-5 w-5" aria-hidden />
               </Link>
-              <Link to="/profile" className={inactiveClass}>
-                {t('nav.profile')}
-              </Link>
+              {signedIn ? (
+                <Link to="/feed" className="btn-primary min-h-10! px-4! py-2!">
+                  {t('nav.myFeed')}
+                </Link>
+              ) : (
+                <>
+                  <Link to="/login" className={inactiveClass}>
+                    {t('nav.login')}
+                  </Link>
+                  <Link to="/signup" className="btn-primary min-h-10! px-4! py-2!">
+                    {t('nav.joinMovement')}
+                  </Link>
+                </>
+              )}
             </>
           ) : (
             <>
@@ -182,7 +196,7 @@ export default function PublicNav() {
         </nav>
 
         <div className="ml-auto flex items-center gap-2 md:hidden">
-          {(showGuestOnMarketing || (!authReady && isMarketingRoute) || (authReady && !isMember)) && (
+          {showMarketingGuestActions && !signedIn && (
             <Link
               to="/movements"
               className="rounded-lg p-2 text-secondary ring-1 ring-default hover:bg-muted"
@@ -225,8 +239,8 @@ export default function PublicNav() {
                 {t('nav.profile')}
               </Link>
             </>
-          ) : showMemberOnMarketing ? (
-            memberMarketingMobileLinks
+          ) : showMarketingGuestActions ? (
+            signedIn ? memberMarketingMobileLinks : guestMobileLinks
           ) : (
             guestMobileLinks
           )}

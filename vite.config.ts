@@ -28,11 +28,23 @@ function bootLoaderPlugin() {
           /\s*<script src="\/deploy-sync\.js"><\/script>\s*/g,
           '\n',
         )
-        const bootTags =
-          `    <meta name="forfuture-entry" content="${entry}" />\n` +
-          '    <script src="/boot.js"></script>\n'
+        const withoutPreload = withoutDeploySync.replace(
+          /<link rel="modulepreload"[^>]*>\s*/g,
+          '',
+        )
+        const bust = encodeURIComponent(buildId)
+        const withBustedAssets = withoutPreload
+          .replace(
+            /(<link rel="stylesheet" crossorigin href="\/assets\/[^"]+\.css)"/,
+            `$1?v=${bust}"`,
+          )
+          .replace(/content="(\/assets\/[^"]+\.js)"/, `content="$1?v=${bust}"`)
 
-        return withoutDeploySync.replace('</head>', `${bootTags}  </head>`)
+        const bootTags =
+          `    <meta name="forfuture-entry" content="${entry}?v=${bust}" />\n` +
+          `    <script src="/boot.js?v=${bust}"></script>\n`
+
+        return withBustedAssets.replace('</head>', `${bootTags}  </head>`)
       },
     },
   }

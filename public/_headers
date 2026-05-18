@@ -15,6 +15,6 @@
 /theme-init.js
   Cache-Control: no-cache, no-store, must-revalidate
 
-# Hashed Vite assets are safe to cache long-term
+# Hashed assets: short TTL so deploys cannot strand stale JS/CSS on CDN edges
 /assets/*
-  Cache-Control: public, max-age=31536000, immutable
+  Cache-Control: public, max-age=3600, must-revalidate

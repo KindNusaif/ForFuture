@@ -1,17 +1,21 @@
 /**
- * Loads the app only after index.html entry matches the server (fixes mixed CDN/browser cache).
+ * Production boot: unregister stale workers, verify index.html entry, then load the app bundle.
  */
 ;(function () {
   if (typeof window === 'undefined' || !window.location) return
 
   var BUILD_META = 'forfuture-build'
   var ENTRY_META = 'forfuture-entry'
-  var SESSION_KEY = 'forfuture_boot_reload_v2'
+  var SESSION_KEY = 'forfuture_boot_reload_v3'
   var MAX_RELOADS = 2
 
   function getMeta(name) {
     var el = document.querySelector('meta[name="' + name + '"]')
     return el ? el.getAttribute('content') || '' : ''
+  }
+
+  function stripQuery(url) {
+    return url.replace(/\?.*$/, '')
   }
 
   function loadEntry(src) {
@@ -25,12 +29,11 @@
   }
 
   function reloadOnce() {
-    var entry = getMeta(ENTRY_META)
     try {
       var count = parseInt(sessionStorage.getItem(SESSION_KEY) || '0', 10) + 1
       if (count > MAX_RELOADS) {
         sessionStorage.removeItem(SESSION_KEY)
-        loadEntry(entry)
+        loadEntry(getMeta(ENTRY_META))
         return
       }
       sessionStorage.setItem(SESSION_KEY, String(count))
@@ -60,8 +63,19 @@
     }
   }
 
+  function purgeServiceWorkers() {
+    if (!('serviceWorker' in navigator)) return
+    navigator.serviceWorker.getRegistrations().then(function (regs) {
+      regs.forEach(function (reg) {
+        reg.unregister()
+      })
+    })
+  }
+
   function start() {
     clearBootQuery()
+    purgeServiceWorkers()
+
     var currentBuild = getMeta(BUILD_META)
     var currentEntry = getMeta(ENTRY_META)
 
@@ -81,7 +95,7 @@
         var serverBuild = parseMeta(html, BUILD_META)
         var serverEntry = parseMeta(html, ENTRY_META)
 
-        if (serverEntry && serverEntry !== currentEntry) {
+        if (serverEntry && stripQuery(serverEntry) !== stripQuery(currentEntry)) {
           reloadOnce()
           return
         }

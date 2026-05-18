@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react'
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { isPublicMarketingRoute } from './lib/publicRoutes'
 import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 import { JoinMovementProvider } from './context/JoinMovementContext'
@@ -43,20 +44,30 @@ function LazyPage({ children }: { children: ReactNode }) {
   return <Suspense fallback={<PageLoader />}>{children}</Suspense>
 }
 
-export default function App() {
+function AppFrame({ children }: { children: ReactNode }) {
+  const location = useLocation()
+  const isMarketing = isPublicMarketingRoute(location.pathname)
   const [themeTransitions, setThemeTransitions] = useState(false)
 
   useEffect(() => {
+    setThemeTransitions(false)
+    if (isMarketing) return
     const id = window.requestAnimationFrame(() => setThemeTransitions(true))
     return () => window.cancelAnimationFrame(id)
-  }, [])
+  }, [isMarketing, location.pathname])
 
+  return (
+    <div className={`min-h-screen ${themeTransitions ? 'theme-transition' : ''}`}>{children}</div>
+  )
+}
+
+export default function App() {
   return (
     <AuthProvider>
       <ThemeProvider>
         <JoinMovementProvider>
           <ReportContentProvider>
-            <div className={`min-h-screen ${themeTransitions ? 'theme-transition' : ''}`}>
+            <AppFrame>
               <DeployConfigBanner />
               <Routes>
               <Route element={<Layout />}>
@@ -290,7 +301,7 @@ export default function App() {
 
               <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
-            </div>
+            </AppFrame>
           </ReportContentProvider>
         </JoinMovementProvider>
       </ThemeProvider>
