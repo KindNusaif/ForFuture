@@ -293,7 +293,21 @@
     "tabsLabel": "Feed views",
     "followingEmptyTitle": "You're not following any movements yet.",
     "followingEmptyDescription": "Explore causes that matter to you and follow the ones you want to track.",
-    "followingExploreCta": "Explore Movements"
+    "followingExploreCta": "Explore Movements",
+    "greeting": "Good to see you",
+    "greetingNamed": "Good to see you, {{name}}",
+    "memberDiscoverSubtitle": "What future do you want to help build today?",
+    "memberFollowingSubtitle": "Movements you are tracking — stay close to the causes you care about.",
+    "heroFollowingCountOne": "Following {{count}} movement",
+    "heroFollowingCountMany": "Following {{count}} movements",
+    "heroFollowingHint": "Stay updated on causes you care about.",
+    "heroVoiceActive": "Youth Voice ID active",
+    "heroVoiceHint": "Share publicly while keeping your profile identity protected.",
+    "communityPulseEyebrow": "Community pulse",
+    "communityPulseTitle": "Shape tomorrow",
+    "communityPulseBody": "Speak freely. Organize boldly. Build the future together.",
+    "exploreParticipate": "Explore ways to participate",
+    "quickLinksTitle": "Quick links"
   },
   "movement": {
     "whyThisMatters": "Why this matters",
@@ -492,7 +506,7 @@
     "profileRequiredDesc": "Fundraising campaigns must be posted with your public profile to support trust and transparency. Youth Voice ID is not available for this movement type.",
     "privacyNote": "Your profile name will not appear publicly on this post. For platform safety, the post remains securely linked to your account internally.",
     "yourYouthVoiceId": "Your Youth Voice ID",
-    "youthVoiceHint": "Speak publicly without revealing your profile identity."
+    "youthVoiceHint": "Share publicly while keeping your profile identity protected."
   },
   "polls": {
     "vote": "Vote",

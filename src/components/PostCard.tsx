@@ -1,4 +1,6 @@
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { ArrowRight } from 'lucide-react'
 import { isPollMovement } from '../lib/movements'
 import { isPetitionMovement } from '../lib/petitions'
 import { getMomentumLabel, getMovementVisual, shouldShowMomentumPill } from '../lib/movementVisual'
@@ -89,6 +91,7 @@ export default function PostCard({
   followerCount,
   onFollowToggle,
 }: PostCardProps) {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const visual = getMovementVisual(post.movement_type)
   const isPoll = isPollMovement(post.movement_type)
@@ -242,7 +245,25 @@ export default function PostCard({
       )}
 
       <div className="px-4 pb-4 sm:px-5 sm:pb-5" data-no-card-nav>
-        {!showFullMedia && <MovementCardStats post={post} />}
+        {!showFullMedia && (
+          <div className="movement-card-footer-metrics mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-default pt-4">
+            <MovementCardStats post={post} showPrimary className="!mt-0 !border-0 !pt-0" />
+            {cardNavigable && detailPath && (
+              <button
+                type="button"
+                data-no-card-nav
+                className="movement-card-view-link shrink-0"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  openDetail()
+                }}
+              >
+                {t('movement.viewMovement', { defaultValue: 'View Movement' })}
+                <ArrowRight className="h-4 w-4" aria-hidden />
+              </button>
+            )}
+          </div>
+        )}
 
         {isPoll ? (
           <PollVoteBlock

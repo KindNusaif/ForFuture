@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import FilterScrollRail from './FilterScrollRail'
 import { useMovementTypes } from '../hooks/useMovementConfig'
 import type { MovementFilter } from '../lib/movements'
 
@@ -29,9 +30,21 @@ export default function MovementTypeFilter({
     [movementTypes, t],
   )
 
-  const chipRowClass = compact
-    ? 'flex gap-1.5 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
-    : '-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0'
+  const chipButtons = filters.map(({ value, label }) => {
+    const active = selected === value
+    return (
+      <button
+        key={value}
+        type="button"
+        onClick={() => onChange(value)}
+        className={`filter-pill shrink-0 rounded-full font-medium transition ${
+          compact ? 'px-3 py-1 text-xs' : 'px-3.5 py-1.5 text-sm'
+        } ${active ? 'pill-active' : 'pill-inactive'}`}
+      >
+        {label}
+      </button>
+    )
+  })
 
   return (
     <div className={compact ? '' : 'space-y-2'}>
@@ -40,23 +53,11 @@ export default function MovementTypeFilter({
           {t('feed.movementType')}
         </p>
       )}
-      <div className={chipRowClass}>
-        {filters.map(({ value, label }) => {
-          const active = selected === value
-          return (
-            <button
-              key={value}
-              type="button"
-              onClick={() => onChange(value)}
-              className={`shrink-0 rounded-full font-medium transition ${
-                compact ? 'px-3 py-1 text-xs' : 'px-3.5 py-1.5 text-sm'
-              } ${active ? 'pill-active' : 'pill-inactive'}`}
-            >
-              {label}
-            </button>
-          )
-        })}
-      </div>
+      {compact ? (
+        <FilterScrollRail aria-label={t('feed.movementType')}>{chipButtons}</FilterScrollRail>
+      ) : (
+        <div className="-mx-4 flex flex-wrap gap-2 px-4 pb-1 sm:mx-0 sm:px-0">{chipButtons}</div>
+      )}
     </div>
   )
 }

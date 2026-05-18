@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import PostFeed, { type FeedToast, type FeedTab } from '../components/PostFeed'
-import CreateMovementCta from '../components/create/CreateMovementCta'
+import FeedWelcomeHero from '../components/feed/FeedWelcomeHero'
 import TrendingPanel from '../components/TrendingPanel'
 import PageContainer from '../components/ui/PageContainer'
 import { useAuth } from '../hooks/useAuth'
@@ -49,18 +49,7 @@ export default function Feed() {
     <PageContainer className="!py-6 lg:!py-8">
       <div className="flex gap-8">
         <section className="min-w-0 flex-1">
-          <header className="feed-header mb-6">
-            <p className="eyebrow">ForFuture</p>
-            <h1 className="page-title mt-2">
-              {firstName ? `Good to see you, ${firstName}` : 'Good to see you'}
-            </h1>
-            <p className="mt-2 text-secondary">
-              {feedTab === 'following'
-                ? 'Movements you are tracking — stay close to the causes you care about.'
-                : 'What future do you want to help build today?'}
-            </p>
-            <CreateMovementCta className="mt-5 sm:w-auto" fullWidth />
-          </header>
+          <FeedWelcomeHero firstName={firstName} feedTab={feedTab} userId={user?.id} />
 
           <PostFeed
             mode="member"

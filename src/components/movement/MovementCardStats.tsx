@@ -7,9 +7,15 @@ import type { Post } from '../../types'
 interface MovementCardStatsProps {
   post: Post
   className?: string
+  /** Show primary metrics even when zero so the card footer feels complete. */
+  showPrimary?: boolean
 }
 
-export default function MovementCardStats({ post, className = '' }: MovementCardStatsProps) {
+export default function MovementCardStats({
+  post,
+  className = '',
+  showPrimary = false,
+}: MovementCardStatsProps) {
   const { t } = useTranslation()
   const isPoll = isPollMovement(post.movement_type)
   const isPetition = isPetitionMovement(post.movement_type)
@@ -22,14 +28,14 @@ export default function MovementCardStats({ post, className = '' }: MovementCard
   const items: { label: string; value: string }[] = []
 
   if (isPoll) {
-    if (pollVotes > 0) {
+    if (pollVotes > 0 || showPrimary) {
       items.push({
         label: t('movement.statsVotes', { defaultValue: 'Votes' }),
         value: String(pollVotes),
       })
     }
   } else if (isPetition) {
-    if (supporters > 0) {
+    if (supporters > 0 || showPrimary) {
       items.push({
         label: t('movement.statsSignatures', { defaultValue: 'Signatures' }),
         value: String(supporters),
@@ -42,14 +48,14 @@ export default function MovementCardStats({ post, className = '' }: MovementCard
       })
     }
   } else if (isRelief) {
-    if (supporters > 0) {
+    if (supporters > 0 || showPrimary) {
       items.push({
-        label: t('movement.statsOffers', { defaultValue: 'Offers' }),
+        label: t('movement.statsOffers', { defaultValue: 'Responses' }),
         value: String(supporters),
       })
     }
   } else {
-    if (supporters > 0) {
+    if (supporters > 0 || showPrimary) {
       items.push({
         label: t('movement.statsSupporters', { defaultValue: 'Supporters' }),
         value: String(supporters),
@@ -73,11 +79,14 @@ export default function MovementCardStats({ post, className = '' }: MovementCard
   if (items.length === 0) return null
 
   return (
-    <div className={`movement-card-stats ${className}`.trim()} aria-label={t('movement.statsLabel', { defaultValue: 'Movement engagement' })}>
+    <div
+      className={`movement-card-stats movement-card-stats--compact ${className}`.trim()}
+      aria-label={t('movement.statsLabel', { defaultValue: 'Movement engagement' })}
+    >
       {items.map(({ label, value }) => (
-        <div key={label} className="movement-card-stat">
-          <p className="movement-card-stat-label">{label}</p>
-          <p className="movement-card-stat-value">{value}</p>
+        <div key={label} className="movement-card-stat-pill">
+          <span className="movement-card-stat-pill-value">{value}</span>
+          <span className="movement-card-stat-pill-label">{label}</span>
         </div>
       ))}
     </div>
