@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { Map } from 'lucide-react'
 import ImpactMapCanvas from '../components/impact-map/ImpactMapCanvas'
 import ImpactMapDetail from '../components/impact-map/ImpactMapDetail'
@@ -7,6 +6,7 @@ import ImpactMapFilters from '../components/impact-map/ImpactMapFilters'
 import ImpactMapList from '../components/impact-map/ImpactMapList'
 import ImpactMapStats from '../components/impact-map/ImpactMapStats'
 import EmptyState from '../components/EmptyState'
+import CreateMovementCta from '../components/create/CreateMovementCta'
 import AsyncLoadHint from '../components/AsyncLoadHint'
 import { useLoadingProgress } from '../hooks/useLoadingProgress'
 import { PostCardSkeleton } from '../components/Skeleton'
@@ -144,12 +144,7 @@ export default function ImpactMapPage() {
           />
           {isMember && (
             <p className="mt-6 text-center">
-              <Link
-                to="/create"
-                className="btn-primary inline-flex items-center justify-center gap-2 whitespace-nowrap"
-              >
-                Create a Youth Movement
-              </Link>
+              <CreateMovementCta />
             </p>
           )}
         </div>

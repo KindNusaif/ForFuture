@@ -165,6 +165,19 @@
   z-index: 1;
 }
 
+/* Unified “create movement” CTA — one line, same route (/create) everywhere */
+.create-movement-cta {
+  @apply inline-flex max-w-full items-center justify-center gap-2;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.create-movement-cta-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 @utility step-card {
   @apply card-surface relative p-6 text-left transition sm:p-7;
 }

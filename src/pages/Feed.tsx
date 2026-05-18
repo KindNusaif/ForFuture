@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
-import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
-import { Plus } from 'lucide-react'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import PostFeed, { type FeedToast, type FeedTab } from '../components/PostFeed'
+import CreateMovementCta from '../components/create/CreateMovementCta'
 import TrendingPanel from '../components/TrendingPanel'
 import PageContainer from '../components/ui/PageContainer'
 import { useAuth } from '../hooks/useAuth'
@@ -59,13 +59,7 @@ export default function Feed() {
                 ? 'Movements you are tracking — stay close to the causes you care about.'
                 : 'What future do you want to help build today?'}
             </p>
-            <Link
-              to="/create"
-              className="btn-primary mt-5 inline-flex w-full shrink-0 items-center justify-center gap-2 whitespace-nowrap sm:w-auto"
-            >
-              <Plus className="h-5 w-5 shrink-0" aria-hidden />
-              <span>Create a Youth Movement</span>
-            </Link>
+            <CreateMovementCta className="mt-5 sm:w-auto" fullWidth />
           </header>
 
           <PostFeed

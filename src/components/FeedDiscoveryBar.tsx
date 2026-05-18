@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ChevronDown, Plus, Search, X } from 'lucide-react'
+import CreateMovementCta from './create/CreateMovementCta'
 import CategoryFilter from './CategoryFilter'
 import MovementTypeFilter from './MovementTypeFilter'
 import type { Category } from '../types'
@@ -61,11 +61,7 @@ export default function FeedDiscoveryBar({
           </div>
 
           {!isGuest && showCreateButton && (
-            <Link to="/create" className="btn-primary shrink-0 min-h-10.5! py-2!">
-              <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">New movement</span>
-              <span className="sm:hidden">New</span>
-            </Link>
+            <CreateMovementCta className="min-h-10.5! shrink-0 py-2!" compact />
           )}
 
           {isGuest && onGuestCreate && (

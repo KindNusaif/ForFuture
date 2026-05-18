@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom'
-import { FileText, Plus } from 'lucide-react'
+import { FileText } from 'lucide-react'
+import CreateMovementCta from '../create/CreateMovementCta'
 import { useTranslation } from 'react-i18next'
 import MyMovementCard from './MyMovementCard'
 import { MyMovementCardSkeleton } from '../Skeleton'
@@ -58,10 +58,7 @@ export default function MyMovementsSection({
           <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-secondary">
             {t('profile.emptyMovementsDesc')}
           </p>
-          <Link to="/create" className="btn-primary mt-6 inline-flex">
-            <Plus className="h-4 w-4" aria-hidden />
-            {t('profile.createMovementCta')}
-          </Link>
+          <CreateMovementCta className="mt-6" />
         </div>
       ) : (
         <>

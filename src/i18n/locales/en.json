@@ -15,6 +15,7 @@
     "map": "Map",
     "create": "Create",
     "createMovement": "Create a Youth Movement",
+    "createMovementShort": "Start a movement",
     "quickPolls": "Quick Polls",
     "polls": "Polls",
     "profile": "Profile",

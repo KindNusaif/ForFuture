@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Inbox, Loader2, Plus } from 'lucide-react'
+import { Inbox, Loader2 } from 'lucide-react'
+import CreateMovementCta from './create/CreateMovementCta'
 import EmptyState from './EmptyState'
 import FeedDiscoveryBar from './FeedDiscoveryBar'
 import FeedTabs, { type FeedTab } from './FeedTabs'
@@ -576,11 +577,8 @@ function PostFeedContent({
             </p>
           )}
           {!isGuest && movementFilter === 'All' && category === 'All' && !search && !hasMore && (
-            <p className="mt-6 text-center">
-              <Link to="/create" className="btn-primary">
-                <Plus className="h-5 w-5" />
-                Create the first movement
-              </Link>
+            <p className="mt-6 flex justify-center">
+              <CreateMovementCta />
             </p>
           )}
           {isGuest && (

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { Plus, RefreshCw } from 'lucide-react'
+import { RefreshCw } from 'lucide-react'
+import CreateMovementCta from '../components/create/CreateMovementCta'
 import { useTranslation } from 'react-i18next'
 import AsyncLoadHint from '../components/AsyncLoadHint'
 import { useToast } from '../hooks/useToast'
@@ -157,10 +157,7 @@ function ProfileContent({ userId, email }: { userId: string; email?: string | nu
             <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} aria-hidden />
             {t('profile.refresh')}
           </button>
-          <Link to="/create" className="btn-primary min-h-10! py-2!">
-            <Plus className="h-4 w-4" aria-hidden />
-            {t('profile.createMovement')}
-          </Link>
+          <CreateMovementCta className="min-h-10! py-2!" />
         </div>
       </div>
 
