@@ -292,7 +292,7 @@ function PostFeedContent({
       (p) =>
         p.title.toLowerCase().includes(q) ||
         p.description.toLowerCase().includes(q) ||
-        p.author_name.toLowerCase().includes(q) ||
+        (p.author_name ?? '').toLowerCase().includes(q) ||
         p.category.toLowerCase().includes(q) ||
         getMovementConfig(p.movement_type).label.toLowerCase().includes(q),
     )

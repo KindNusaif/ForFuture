@@ -44,6 +44,10 @@ export function loadCreateMovementDraft(): CreateMovementDraft | null {
       clearCreateMovementDraft()
       return null
     }
+    const step = Number(parsed.wizardStep)
+    if (!Number.isFinite(step) || step < 1 || step > 6) {
+      parsed.wizardStep = 1
+    }
     return parsed
   } catch {
     clearCreateMovementDraft()

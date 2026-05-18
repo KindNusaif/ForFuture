@@ -67,7 +67,12 @@ function mapPostRow(
     title: row.title as string,
     description: row.description as string,
     category: row.category as Category,
-    author_name: row.author_name as string,
+    author_name:
+      typeof row.author_name === 'string' && row.author_name.trim()
+        ? row.author_name
+        : postingIdentity === 'youth_voice'
+          ? 'Youth Voice'
+          : 'Anonymous',
     posting_identity: postingIdentity,
     youth_voice_id: (row.youth_voice_id as string | null) ?? null,
     movement_type: (row.movement_type as Post['movement_type']) ?? 'idea_for_change',

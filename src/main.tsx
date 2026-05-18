@@ -4,7 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import './i18n'
 import App from './App'
-import ErrorBoundary from './components/ErrorBoundary'
+import ErrorBoundaryReset from './components/ErrorBoundaryReset'
 
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   void navigator.serviceWorker.getRegistrations().then((registrations) => {
@@ -14,10 +14,10 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ErrorBoundary>
-      <BrowserRouter>
+    <BrowserRouter>
+      <ErrorBoundaryReset>
         <App />
-      </BrowserRouter>
-    </ErrorBoundary>
+      </ErrorBoundaryReset>
+    </BrowserRouter>
   </StrictMode>,
 )

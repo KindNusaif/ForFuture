@@ -21,16 +21,18 @@ export interface PostAuthorPresentation {
 export function getPostAuthorPresentation(
   post: Pick<Post, 'author_name' | 'posting_identity' | 'youth_voice_id'>,
 ): PostAuthorPresentation {
+  const authorName = typeof post.author_name === 'string' ? post.author_name : ''
+
   if (post.posting_identity === 'youth_voice') {
     const id =
       post.youth_voice_id ??
-      (isYouthVoiceIdFormat(post.author_name) ? post.author_name : null)
+      (isYouthVoiceIdFormat(authorName) ? authorName : null)
 
     // Never surface raw author_name — it may contain a legacy real name
     const displayName = id
       ? formatYouthVoiceLabel(id)
-      : post.author_name.startsWith('Youth Voice ')
-        ? post.author_name
+      : authorName.startsWith('Youth Voice ')
+        ? authorName
         : 'Youth Voice'
 
     return {
@@ -41,7 +43,7 @@ export function getPostAuthorPresentation(
   }
 
   return {
-    displayName: post.author_name,
+    displayName: authorName || 'Anonymous',
     isAnonymous: false,
     youthVoiceId: null,
   }
