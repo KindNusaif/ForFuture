@@ -29,10 +29,14 @@ export default function PublicNav() {
   const { t } = useTranslation()
   const location = useLocation()
   const aboutActive = isAboutActive(location.pathname, location.hash)
-  /** Public marketing pages keep the same nav when signed in (localhost ↔ Netlify parity). */
+  /** Public marketing pages keep stable chrome while auth resolves (prevents live reload “version swap”). */
   const isMarketingRoute = isPublicMarketingRoute(location.pathname)
-  const showMarketingCenterNav = !loading && (!isMember || isMarketingRoute)
-  const showAppQuickLinks = !loading && isMember && !isMarketingRoute
+  const authReady = !loading
+  const signedIn = authReady && isMember
+  const showMarketingCenterNav = isMarketingRoute || (authReady && !isMember)
+  const showAppQuickLinks = authReady && signedIn && !isMarketingRoute
+  const showMemberOnMarketing = isMarketingRoute && signedIn
+  const showGuestOnMarketing = isMarketingRoute && !signedIn
 
   const marketingMobileLinks = (
     <>
@@ -117,7 +121,7 @@ export default function PublicNav() {
   return (
     <header className="nav-shell">
       <div className="relative mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <Logo to={isMember && !isMarketingRoute ? '/feed' : '/'} showTagline={!isMember || isMarketingRoute} />
+        <Logo to={signedIn && !isMarketingRoute ? '/feed' : '/'} showTagline={isMarketingRoute || !signedIn} />
 
         {showMarketingCenterNav && (
           <nav
@@ -129,7 +133,7 @@ export default function PublicNav() {
         )}
 
         <nav className="ml-auto hidden items-center gap-1 md:flex" aria-label={t('nav.appNav')}>
-          {loading ? null : showAppQuickLinks ? (
+          {showAppQuickLinks ? (
             <>
               <Link to="/feed" className={inactiveClass}>
                 {t('nav.myFeed')}
@@ -147,7 +151,7 @@ export default function PublicNav() {
                 {t('nav.profile')}
               </Link>
             </>
-          ) : isMember && isMarketingRoute ? (
+          ) : showMemberOnMarketing ? (
             <>
               <Link to="/feed" className="btn-primary min-h-10! px-4! py-2!">
                 {t('nav.myFeed')}
@@ -178,7 +182,7 @@ export default function PublicNav() {
         </nav>
 
         <div className="ml-auto flex items-center gap-2 md:hidden">
-          {!loading && (!isMember || isMarketingRoute) && (
+          {(showGuestOnMarketing || (!authReady && isMarketingRoute) || (authReady && !isMember)) && (
             <Link
               to="/movements"
               className="rounded-lg p-2 text-secondary ring-1 ring-default hover:bg-muted"
@@ -203,7 +207,7 @@ export default function PublicNav() {
 
       {open && (
         <nav className="space-y-1 border-t border-default px-4 py-4 md:hidden" aria-label={t('nav.mobileNav')}>
-          {!loading && showAppQuickLinks ? (
+          {showAppQuickLinks ? (
             <>
               <Link to="/feed" className="mobile-nav-link" onClick={() => setOpen(false)}>
                 {t('nav.myFeed')}
@@ -221,7 +225,7 @@ export default function PublicNav() {
                 {t('nav.profile')}
               </Link>
             </>
-          ) : !loading && isMember && isMarketingRoute ? (
+          ) : showMemberOnMarketing ? (
             memberMarketingMobileLinks
           ) : (
             guestMobileLinks

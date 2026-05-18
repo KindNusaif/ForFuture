@@ -4,21 +4,50 @@ import tailwindcss from '@tailwindcss/vite'
 
 const buildId = new Date().toISOString()
 
-/** Stamps index.html so you can verify production loaded the latest Netlify deploy. */
+const deploySyncTag = '<script src="/deploy-sync.js"></script>'
+
+function stampBuildMeta(html: string) {
+  return html.replace(
+    '<meta charset="UTF-8" />',
+    `<meta charset="UTF-8" />\n    <meta name="forfuture-build" content="${buildId}" />`,
+  )
+}
+
+function placeDeploySyncBeforeBundle(html: string) {
+  const withoutDeploySync = html.replace(/\s*<script src="\/deploy-sync\.js"><\/script>\s*/g, '\n')
+  return withoutDeploySync.replace(
+    /(<script type="module"[^>]*><\/script>)/,
+    `    ${deploySyncTag}\n    $1`,
+  )
+}
+
+/** Build stamp early in head; deploy-sync runs before the hashed app bundle. */
 function buildStampPlugin() {
   return {
     name: 'forfuture-build-stamp',
-    transformIndexHtml(html: string) {
-      return html.replace(
-        '</head>',
-        `    <meta name="forfuture-build" content="${buildId}" />\n  </head>`,
-      )
+    transformIndexHtml: {
+      order: 'pre',
+      handler(html: string) {
+        return stampBuildMeta(html)
+      },
+    },
+  }
+}
+
+function deploySyncOrderPlugin() {
+  return {
+    name: 'forfuture-deploy-sync-order',
+    transformIndexHtml: {
+      order: 'post',
+      handler(html: string) {
+        return placeDeploySyncBeforeBundle(html)
+      },
     },
   }
 }
 
 export default defineConfig({
-  plugins: [react(), tailwindcss(), buildStampPlugin()],
+  plugins: [react(), tailwindcss(), buildStampPlugin(), deploySyncOrderPlugin()],
   define: {
     __FORFUTURE_BUILD_ID__: JSON.stringify(buildId),
   },

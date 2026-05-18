@@ -57,17 +57,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!mounted) return
         setSession(currentSession)
         setAuthError(null)
+        finishLoading()
         if (currentSession?.user) {
-          await loadProfile(currentSession.user)
+          void loadProfile(currentSession.user)
         }
       } catch (err) {
         if (mounted) {
           setAuthError(formatError(err))
           setSession(null)
           setProfile(null)
+          finishLoading()
         }
-      } finally {
-        if (mounted) finishLoading()
       }
     }
 
@@ -75,18 +75,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, nextSession) => {
-      if (event === 'INITIAL_SESSION') return
+    } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      if (event === 'INITIAL_SESSION') {
+        setSession(nextSession)
+        setAuthError(null)
+        finishLoading()
+        if (nextSession?.user) {
+          void loadProfile(nextSession.user)
+        } else {
+          setProfile(null)
+          setProfileError(null)
+        }
+        return
+      }
 
       setSession(nextSession)
       setAuthError(null)
+      finishLoading()
       if (nextSession?.user) {
-        await loadProfile(nextSession.user)
+        void loadProfile(nextSession.user)
       } else {
         setProfile(null)
         setProfileError(null)
       }
-      finishLoading()
     })
 
     return () => {

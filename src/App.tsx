@@ -1,4 +1,4 @@
-import { lazy, Suspense, type ReactNode } from 'react'
+import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
@@ -13,8 +13,8 @@ import ProtectedRoute from './components/ProtectedRoute'
 import GuestRoute from './components/GuestRoute'
 import PageLoader from './components/PageLoader'
 import DeployConfigBanner from './components/DeployConfigBanner'
+import Landing from './pages/Landing'
 
-const Landing = lazy(() => import('./pages/Landing'))
 const Login = lazy(() => import('./pages/Login'))
 const Signup = lazy(() => import('./pages/Signup'))
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
@@ -44,23 +44,23 @@ function LazyPage({ children }: { children: ReactNode }) {
 }
 
 export default function App() {
+  const [themeTransitions, setThemeTransitions] = useState(false)
+
+  useEffect(() => {
+    const id = window.requestAnimationFrame(() => setThemeTransitions(true))
+    return () => window.cancelAnimationFrame(id)
+  }, [])
+
   return (
     <AuthProvider>
       <ThemeProvider>
         <JoinMovementProvider>
           <ReportContentProvider>
-            <div className="theme-transition min-h-screen">
+            <div className={`min-h-screen ${themeTransitions ? 'theme-transition' : ''}`}>
               <DeployConfigBanner />
               <Routes>
               <Route element={<Layout />}>
-                <Route
-                  index
-                  element={
-                    <LazyPage>
-                      <Landing />
-                    </LazyPage>
-                  }
-                />
+                <Route index element={<Landing />} />
                 <Route
                   path="login"
                   element={
