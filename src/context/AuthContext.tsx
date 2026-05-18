@@ -48,6 +48,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [session, loadProfile])
 
+  const logout = useCallback(async () => {
+    profileUserIdRef.current = null
+    setProfile(null)
+    setSession(null)
+    setProfileError(null)
+    setAuthError(null)
+    finishLoading()
+
+    if (!isSupabaseConfigured || !supabase) return
+
+    const { error } = await supabase.auth.signOut()
+    if (error) throw error
+  }, [finishLoading])
+
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) {
       return
@@ -118,8 +132,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isGuest: !loading && !session?.user,
       isMember: !loading && Boolean(session?.user),
       refreshProfile,
+      logout,
     }),
-    [session, profile, loading, authError, profileError, refreshProfile],
+    [session, profile, loading, authError, profileError, refreshProfile, logout],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

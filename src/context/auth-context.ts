@@ -13,6 +13,8 @@ export interface AuthContextValue {
   isGuest: boolean
   isMember: boolean
   refreshProfile: () => Promise<void>
+  /** Clears local session immediately, then signs out of Supabase. */
+  logout: () => Promise<void>
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null)

@@ -9,7 +9,6 @@ import Logo from './Logo'
 import NotificationCenter from './notifications/NotificationCenter'
 import SkipLink from './SkipLink'
 import { useAuth } from '../hooks/useAuth'
-import { signOut } from '../lib/auth'
 import { isCreateMovementNavActive, isQuickPollNavActive } from '../lib/createNav'
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
@@ -21,7 +20,7 @@ const mobileLinkClass = ({ isActive }: { isActive: boolean }) =>
   }`
 
 export default function AppShell({ children }: { children?: ReactNode }) {
-  const { profile } = useAuth()
+  const { profile, logout } = useAuth()
   const isAdmin = useIsAdmin()
   const navigate = useNavigate()
   const location = useLocation()
@@ -29,10 +28,11 @@ export default function AppShell({ children }: { children?: ReactNode }) {
 
   async function handleLogout() {
     try {
-      await signOut()
-    } finally {
-      navigate('/', { replace: true })
+      await logout()
+    } catch {
+      /* still leave the app shell — session was cleared locally */
     }
+    navigate('/', { replace: true })
   }
 
   return (
