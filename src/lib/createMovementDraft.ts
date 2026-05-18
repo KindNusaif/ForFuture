@@ -1,5 +1,6 @@
 import type { MovementFieldValues } from './movementFieldValues'
 import type { MapLocation } from './googleMaps'
+import { resolveCreateDescription, type CreateMovementFormState } from './createMovementValidation'
 import type { Category, MovementType, Post, PostingIdentity } from '../types'
 
 export const CREATE_MOVEMENT_DRAFT_KEY = 'ff-create-movement-draft'
@@ -68,12 +69,23 @@ export function buildCreatePreviewPost(input: {
   userId: string
 }): Post | null {
   if (!input.title.trim() || !input.category) return null
+  const formState: CreateMovementFormState = {
+    title: input.title,
+    description: input.description,
+    category: input.category,
+    authorName: input.authorName,
+    postingIdentity: input.postingIdentity,
+    movementType: input.movementType,
+    movementFields: input.movementFields,
+  }
+  const resolvedDescription = resolveCreateDescription(formState)
+  if (resolvedDescription.length < 1) return null
   const now = new Date().toISOString()
   return {
     id: 'preview',
     user_id: input.userId,
     title: input.title.trim(),
-    description: input.description.trim() || input.movementFields.issue_summary.trim(),
+    description: resolvedDescription,
     category: input.category as Category,
     author_name: input.authorName.trim() || 'You',
     posting_identity: input.postingIdentity,

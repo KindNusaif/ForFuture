@@ -2,19 +2,23 @@ import { Link } from 'react-router-dom'
 import {
   ArrowLeft,
   ArrowRight,
+  CheckCircle2,
   HeartHandshake,
+  Lightbulb,
   Loader2,
   Megaphone,
   Mic,
+  Scale,
   Send,
   Users,
 } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import CategoryPicker from '../CategoryPicker'
 import ChooseYourVoice from '../ChooseYourVoice'
 import MovementFields from '../MovementFields'
 import MovementMediaUploader from '../media/MovementMediaUploader'
-import PostCard from '../PostCard'
+import CreateMovementPreview from './CreateMovementPreview'
+import EmptyState from '../EmptyState'
 import { FormField, inputClass, inputErrorClass } from '../AuthForm'
 import type { MovementFieldValues } from '../../lib/movementFieldValues'
 import type { MapLocation } from '../../lib/googleMaps'
@@ -32,10 +36,21 @@ const WIZARD_TYPES: {
   description: string
   icon: typeof Mic
 }[] = [
-  { value: 'raise_voice', label: 'Voice', description: 'Raise awareness and stand with a cause.', icon: Mic },
+  {
+    value: 'raise_voice',
+    label: 'Raise Your Voice',
+    description: 'Speak out about issues that deserve attention.',
+    icon: Mic,
+  },
+  {
+    value: 'idea_for_change',
+    label: 'Idea for Change',
+    description: 'Share a practical idea to improve your community.',
+    icon: Lightbulb,
+  },
   {
     value: 'youth_petition',
-    label: 'Petition',
+    label: 'Youth Petition',
     description: 'Collect signatures for a specific change.',
     icon: Megaphone,
   },
@@ -51,6 +66,12 @@ const WIZARD_TYPES: {
     description: 'Mobilize support for urgent community needs.',
     icon: HeartHandshake,
   },
+  {
+    value: 'peaceful_civic_action',
+    label: 'Peaceful Civic Action',
+    description: 'Plan lawful awareness or community action.',
+    icon: Scale,
+  },
 ]
 
 function CharCount({ current, max }: { current: number; max: number }) {
@@ -58,7 +79,7 @@ function CharCount({ current, max }: { current: number; max: number }) {
   return (
     <span
       className={`mt-1 block text-right text-xs tabular-nums ${
-        nearLimit ? 'text-amber-600' : 'text-muted'
+        nearLimit ? 'text-amber-600 dark:text-amber-400' : 'text-muted'
       }`}
     >
       {current}/{max}
@@ -68,13 +89,13 @@ function CharCount({ current, max }: { current: number; max: number }) {
 
 function WizardProgress({ step, total }: { step: number; total: number }) {
   return (
-    <div className="mb-6" aria-hidden>
-      <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted">
-        Step {step} of {total}
-      </p>
-      <div className="onboarding-progress">
-        <div className="onboarding-progress-fill" style={{ width: `${(step / total) * 100}%` }} />
-      </div>
+    <div className="create-wizard-progress" role="progressbar" aria-valuenow={step} aria-valuemin={1} aria-valuemax={total} aria-label={`Step ${step} of ${total}`}>
+      {Array.from({ length: total }, (_, i) => (
+        <div
+          key={i}
+          className={i < step ? 'create-wizard-step-dot create-wizard-step-dot-active' : 'create-wizard-step-dot'}
+        />
+      ))}
     </div>
   )
 }
@@ -107,13 +128,13 @@ export interface CreateMovementWizardProps {
   previewPost: Post | null
   loading: boolean
   canPublish: boolean
+  voiceIdBootstrapping?: boolean
   onSubmit: () => void
   onSaveDraft: () => void
   pendingMedia: PendingMediaState
   uploadingMedia: boolean
   error: string | null
   publishedId: string | null
-  children?: ReactNode
 }
 
 export default function CreateMovementWizard({
@@ -144,6 +165,7 @@ export default function CreateMovementWizard({
   previewPost,
   loading,
   canPublish,
+  voiceIdBootstrapping,
   onSubmit,
   onSaveDraft,
   pendingMedia,
@@ -151,14 +173,19 @@ export default function CreateMovementWizard({
   error,
   publishedId,
 }: CreateMovementWizardProps) {
+  const { t } = useTranslation()
   const showMedia = movementSupportsAttachments(movementType)
+  const isPetition = movementType === 'youth_petition'
 
   if (publishedId) {
     return (
       <section className="mx-auto min-w-0 max-w-2xl px-4 py-12 text-center sm:px-6">
-        <div className="card-surface mx-auto max-w-md p-8">
-          <h1 className="text-2xl font-extrabold text-primary">Your movement is live!</h1>
-          <p className="mt-2 text-sm text-secondary">
+        <div className="card-surface mx-auto max-w-md p-8 sm:p-10">
+          <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
+            <CheckCircle2 className="h-8 w-8" aria-hidden />
+          </span>
+          <h1 className="mt-5 text-2xl font-extrabold text-primary">Your movement is live!</h1>
+          <p className="mt-2 text-sm leading-relaxed text-secondary">
             Thank you for raising your voice. Your community can now discover and support it.
           </p>
           <div className="mt-8 flex flex-col gap-3">
@@ -176,54 +203,78 @@ export default function CreateMovementWizard({
 
   const stepTitles: Record<number, string> = {
     1: 'What issue do you want to raise?',
-    2: 'Why does this matter? Who is affected?',
-    3: 'Choose action type',
-    4: 'Action details',
-    5: 'Preview & publish',
+    2: 'Why does this matter?',
+    3: 'Choose your action type',
+    4: 'Details & category',
+    5: 'Review & publish',
+  }
+
+  const stepHints: Record<number, string> = {
+    1: 'Give your movement a clear title and a short summary of the problem.',
+    2: 'Help others understand who is affected and why action is needed.',
+    3: 'Pick how you want to make a difference. You can change this before publishing.',
+    4: 'Add any type-specific details, choose a category, and set how you appear.',
+    5: 'Check everything looks right, then publish to the feed.',
   }
 
   return (
-    <section className="mx-auto min-w-0 max-w-2xl px-4 py-8 sm:px-6">
+    <section className="create-movement-shell mx-auto min-w-0 max-w-2xl px-4 py-6 sm:px-6 sm:py-8">
       <Link
         to="/feed"
-        className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-secondary transition hover:text-brand-700"
+        className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-secondary transition hover:text-primary"
       >
         <ArrowLeft className="h-4 w-4" aria-hidden />
         Back to feed
       </Link>
 
       <header className="mb-6">
-        <p className="text-sm font-semibold text-accent-600">Start a Movement</p>
+        <p className="text-sm font-semibold text-accent-600 dark:text-accent-400">
+          {t('create.title', { defaultValue: 'Create a Youth Movement' })}
+        </p>
         <h1 className="mt-1 text-2xl font-bold tracking-tight text-primary sm:text-3xl">
           {stepTitles[step] ?? 'Create movement'}
         </h1>
+        <p className="mt-2 text-sm leading-relaxed text-secondary">{stepHints[step]}</p>
         <p className="mt-3 text-xs leading-relaxed text-muted">
           ForFuture is a safe civic space. Please share responsibly and follow our{' '}
-          <Link to="/community-guidelines" className="font-semibold text-accent-600 hover:underline">
+          <Link to="/community-guidelines" className="font-semibold text-accent-600 hover:underline dark:text-accent-400">
             Community Guidelines
           </Link>
           .
         </p>
       </header>
 
+      <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted">
+        Step {step} of {totalSteps}
+      </p>
       <WizardProgress step={step} total={totalSteps} />
 
+      {voiceIdBootstrapping && (
+        <p className="mb-4 rounded-xl border border-accent-200/80 bg-accent-50/80 px-4 py-3 text-sm text-accent-800 dark:border-accent-700/50 dark:bg-accent-950/40 dark:text-accent-200">
+          {t('create.voiceIdLoading', { defaultValue: 'Setting up your Youth Voice ID…' })}
+        </p>
+      )}
+
       {error && (
-        <p className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+        <p
+          className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200"
+          role="alert"
+        >
           {error}
         </p>
       )}
 
-      <div key={step} className="onboarding-step card-surface space-y-6 p-6 sm:p-8">
+      <div key={step} className="onboarding-step card-surface space-y-6 p-5 sm:p-8">
         {step === 1 && (
           <>
-            <FormField label="Movement title" id="title" error={fieldErrors.title}>
+            <FormField label="Movement title *" id="title" error={fieldErrors.title}>
               <input
                 id="title"
                 value={title}
                 onChange={(e) => onTitleChange(e.target.value)}
                 maxLength={POST_LIMITS.titleMax}
-                placeholder="Give your movement a clear, compelling title"
+                placeholder="e.g. Safer routes to school for every student"
+                aria-invalid={Boolean(fieldErrors.title)}
                 className={`${inputClass} ${fieldErrors.title ? inputErrorClass : ''}`}
               />
               <CharCount current={title.length} max={POST_LIMITS.titleMax} />
@@ -238,10 +289,7 @@ export default function CreateMovementWizard({
                 placeholder="Summarize the problem in a few sentences."
                 className={`${inputClass} resize-y min-h-28`}
               />
-              <CharCount
-                current={movementFields.issue_summary?.length ?? 0}
-                max={POST_LIMITS.descriptionMax}
-              />
+              <CharCount current={movementFields.issue_summary?.length ?? 0} max={POST_LIMITS.descriptionMax} />
             </FormField>
           </>
         )}
@@ -260,48 +308,73 @@ export default function CreateMovementWizard({
                 uploading={uploadingMedia}
               />
             )}
-            <FormField label="Full description" id="description" error={fieldErrors.description}>
-              <textarea
-                id="description"
-                value={description}
-                onChange={(e) => onDescriptionChange(e.target.value)}
-                rows={8}
-                maxLength={POST_LIMITS.descriptionMax}
-                placeholder="Explain why this matters, who is affected, and what change you hope to see."
-                className={`${inputClass} resize-y min-h-40 ${fieldErrors.description ? inputErrorClass : ''}`}
-              />
-              <CharCount current={description.length} max={POST_LIMITS.descriptionMax} />
-            </FormField>
+            {!isPetition && (
+              <FormField label="Full description *" id="description" error={fieldErrors.description}>
+                <textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => onDescriptionChange(e.target.value)}
+                  rows={8}
+                  maxLength={POST_LIMITS.descriptionMax}
+                  placeholder="Explain why this matters, who is affected, and what change you hope to see."
+                  aria-invalid={Boolean(fieldErrors.description)}
+                  className={`${inputClass} resize-y min-h-40 ${fieldErrors.description ? inputErrorClass : ''}`}
+                />
+                <CharCount current={description.length} max={POST_LIMITS.descriptionMax} />
+                {!fieldErrors.description &&
+                  description.length > 0 &&
+                  description.length < POST_LIMITS.descriptionMin && (
+                    <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+                      {t('create.descriptionMinHint', {
+                        min: POST_LIMITS.descriptionMin,
+                        current: description.length,
+                      })}
+                    </p>
+                  )}
+              </FormField>
+            )}
+            {isPetition && (
+              <p className="text-sm text-secondary">
+                Petition details are collected in the next step after you choose action type.
+              </p>
+            )}
           </>
         )}
 
         {step === 3 && (
-          <ul className="grid gap-3 sm:grid-cols-2">
-            {WIZARD_TYPES.map((opt) => {
-              const Icon = opt.icon
-              const selected = movementType === opt.value
-              return (
-                <li key={opt.value}>
-                  <button
-                    type="button"
-                    onClick={() => onMovementTypeChange(opt.value)}
-                    className={
-                      selected ? 'onboarding-card-option onboarding-card-option-selected' : 'onboarding-card-option'
-                    }
-                    aria-pressed={selected}
-                  >
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted text-accent-600">
-                      <Icon className="h-5 w-5" aria-hidden />
-                    </span>
-                    <span>
-                      <span className="block text-sm font-bold text-primary">{opt.label}</span>
-                      <span className="mt-0.5 block text-xs text-secondary">{opt.description}</span>
-                    </span>
-                  </button>
-                </li>
-              )
-            })}
-          </ul>
+          <fieldset>
+            <legend className="sr-only">Movement action type</legend>
+            <ul className="grid gap-3 sm:grid-cols-2">
+              {WIZARD_TYPES.map((opt) => {
+                const Icon = opt.icon
+                const selected = movementType === opt.value
+                return (
+                  <li key={opt.value}>
+                    <button
+                      type="button"
+                      onClick={() => onMovementTypeChange(opt.value)}
+                      className={
+                        selected
+                          ? 'onboarding-card-option onboarding-card-option-selected'
+                          : 'onboarding-card-option'
+                      }
+                      aria-pressed={selected}
+                    >
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted text-accent-600 dark:text-accent-400">
+                        <Icon className="h-5 w-5" aria-hidden />
+                      </span>
+                      <span className="min-w-0 text-left">
+                        <span className="block text-sm font-bold text-primary">{opt.label}</span>
+                        <span className="mt-0.5 block text-xs leading-relaxed text-secondary">
+                          {opt.description}
+                        </span>
+                      </span>
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          </fieldset>
         )}
 
         {step === 4 && (
@@ -342,11 +415,18 @@ export default function CreateMovementWizard({
           </>
         )}
 
-        {step === 5 && previewPost && (
-          <div className="space-y-4">
-            <p className="text-sm text-secondary">This is how your movement will appear in the feed.</p>
-            <PostCard post={previewPost} detailPath="#" showFollow={false} />
-          </div>
+        {step === 5 && (
+          <>
+            {previewPost ? (
+              <CreateMovementPreview post={previewPost} />
+            ) : (
+              <EmptyState
+                icon={Megaphone}
+                title="Complete required fields"
+                description="Add a title, description, and category before publishing. Use Back to edit any step."
+              />
+            )}
+          </>
         )}
       </div>
 
@@ -358,12 +438,22 @@ export default function CreateMovementWizard({
               Back
             </button>
           )}
+          {step === 5 && (
+            <button type="button" onClick={onBack} className="btn-ghost text-sm" disabled={loading}>
+              Back to edit
+            </button>
+          )}
           <button type="button" onClick={onSaveDraft} className="btn-ghost text-sm" disabled={loading}>
             Save draft and exit
           </button>
         </div>
         {step < totalSteps ? (
-          <button type="button" onClick={onContinue} disabled={!canContinue || loading} className="btn-primary">
+          <button
+            type="button"
+            onClick={onContinue}
+            disabled={!canContinue || loading || voiceIdBootstrapping}
+            className="btn-primary"
+          >
             Continue
             <ArrowRight className="h-4 w-4" aria-hidden />
           </button>
@@ -371,7 +461,7 @@ export default function CreateMovementWizard({
           <button
             type="button"
             onClick={onSubmit}
-            disabled={loading || !canPublish}
+            disabled={loading || !canPublish || !previewPost || voiceIdBootstrapping}
             className="btn-primary"
             aria-busy={loading}
           >

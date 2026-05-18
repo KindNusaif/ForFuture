@@ -31,11 +31,18 @@ import { createPost } from '../lib/posts'
 import { ensureYouthVoiceId } from '../lib/auth'
 import { formatError } from '../lib/errors'
 import {
+  formatFieldErrorsSummary,
   hasFieldErrors,
   POST_LIMITS,
-  validateCreatePost,
   type CreatePostFieldErrors,
 } from '../lib/validation'
+import {
+  resolveCreateDescription,
+  validateCreateMovement,
+  wizardStepCanContinue,
+  type CreateMovementFormState,
+} from '../lib/createMovementValidation'
+import { useToast } from '../hooks/useToast'
 import {
   buildActionPathApplyResult,
   type ActionPathSuggestion,
@@ -116,6 +123,30 @@ export default function CreatePost() {
   const [voiceIdBootstrapping, setVoiceIdBootstrapping] = useState(false)
   /** Only block clicks while voice ID is actively being created — not when setup failed (submit retries). */
   const canPublish = !voiceIdBootstrapping
+  const toast = useToast()
+
+  const formState = useMemo<CreateMovementFormState>(
+    () => ({
+      title,
+      description,
+      category,
+      authorName,
+      postingIdentity,
+      movementType,
+      movementFields,
+      pollOptions,
+    }),
+    [
+      title,
+      description,
+      category,
+      authorName,
+      postingIdentity,
+      movementType,
+      movementFields,
+      pollOptions,
+    ],
+  )
 
   function handleMovementTypeChange(next: MovementType) {
     setMovementType(next)
@@ -190,56 +221,38 @@ export default function CreatePost() {
   ])
 
   function wizardStepValid(step: number): boolean {
-    if (step === 1) {
-      return title.trim().length >= POST_LIMITS.titleMin
-    }
-    if (step === 2) {
-      if (isPetition) return true
-      return description.trim().length >= POST_LIMITS.descriptionMin
-    }
-    if (step === 3) return true
-    if (step === 4) {
-      return Boolean(category)
-    }
-    return true
+    return wizardStepCanContinue(step, {
+      ...formState,
+      postingIdentity: effectivePostingIdentity,
+    })
   }
 
   function handleWizardContinue() {
+    const errors = validateCreateMovement(formState, {
+      postingIdentity: effectivePostingIdentity,
+    })
+    if (wizardStep < 4) {
+      const stepFields: CreatePostFieldErrors = {}
+      if (wizardStep === 1 && errors.title) stepFields.title = errors.title
+      if (wizardStep === 2 && errors.description) stepFields.description = errors.description
+      if (wizardStep === 4 && errors.category) stepFields.category = errors.category
+      if (hasFieldErrors(stepFields)) {
+        setFieldErrors(stepFields)
+        setError(formatFieldErrorsSummary(stepFields) || t('create.fixValidation'))
+        return
+      }
+    } else if (wizardStep === 4) {
+      setFieldErrors(errors)
+      if (hasFieldErrors(errors)) {
+        setError(formatFieldErrorsSummary(errors) || t('create.fixValidation'))
+        return
+      }
+    }
     if (!wizardStepValid(wizardStep)) {
       setError(t('create.fixValidation'))
       return
     }
-    if (wizardStep === 4) {
-      const issueText = movementFields.petition_issue.trim()
-      const petitionDescription = isPetition
-        ? issueText.length >= POST_LIMITS.descriptionMin
-          ? issueText
-          : `${issueText}\n\n${movementFields.petition_requested_change.trim()}`.slice(
-              0,
-              POST_LIMITS.descriptionMax,
-            )
-        : description.trim()
-      const errors = validateCreatePost({
-        title,
-        description: petitionDescription,
-        category,
-        authorName,
-        postingIdentity: effectivePostingIdentity,
-        movementType,
-        fundraising_goal_amount: movementFields.fundraising_goal_amount,
-        fundraising_purpose: movementFields.fundraising_purpose,
-        petition_issue: movementFields.petition_issue,
-        petition_requested_change: movementFields.petition_requested_change,
-        petition_target_authority: movementFields.petition_target_authority,
-        petition_support_goal: movementFields.petition_support_goal,
-        petition_closing_date: movementFields.petition_closing_date,
-      })
-      setFieldErrors(errors)
-      if (hasFieldErrors(errors)) {
-        setError(t('create.fixValidation'))
-        return
-      }
-    }
+    setFieldErrors({})
     setError(null)
     const next = Math.min(wizardStep + 1, WIZARD_STEPS)
     setWizardStep(next)
@@ -342,31 +355,13 @@ export default function CreatePost() {
       return
     }
 
-    const issueText = movementFields.petition_issue.trim()
-    const petitionDescription = isPetition
-      ? issueText.length >= POST_LIMITS.descriptionMin
-        ? issueText
-        : `${issueText}\n\n${movementFields.petition_requested_change.trim()}`.slice(
-            0,
-            POST_LIMITS.descriptionMax,
-          )
-      : description.trim()
-
-    const errors = validateCreatePost({
-      title,
-      description: petitionDescription,
-      category,
-      authorName,
+    const resolvedDescription = resolveCreateDescription({
+      ...formState,
       postingIdentity: effectivePostingIdentity,
-      movementType,
-      fundraising_goal_amount: movementFields.fundraising_goal_amount,
-      fundraising_purpose: movementFields.fundraising_purpose,
-      pollOptions: isPoll ? pollOptions : undefined,
-      petition_issue: movementFields.petition_issue,
-      petition_requested_change: movementFields.petition_requested_change,
-      petition_target_authority: movementFields.petition_target_authority,
-      petition_support_goal: movementFields.petition_support_goal,
-      petition_closing_date: movementFields.petition_closing_date,
+    })
+
+    const errors = validateCreateMovement(formState, {
+      postingIdentity: effectivePostingIdentity,
     })
     setFieldErrors(errors)
     if (hasFieldErrors(errors)) {
@@ -377,8 +372,13 @@ export default function CreatePost() {
     }
 
     if (movementSupportsAttachments(movementType) && pendingMedia.hasFiles) {
-      if (!pendingMedia.validation.valid) {
-        setError(pendingMedia.validation.issues[0]?.message ?? 'Check your attachments.')
+      const mediaCheck = pendingMedia.validation
+      if (!mediaCheck.valid) {
+        const msg =
+          'issues' in mediaCheck && mediaCheck.issues[0]?.message
+            ? mediaCheck.issues[0].message
+            : 'Check your attachments.'
+        setError(msg)
         return
       }
     }
@@ -392,7 +392,7 @@ export default function CreatePost() {
       const post = await createPost({
         userId: user.id,
         title: title.trim(),
-        description: isPetition ? petitionDescription : description.trim(),
+        description: resolvedDescription,
         category: category as Category,
         authorName: authorName.trim(),
         postingIdentity: effectivePostingIdentity,
@@ -458,6 +458,7 @@ export default function CreatePost() {
       if (useWizardMode) {
         clearCreateMovementDraft()
         setPublishedPostId(post.id)
+        toast.success('Your movement is live!', `"${title.trim()}" is now on the feed.`)
       } else {
         navigate('/feed', {
           replace: true,
@@ -531,6 +532,7 @@ export default function CreatePost() {
           pendingMedia={pendingMedia}
           uploadingMedia={uploadingMedia}
           error={error}
+          voiceIdBootstrapping={voiceIdBootstrapping}
           publishedId={publishedPostId}
         />
       </>
@@ -586,7 +588,7 @@ export default function CreatePost() {
 
         {error && (
           <p
-            className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+            className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200"
             role="alert"
           >
             {error}
