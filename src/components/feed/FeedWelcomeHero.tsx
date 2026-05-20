@@ -46,11 +46,11 @@ export default function FeedWelcomeHero({ firstName, feedTab, userId }: FeedWelc
     <header className="feed-header mb-6">
       <div className={`feed-header-grid${status ? '' : ' feed-header-grid--solo'}`}>
         <div className="feed-header-main min-w-0">
-          <p className="eyebrow">ForFuture</p>
-          <h1 className="page-title mt-2">
+          <p className="app-brand-eyebrow">{t('landing.logoTagline')}</p>
+          <h1 className="app-welcome-title mt-2">
             {firstName ? t('feed.greetingNamed', { name: firstName }) : t('feed.greeting')}
           </h1>
-          <p className="mt-2 text-secondary">
+          <p className="mt-2 max-w-xl text-sm leading-relaxed text-secondary sm:text-base">
             {feedTab === 'following'
               ? t('feed.memberFollowingSubtitle')
               : t('feed.memberDiscoverSubtitle')}

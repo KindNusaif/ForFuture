@@ -1,10 +1,15 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { Bell, CheckCheck, Inbox, Loader2, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../hooks/useAuth'
 import { useNotifications } from '../../hooks/useNotifications'
 import { notificationHref } from '../../lib/notifications'
+
+const DROPDOWN_WIDTH_PX = 352
+const DROPDOWN_GAP_PX = 8
+const VIEWPORT_PAD_PX = 8
 
 function formatWhen(iso: string): string {
   try {
@@ -26,12 +31,52 @@ export default function NotificationCenter() {
   const [open, setOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const [dropdownStyle, setDropdownStyle] = useState<CSSProperties | null>(null)
   const { items, loading, error, unreadCount, reload, markRead, markAllRead } =
     useNotifications(user?.id)
 
+  useLayoutEffect(() => {
+    if (!open) {
+      setDropdownStyle(null)
+      return
+    }
+
+    function updatePosition() {
+      const trigger = triggerRef.current
+      if (!trigger) return
+      const rect = trigger.getBoundingClientRect()
+      const width = Math.min(DROPDOWN_WIDTH_PX, window.innerWidth - VIEWPORT_PAD_PX * 2)
+      let left = rect.right - width
+      left = Math.max(
+        VIEWPORT_PAD_PX,
+        Math.min(left, window.innerWidth - width - VIEWPORT_PAD_PX),
+      )
+      setDropdownStyle({
+        position: 'fixed',
+        top: rect.bottom + DROPDOWN_GAP_PX,
+        left,
+        width,
+        zIndex: 9999,
+      })
+    }
+
+    updatePosition()
+    window.addEventListener('resize', updatePosition)
+    window.addEventListener('scroll', updatePosition, true)
+    return () => {
+      window.removeEventListener('resize', updatePosition)
+      window.removeEventListener('scroll', updatePosition, true)
+    }
+  }, [open])
+
   useEffect(() => {
     function onDoc(e: MouseEvent) {
-      if (!rootRef.current?.contains(e.target as Node)) setOpen(false)
+      const target = e.target as Node
+      if (rootRef.current?.contains(target)) return
+      if (dropdownRef.current?.contains(target)) return
+      setOpen(false)
     }
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') {
@@ -170,6 +215,7 @@ export default function NotificationCenter() {
   return (
     <div ref={rootRef} className="relative">
       <button
+        ref={triggerRef}
         type="button"
         onClick={handleOpen}
         className="btn-ghost relative min-h-10! w-10! p-0!"
@@ -184,11 +230,21 @@ export default function NotificationCenter() {
         )}
       </button>
 
-      {open && (
-        <div className="notification-dropdown hidden lg:block" role="dialog" aria-label="Notifications">
-          {panel}
-        </div>
-      )}
+      {open &&
+        dropdownStyle &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <div
+            ref={dropdownRef}
+            className="notification-dropdown notification-dropdown-portal hidden lg:block"
+            style={dropdownStyle}
+            role="dialog"
+            aria-label="Notifications"
+          >
+            {panel}
+          </div>,
+          document.body,
+        )}
 
       {mobileOpen && (
         <div

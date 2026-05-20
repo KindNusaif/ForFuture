@@ -4,13 +4,16 @@ import { isPublicMarketingRoute } from './lib/publicRoutes'
 import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 import { JoinMovementProvider } from './context/JoinMovementContext'
+import { CreatePollProvider } from './context/CreatePollContext'
 import { ReportContentProvider } from './context/ReportContentContext'
 import { ToastProvider } from './context/ToastProvider'
 import AdminRoute from './components/AdminRoute'
 import Layout from './components/Layout'
 import ExploreLayout from './components/ExploreLayout'
 import ImpactMapLayout from './components/ImpactMapLayout'
+import InspireHubLayout from './components/InspireHubLayout'
 import AppLayout from './components/AppLayout'
+import InspireCreateGate from './components/routing/InspireCreateGate'
 import ProtectedRoute from './components/ProtectedRoute'
 import OnboardingGate from './components/OnboardingGate'
 import GuestRoute from './components/GuestRoute'
@@ -18,6 +21,7 @@ import PageLoader from './components/PageLoader'
 import DeployConfigBanner from './components/DeployConfigBanner'
 import HomeRoute from './components/HomeRoute'
 import SessionExpiryHandler from './components/SessionExpiryHandler'
+import PublicShareRedirect from './components/routing/PublicShareRedirect'
 
 const Login = lazy(() => import('./pages/Login'))
 const Signup = lazy(() => import('./pages/Signup'))
@@ -37,8 +41,13 @@ const MovementDetail = lazy(() => import('./pages/MovementDetail'))
 const AdminModeration = lazy(() => import('./pages/AdminModeration'))
 const AdminTrustReview = lazy(() => import('./pages/AdminTrustReview'))
 const ReliefHub = lazy(() => import('./pages/ReliefHub'))
+const ReliefCampaignDetail = lazy(() => import('./pages/ReliefCampaignDetail'))
 const CreateReliefPost = lazy(() => import('./pages/CreateReliefPost'))
+const VerificationCenter = lazy(() => import('./pages/VerificationCenter'))
 const YouthImpactPulse = lazy(() => import('./pages/YouthImpactPulse'))
+const CommunityPolls = lazy(() => import('./pages/CommunityPolls'))
+const InspireHub = lazy(() => import('./pages/InspireHub'))
+const InspireDetail = lazy(() => import('./pages/InspireDetail'))
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'))
 const TermsOfUse = lazy(() => import('./pages/TermsOfUse'))
 const CommunityGuidelines = lazy(() => import('./pages/CommunityGuidelines'))
@@ -73,10 +82,16 @@ export default function App() {
         <ToastProvider>
           <SessionExpiryHandler />
           <JoinMovementProvider>
+            <CreatePollProvider>
             <ReportContentProvider>
               <AppFrame>
               <DeployConfigBanner />
               <Routes>
+              <Route path="post/:id" element={<PublicShareRedirect />} />
+              <Route path="petition/:id" element={<PublicShareRedirect />} />
+              <Route path="poll/:id" element={<PublicShareRedirect />} />
+              <Route path="volunteer/:id" element={<PublicShareRedirect />} />
+              <Route path="voice/:id" element={<PublicShareRedirect />} />
               <Route element={<Layout />}>
                 <Route index element={<HomeRoute />} />
                 <Route
@@ -178,6 +193,33 @@ export default function App() {
                 />
               </Route>
 
+              <Route path="inspire" element={<InspireHubLayout />}>
+                <Route
+                  index
+                  element={
+                    <LazyPage>
+                      <InspireHub />
+                    </LazyPage>
+                  }
+                />
+                <Route
+                  path="create"
+                  element={
+                    <LazyPage>
+                      <InspireCreateGate />
+                    </LazyPage>
+                  }
+                />
+                <Route
+                  path=":id"
+                  element={
+                    <LazyPage>
+                      <InspireDetail />
+                    </LazyPage>
+                  }
+                />
+              </Route>
+
               <Route element={<ExploreLayout />}>
                 <Route
                   path="movements"
@@ -212,13 +254,29 @@ export default function App() {
                   }
                 />
                 <Route
+                  path="explore/relief/:id"
+                  element={
+                    <LazyPage>
+                      <ReliefCampaignDetail mode="guest" />
+                    </LazyPage>
+                  }
+                />
+                <Route
+                  path="explore/polls"
+                  element={
+                    <LazyPage>
+                      <CommunityPolls mode="guest" />
+                    </LazyPage>
+                  }
+                />
+                <Route
                   path="explore/:id"
                   element={
                     <LazyPage>
                       <MovementDetail
                         mode="guest"
-                        backTo="/movements"
-                        backLabel="Back to Movements"
+                        backTo="/explore"
+                        backLabel="Back to explore"
                       />
                     </LazyPage>
                   }
@@ -229,8 +287,8 @@ export default function App() {
                     <LazyPage>
                       <MovementDetail
                         mode="guest"
-                        backTo="/movements"
-                        backLabel="Back to Movements"
+                        backTo="/explore"
+                        backLabel="Back to explore"
                       />
                     </LazyPage>
                   }
@@ -272,10 +330,26 @@ export default function App() {
                   }
                 />
                 <Route
+                  path="relief/:id"
+                  element={
+                    <LazyPage>
+                      <ReliefCampaignDetail />
+                    </LazyPage>
+                  }
+                />
+                <Route
                   path="relief/create"
                   element={
                     <LazyPage>
                       <CreateReliefPost />
+                    </LazyPage>
+                  }
+                />
+                <Route
+                  path="verification"
+                  element={
+                    <LazyPage>
+                      <VerificationCenter />
                     </LazyPage>
                   }
                 />
@@ -292,6 +366,14 @@ export default function App() {
                   element={
                     <LazyPage>
                       <CreatePostRoute />
+                    </LazyPage>
+                  }
+                />
+                <Route
+                  path="polls"
+                  element={
+                    <LazyPage>
+                      <CommunityPolls mode="member" />
                     </LazyPage>
                   }
                 />
@@ -329,6 +411,7 @@ export default function App() {
               </Routes>
               </AppFrame>
             </ReportContentProvider>
+            </CreatePollProvider>
           </JoinMovementProvider>
         </ToastProvider>
       </ThemeProvider>

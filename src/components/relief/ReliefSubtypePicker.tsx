@@ -20,12 +20,15 @@ interface ReliefSubtypePickerProps {
   value: ReliefCreateSubtype | null
   onChange: (value: ReliefCreateSubtype) => void
   disabled?: boolean
+  /** Subtypes the user cannot select (e.g. fundraising without verified org). */
+  lockedSubtypes?: ReliefCreateSubtype[]
 }
 
 export default function ReliefSubtypePicker({
   value,
   onChange,
   disabled,
+  lockedSubtypes = [],
 }: ReliefSubtypePickerProps) {
   const { t } = useTranslation()
 
@@ -33,11 +36,13 @@ export default function ReliefSubtypePicker({
     <div className="grid gap-3 sm:grid-cols-3">
       {OPTIONS.map(({ value: v, icon: Icon, accent }) => {
         const selected = value === v
+        const locked = lockedSubtypes.includes(v)
         return (
           <button
             key={v}
             type="button"
-            disabled={disabled}
+            disabled={disabled || locked}
+            title={locked ? t('reliefHub.fundraisingLocked') : undefined}
             onClick={() => onChange(v)}
             className={`flex min-w-0 flex-col items-start rounded-2xl border-2 p-4 text-left transition ${
               selected

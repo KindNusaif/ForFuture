@@ -22,6 +22,21 @@ export const DEFAULT_MAP_ZOOM = 7
 export const SELECTED_MAP_ZOOM = 15
 export const SEARCH_MAP_ZOOM = 14
 
+/** Minimal styles for dark mode Impact Map (no Map ID required) */
+export const GOOGLE_MAP_DARK_STYLES: google.maps.MapTypeStyle[] = [
+  { elementType: 'geometry', stylers: [{ color: '#1d2c4d' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#8ec3b9' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#1a3646' }] },
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0e1626' }] },
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#304a7d' }] },
+  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#212a37' }] },
+  { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+]
+
+export function getGoogleMapStyles(): google.maps.MapTypeStyle[] | undefined {
+  return getResolvedMapTheme() === 'dark' ? GOOGLE_MAP_DARK_STYLES : undefined
+}
+
 function parseEnvNumber(raw: unknown, fallback: number): number {
   if (typeof raw !== 'string' || !raw.trim()) return fallback
   const n = Number(raw)
@@ -41,6 +56,11 @@ export function getMapCountryBias(): string[] | undefined {
 
 let mapsReady: Promise<typeof google.maps> | null = null
 
+/**
+ * Browser key only (`VITE_GOOGLE_MAPS_API_KEY`). In Google Cloud Console:
+ * restrict by HTTP referrer (your Netlify/production domains), and enable only
+ * Maps JavaScript API, Places API, and Geocoding API as needed.
+ */
 export function getGoogleMapsApiKey(): string | undefined {
   const key = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
   return typeof key === 'string' && key.trim() ? key.trim() : undefined
@@ -104,6 +124,37 @@ export async function reverseGeocode(lat: number, lng: number): Promise<string |
       }
       resolve(results[0].formatted_address ?? null)
     })
+  })
+}
+
+/** Resolve a place name (e.g. district) to coordinates; biased to configured country. */
+export async function forwardGeocode(
+  query: string,
+): Promise<{ lat: number; lng: number } | null> {
+  const trimmed = query.trim()
+  if (!trimmed || !isGoogleMapsConfigured()) return null
+
+  await loadGoogleMaps()
+  const geocoder = new google.maps.Geocoder()
+  const countryCodes = getMapCountryBias()
+
+  return new Promise((resolve) => {
+    geocoder.geocode(
+      {
+        address: trimmed,
+        componentRestrictions: countryCodes?.[0]
+          ? { country: countryCodes[0] }
+          : undefined,
+      },
+      (results, status) => {
+        if (status !== 'OK' || !results?.[0]?.geometry?.location) {
+          resolve(null)
+          return
+        }
+        const loc = results[0].geometry.location
+        resolve({ lat: loc.lat(), lng: loc.lng() })
+      },
+    )
   })
 }
 

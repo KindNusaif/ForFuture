@@ -4,6 +4,7 @@ import type { Category, MovementType } from '../types'
 import { CATEGORIES } from '../types'
 import { isPollMovement, MOVEMENT_TYPE_VALUES } from './movements'
 import { POLL_OPTION_MAX, POLL_OPTION_MIN } from './polls'
+import { isPasswordPolicyMet, PASSWORD_POLICY, passwordPolicySubmitMessage } from './passwordPolicy'
 
 export const POST_LIMITS = {
   titleMin: 3,
@@ -70,11 +71,11 @@ export function validateSignup(
   if (!email.trim()) return 'Email is required.'
   if (!isValidEmail(email)) return 'Enter a valid email address.'
   if (!password) return 'Password is required.'
-  if (password.length < 6) return 'Password must be at least 6 characters.'
+  if (!isPasswordPolicyMet(password)) return passwordPolicySubmitMessage()
   return null
 }
 
-export const PASSWORD_MIN_LENGTH = 6
+export const PASSWORD_MIN_LENGTH = PASSWORD_POLICY.minLength
 
 export function validatePasswordReset(password: string, confirm: string): {
   password?: string
@@ -83,8 +84,8 @@ export function validatePasswordReset(password: string, confirm: string): {
   const errors: { password?: string; confirm?: string } = {}
   if (!password) {
     errors.password = 'Password is required.'
-  } else if (password.length < PASSWORD_MIN_LENGTH) {
-    errors.password = `Password must be at least ${PASSWORD_MIN_LENGTH} characters.`
+  } else if (!isPasswordPolicyMet(password)) {
+    errors.password = passwordPolicySubmitMessage()
   }
   if (!confirm) {
     errors.confirm = 'Please confirm your password.'

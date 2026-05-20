@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Globe } from 'lucide-react'
+import { ChevronDown, Globe } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { AppLanguage } from '../i18n'
 
@@ -10,7 +10,7 @@ const OPTIONS: { code: AppLanguage; labelKey: string }[] = [
 ]
 
 interface LanguageSwitcherProps {
-  variant?: 'default' | 'compact' | 'landing'
+  variant?: 'default' | 'compact' | 'landing' | 'sidebar'
   className?: string
 }
 
@@ -48,9 +48,11 @@ export default function LanguageSwitcher({
   const triggerClass =
     variant === 'compact'
       ? 'menu-trigger-compact'
-      : variant === 'landing'
-        ? 'menu-trigger-landing'
-        : 'menu-trigger'
+      : variant === 'sidebar'
+        ? 'menu-trigger-sidebar'
+        : variant === 'landing'
+          ? 'menu-trigger-landing'
+          : 'menu-trigger'
 
   return (
     <div ref={rootRef} className={`relative ${className}`}>
@@ -62,14 +64,28 @@ export default function LanguageSwitcher({
         aria-expanded={open}
         aria-label={t('language.select')}
       >
-        <Globe className="h-4 w-4 shrink-0 text-accent-600 dark:text-accent-400" aria-hidden />
-        <span className="max-w-[7rem] truncate sm:max-w-none">
-          {variant === 'compact'
-            ? t(
-                `language.${current === 'en' ? 'english' : current === 'ta' ? 'tamil' : 'sinhala'}`,
-              )
-            : t('language.label')}
+        <Globe
+          className={`h-4 w-4 shrink-0 ${variant === 'landing' ? 'text-muted-foreground' : 'text-accent-600 dark:text-accent-400'}`}
+          aria-hidden
+        />
+        <span
+          className={
+            variant === 'sidebar'
+              ? 'language-switcher-label language-switcher-label--code'
+              : 'language-switcher-label max-w-[7rem] truncate sm:max-w-none'
+          }
+        >
+          {variant === 'landing' || variant === 'sidebar'
+            ? current.toUpperCase()
+            : variant === 'compact'
+              ? t(
+                  `language.${current === 'en' ? 'english' : current === 'ta' ? 'tamil' : 'sinhala'}`,
+                )
+              : t('language.label')}
         </span>
+        {(variant === 'landing' || variant === 'sidebar') && (
+          <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-60" aria-hidden />
+        )}
       </button>
 
       {open && (

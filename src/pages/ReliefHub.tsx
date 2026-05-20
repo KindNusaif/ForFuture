@@ -1,12 +1,22 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { HeartHandshake, Plus } from 'lucide-react'
+import { ArrowRight, BadgeCheck, HeartHandshake, Search } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import PostFeed from '../components/PostFeed'
+import ReliefTrustStrip from '../components/relief/ReliefTrustStrip'
+import { useAuth } from '../hooks/useAuth'
 import { useToast } from '../hooks/useToast'
 import type { ReliefHubFilter } from '../lib/reliefHub'
+import type { ReliefHubTab } from '../lib/reliefCampaignPublic'
+import { canCreateFundraisingCampaign } from '../lib/reliefCampaignPublic'
 
-const SUBFILTERS: ReliefHubFilter[] = ['all', 'blood_donation', 'item_donation', 'fundraising']
+const TABS: { id: ReliefHubTab; filter?: ReliefHubFilter }[] = [
+  { id: 'all', filter: 'all' },
+  { id: 'urgent', filter: 'all' },
+  { id: 'monetary', filter: 'fundraising' },
+  { id: 'supplies', filter: 'item_donation' },
+  { id: 'verified_orgs', filter: 'all' },
+]
 
 interface ReliefHubProps {
   mode?: 'guest' | 'member'
@@ -15,73 +25,115 @@ interface ReliefHubProps {
 export default function ReliefHub({ mode = 'member' }: ReliefHubProps) {
   const isGuest = mode === 'guest'
   const { t } = useTranslation()
+  const { profile, user } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
   const toast = useToast()
-  const [reliefSubtype, setReliefSubtype] = useState<ReliefHubFilter>('all')
+
+  const [activeTab, setActiveTab] = useState<ReliefHubTab>('all')
+  const [search, setSearch] = useState('')
+  const reliefSubtype = useMemo(() => {
+    const tab = TABS.find((x) => x.id === activeTab)
+    return tab?.filter ?? 'all'
+  }, [activeTab])
+
+  const verifyPath = isGuest ? '/signup' : '/verification'
+  const canFundraise = canCreateFundraisingCampaign(profile)
 
   useEffect(() => {
-    const navToast = (location.state as { toast?: { type: 'success' | 'error'; message: string } })
-      ?.toast
+    const navToast = (location.state as { toast?: { type: 'success' | 'error'; message: string } })?.toast
     if (!navToast) return
     if (navToast.type === 'success') toast.success(navToast.message)
     else toast.error(navToast.message)
     navigate(location.pathname, { replace: true, state: {} })
   }, [location.pathname, location.state, navigate, toast])
 
+  const memberTabs = user
+    ? ([...TABS, { id: 'my_campaigns' as ReliefHubTab, filter: 'all' as ReliefHubFilter }] as const)
+    : TABS
+
   return (
-    <section className="mx-auto min-w-0 max-w-3xl px-4 py-6 sm:px-6 sm:py-8">
-      <header className="card-surface trust-panel overflow-hidden p-6 sm:p-8">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="min-w-0">
-            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-rose-700">
-              <HeartHandshake className="h-4 w-4" aria-hidden />
-              {t('relief.eyebrow')}
-            </p>
-            <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-primary sm:text-3xl">
-              {t('relief.title')}
-            </h1>
-            <p className="mt-3 max-w-xl text-sm leading-relaxed text-secondary">
-              {t('relief.subtitle')}
-            </p>
-          </div>
-          <Link
-        to={isGuest ? '/signup' : '/relief/create'}
-        className="btn-primary shrink-0"
-      >
-            <Plus className="h-4 w-4" aria-hidden />
-            {t('relief.createCta')}
+    <div className="relief-hub-page">
+      <section className="relief-hub-hero mx-auto max-w-6xl px-4 pt-8 sm:px-6 sm:pt-10">
+        <p className="relief-hub-eyebrow">{t('reliefHub.heroEyebrow')}</p>
+        <h1 className="relief-hub-title font-display">{t('relief.title')}</h1>
+        <p className="relief-hub-subtitle">{t('relief.subtitle')}</p>
+        <div className="relief-hub-hero-actions">
+          <a href="#relief-campaigns" className="btn-primary inline-flex items-center gap-2">
+            {t('reliefHub.exploreCampaigns')}
+            <ArrowRight className="h-4 w-4" aria-hidden />
+          </a>
+          <Link to={verifyPath} className="btn-secondary inline-flex items-center gap-2">
+            <BadgeCheck className="h-4 w-4" aria-hidden />
+            {t('reliefHub.applyVerification')}
           </Link>
         </div>
-      </header>
+        {!isGuest && !canFundraise && (
+          <p className="relief-hub-verify-hint">{t('reliefHub.fundraisingVerifyHint')}</p>
+        )}
+      </section>
 
-      <div className="mt-6 space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted">
-          {t('relief.filterLabel')}
-        </p>
-        <div className="-mx-1 flex gap-2 overflow-x-auto pb-1">
-          {SUBFILTERS.map((f) => (
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <ReliefTrustStrip />
+      </div>
+
+      <section id="relief-campaigns" className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
+        <div className="relief-hub-toolbar">
+          <div className="relief-hub-search-wrap">
+            <Search className="relief-hub-search-icon" aria-hidden />
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={t('reliefHub.searchPlaceholder')}
+              className="relief-hub-search"
+              aria-label={t('reliefHub.searchPlaceholder')}
+            />
+          </div>
+        </div>
+
+        <div className="relief-hub-tabs" role="tablist" aria-label={t('relief.filterLabel')}>
+          {memberTabs.map((tab) => (
             <button
-              key={f}
+              key={tab.id}
               type="button"
-              onClick={() => setReliefSubtype(f)}
-              className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium transition ${
-                reliefSubtype === f ? 'pill-active' : 'pill-inactive'
-              }`}
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={activeTab === tab.id ? 'relief-hub-tab relief-hub-tab--active' : 'relief-hub-tab'}
             >
-              {t(`relief.filters.${f}`)}
+              {t(`reliefHub.tabs.${tab.id}`)}
             </button>
           ))}
         </div>
-      </div>
 
-      <PostFeed
-        mode={isGuest ? 'guest' : 'member'}
-        reliefHub
-        reliefSubtype={reliefSubtype}
-        showCreateButton={false}
-        className="mt-6"
-      />
-    </section>
+        <PostFeed
+          mode={isGuest ? 'guest' : 'member'}
+          userId={user?.id}
+          reliefHub
+          reliefSubtype={reliefSubtype}
+          reliefHubTab={activeTab}
+          reliefSearchQuery={search}
+          reliefDetailBase={isGuest ? '/explore/relief' : '/relief'}
+          showCreateButton={false}
+          className="mt-6"
+        />
+
+        {!isGuest && (
+          <div className="relief-hub-create-bar card-surface mt-10 flex flex-wrap items-center justify-between gap-4 p-6">
+            <div className="flex items-start gap-3">
+              <HeartHandshake className="h-8 w-8 shrink-0 text-rose-600" aria-hidden />
+              <div>
+                <p className="font-semibold text-primary">{t('relief.createTitle')}</p>
+                <p className="mt-1 text-sm text-secondary">{t('reliefHub.createBarHint')}</p>
+              </div>
+            </div>
+            <Link to="/relief/create" className="btn-primary shrink-0">
+              {t('relief.createCta')}
+            </Link>
+          </div>
+        )}
+      </section>
+    </div>
   )
 }

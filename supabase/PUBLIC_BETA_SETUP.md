@@ -2,13 +2,16 @@
 
 Run these steps **in order** in the Supabase SQL Editor for an existing project that already has core tables.
 
+**Seeing “database needs an update” in the app?** The feed view is behind the app. Run **`fix_database.sql`** first (one paste, wait for Success), then continue with the table below. Hard-refresh the site (Ctrl+Shift+R).
+
 ## 1. SQL scripts (run in this order)
 
 Open **Supabase Dashboard → SQL Editor → New query**. For each step: paste the file, click **Run**, wait for **Success**.
 
 | Order | File | Purpose |
 |-------|------|---------|
-| 1 | `fix_missing_features.sql` | Patches schema columns/views if your DB is behind the app |
+| 0 | **`fix_database.sql`** | **Use when the app shows “database needs an update”** — full schema + `posts_public_safe` repair |
+| 1 | `fix_missing_features.sql` | Patches schema columns/views if your DB is behind the app (polls, trust view) |
 | 2 | `content_reports.sql` | Reports table + admin RPCs (skip if already applied) |
 | 3–5 | **`RUN_PUBLIC_BETA_IN_SUPABASE.sql`** | **One paste** — constraints + report types + RLS |
 

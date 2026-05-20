@@ -10,7 +10,7 @@ const reasonLabels = Object.fromEntries(
 )
 
 function contentTypeLabel(type: ContentReport['content_type']) {
-  if (type === 'poll') return 'Quick Youth Poll'
+  if (type === 'poll') return 'Community Poll'
   if (type === 'comment') return 'Comment'
   return 'Movement'
 }

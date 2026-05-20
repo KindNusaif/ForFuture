@@ -1,8 +1,11 @@
 import { Loader2 } from 'lucide-react'
 import { Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import DiscoverGuestBanner from '../components/discover/DiscoverGuestBanner'
 import DiscoverHero from '../components/discover/DiscoverHero'
+import DiscoverNearbySection from '../components/discover/DiscoverNearbySection'
 import DiscoverTrendingSection from '../components/discover/DiscoverTrendingSection'
+import { useDiscoverNearbyFocus } from '../hooks/useDiscoverNearbyFocus'
 import DiscoverCategoriesSection from '../components/discover/DiscoverCategoriesSection'
 import DiscoverMovementTypesSection from '../components/discover/DiscoverMovementTypesSection'
 import DiscoverFeaturedSection from '../components/discover/DiscoverFeaturedSection'
@@ -20,7 +23,7 @@ function DiscoverGuestContent() {
       {error && (
         <div
           role="alert"
-          className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-950"
+          className="alert-warning mt-6 px-4 py-4 text-sm"
         >
           <p className="font-semibold">{t('discover.loadErrorTitle')}</p>
           <p className="mt-1">{error}</p>
@@ -30,7 +33,7 @@ function DiscoverGuestContent() {
         </div>
       )}
 
-      <div className="mt-10 space-y-2">
+      <div className="mt-6 space-y-1 sm:mt-8">
         <DiscoverTrendingSection items={data.trending} loading={loading} error={null} />
         <DiscoverCategoriesSection counts={data.categoryCounts} loading={loading} />
         <DiscoverMovementTypesSection />
@@ -62,10 +65,19 @@ export default function Discover() {
     return <Navigate to="/feed" replace />
   }
 
+  return <DiscoverGuestPage />
+}
+
+function DiscoverGuestPage() {
+  useDiscoverNearbyFocus()
+
   return (
-    <div className="mx-auto min-w-0 max-w-7xl px-4 py-8 sm:px-6 lg:py-10">
+    <div className="mx-auto min-w-0 max-w-7xl px-4 py-6 sm:px-6 lg:py-8">
+      <DiscoverGuestBanner />
       <DiscoverHero />
+      <DiscoverNearbySection />
       <DiscoverGuestContent />
     </div>
   )
 }
+

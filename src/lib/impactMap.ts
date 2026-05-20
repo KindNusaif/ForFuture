@@ -11,11 +11,12 @@ export const IMPACT_MAP_MOVEMENT_TYPES = [
   'volunteer_drive',
   'peaceful_civic_action',
   'raise_voice',
+  'donation_relief',
 ] as const satisfies readonly MovementType[]
 
 export type ImpactMapMovementType = (typeof IMPACT_MAP_MOVEMENT_TYPES)[number]
 
-export type ImpactLayerType = 'volunteer' | 'civic_action' | 'issue'
+export type ImpactLayerType = 'volunteer' | 'civic_action' | 'issue' | 'relief'
 
 export type ImpactMapStatus = 'upcoming' | 'active' | 'past' | 'open'
 
@@ -38,6 +39,8 @@ export const IMPACT_MAP_COLUMNS = [
   'latitude',
   'longitude',
   'issue_summary',
+  'hospital_or_organizer',
+  'collection_location',
 ].join(', ')
 
 export const IMPACT_MAP_COLUMNS_LEGACY = IMPACT_MAP_COLUMNS
@@ -89,45 +92,14 @@ const LAYER_BY_MOVEMENT: Record<ImpactMapMovementType, ImpactLayerType> = {
   volunteer_drive: 'volunteer',
   peaceful_civic_action: 'civic_action',
   raise_voice: 'issue',
-}
-
-/** Known US metro / state centroids for approximate district pins (clearly labeled in UI) */
-const DISTRICT_CENTROIDS: Record<string, [number, number]> = {
-  california: [36.7783, -119.4179],
-  'los angeles': [34.0522, -118.2437],
-  'san francisco': [37.7749, -122.4194],
-  texas: [31.9686, -99.9018],
-  houston: [29.7604, -95.3698],
-  'new york': [40.7128, -74.006],
-  chicago: [41.8781, -87.6298],
-  florida: [27.6648, -81.5158],
-  miami: [25.7617, -80.1918],
-  georgia: [32.1656, -82.9001],
-  atlanta: [33.749, -84.388],
-  washington: [38.9072, -77.0369],
-  'district of columbia': [38.9072, -77.0369],
-  dc: [38.9072, -77.0369],
-  virginia: [37.4316, -78.6569],
-  colorado: [39.5501, -105.7821],
-  denver: [39.7392, -104.9903],
-  arizona: [34.0489, -111.0937],
-  phoenix: [33.4484, -112.074],
-  illinois: [40.6331, -89.3985],
-  michigan: [44.3148, -85.6024],
-  detroit: [42.3314, -83.0458],
-  ohio: [40.4173, -82.9071],
-  pennsylvania: [41.2033, -77.1945],
-  philadelphia: [39.9526, -75.1652],
-  massachusetts: [42.4072, -71.3824],
-  boston: [42.3601, -71.0589],
-  seattle: [47.6062, -122.3321],
-  portland: [45.5152, -122.6784],
+  donation_relief: 'relief',
 }
 
 function movementToLayer(mt: string): ImpactLayerType | null {
   if (mt === 'volunteer_drive') return 'volunteer'
   if (mt === 'peaceful_civic_action') return 'civic_action'
   if (mt === 'raise_voice') return 'issue'
+  if (mt === 'donation_relief') return 'relief'
   return null
 }
 
@@ -136,16 +108,6 @@ export function extractDistrict(label: string | null): string | null {
   const parts = label.split(',').map((p) => p.trim()).filter(Boolean)
   if (parts.length >= 2) return parts[0]
   return label.trim()
-}
-
-function lookupApproximateCoords(district: string | null): [number, number] | null {
-  if (!district) return null
-  const key = district.toLowerCase().trim()
-  if (DISTRICT_CENTROIDS[key]) return DISTRICT_CENTROIDS[key]
-  for (const [name, coords] of Object.entries(DISTRICT_CENTROIDS)) {
-    if (key.includes(name) || name.includes(key)) return coords
-  }
-  return null
 }
 
 function startOfToday(): Date {
@@ -159,7 +121,7 @@ export function computeImpactStatus(
   eventDate: string | null,
   actionDate: string | null,
 ): ImpactMapStatus {
-  if (movementType === 'raise_voice') return 'open'
+  if (movementType === 'raise_voice' || movementType === 'donation_relief') return 'open'
 
   const dateStr = movementType === 'volunteer_drive' ? eventDate : actionDate
   if (!dateStr?.trim()) return 'active'
@@ -182,6 +144,8 @@ function mapRow(row: Record<string, unknown>): ImpactMapEntry | null {
     location_name: row.location_name as string | null,
     location: row.location as string | null,
     action_location: row.action_location as string | null,
+    hospital_or_organizer: row.hospital_or_organizer as string | null,
+    collection_location: row.collection_location as string | null,
     movement_type: movementType,
   })
 
@@ -195,18 +159,8 @@ function mapRow(row: Record<string, unknown>): ImpactMapEntry | null {
   const coords = { latitude: lat, longitude: lng }
   const hasPrecise = hasValidCoordinates(coords)
 
-  let latitude: number | null = hasPrecise ? lat : null
-  let longitude: number | null = hasPrecise ? lng : null
-  let isApproximatePin = false
-
-  if (!hasPrecise && district) {
-    const approx = lookupApproximateCoords(district)
-    if (approx) {
-      latitude = approx[0]
-      longitude = approx[1]
-      isApproximatePin = true
-    }
-  }
+  const latitude: number | null = hasPrecise ? lat : null
+  const longitude: number | null = hasPrecise ? lng : null
 
   const eventDate = (row.event_date as string | null) ?? null
   const actionDate = (row.action_date as string | null) ?? null
@@ -231,7 +185,7 @@ function mapRow(row: Record<string, unknown>): ImpactMapEntry | null {
     latitude,
     longitude,
     hasPreciseCoordinates: hasPrecise,
-    isApproximatePin,
+    isApproximatePin: false,
     scheduledAt,
     scheduledTime,
     reportedAt: row.created_at as string,
@@ -351,7 +305,7 @@ export function filterImpactMapEntries(
 }
 
 export function getMappableEntries(entries: ImpactMapEntry[]): ImpactMapEntry[] {
-  return entries.filter((e) => e.latitude != null && e.longitude != null)
+  return entries.filter((e) => e.hasPreciseCoordinates && e.latitude != null && e.longitude != null)
 }
 
 export function getUniqueDistricts(entries: ImpactMapEntry[]): string[] {
@@ -370,6 +324,8 @@ export function getLayerLabel(layer: ImpactLayerType): string {
       return 'Peaceful Civic Action'
     case 'issue':
       return 'Community Issue'
+    case 'relief':
+      return 'Relief Campaign'
   }
 }
 
@@ -381,6 +337,8 @@ export function getCtaLabel(layer: ImpactLayerType): string {
       return 'View Action'
     case 'issue':
       return 'View Issue'
+    case 'relief':
+      return 'View Relief'
   }
 }
 

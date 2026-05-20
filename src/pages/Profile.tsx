@@ -6,8 +6,9 @@ import AsyncLoadHint from '../components/AsyncLoadHint'
 import { useToast } from '../hooks/useToast'
 import MyReportsSection from '../components/MyReportsSection'
 import AppearanceSettings from '../components/appearance/AppearanceSettings'
-import DeleteMovementDialog from '../components/profile/DeleteMovementDialog'
-import MyMovementsSection from '../components/profile/MyMovementsSection'
+import DeleteContentDialog from '../components/content/DeleteContentDialog'
+import MyContributionsSection from '../components/profile/MyContributionsSection'
+import { isYouthVoicePost } from '../lib/postIdentity'
 import FollowedMovementsSection from '../components/profile/FollowedMovementsSection'
 import ProfileDashboardHeader, {
   type BioSaveStatus,
@@ -36,9 +37,6 @@ function ProfileContent({ userId, email }: { userId: string; email?: string | nu
   const [movementsLoading, setMovementsLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [movementsError, setMovementsError] = useState<string | null>(null)
-
-  const posts = useMemo(() => allPosts.slice(0, visibleCount), [allPosts, visibleCount])
-  const hasMore = visibleCount < allPosts.length
 
   const [bioOverride, setBioOverride] = useState<string | null>(null)
   const [bioSaveStatus, setBioSaveStatus] = useState<BioSaveStatus>('idle')
@@ -125,9 +123,9 @@ function ProfileContent({ userId, email }: { userId: string; email?: string | nu
       await deletePost(deleteTarget.id, userId)
       setAllPosts((prev) => prev.filter((p) => p.id !== deleteTarget.id))
       setDeleteTarget(null)
-      toast.success(t('profile.deleteSuccess'))
+      toast.success(t('contentOwner.deleteSuccess'))
     } catch {
-      toast.error(t('profile.deleteFailed'))
+      toast.error(t('contentOwner.deleteFailed'))
     } finally {
       setDeleting(false)
     }
@@ -209,12 +207,11 @@ function ProfileContent({ userId, email }: { userId: string; email?: string | nu
 
       {profileTab === 'overview' && (
         <>
-          <MyMovementsSection
-            posts={posts}
-            totalCount={allPosts.length}
+          <MyContributionsSection
+            allPosts={allPosts}
+            visibleCount={visibleCount}
             loading={movementsLoading}
             loadingMore={false}
-            hasMore={hasMore}
             onLoadMore={handleLoadMore}
             onDelete={setDeleteTarget}
           />
@@ -234,9 +231,10 @@ function ProfileContent({ userId, email }: { userId: string; email?: string | nu
         </>
       )}
 
-      <DeleteMovementDialog
+      <DeleteContentDialog
         open={deleteTarget !== null}
         postTitle={deleteTarget?.title ?? ''}
+        variant={deleteTarget && isYouthVoicePost(deleteTarget) ? 'youthVoice' : 'default'}
         deleting={deleting}
         onConfirm={() => void confirmDelete()}
         onCancel={() => {

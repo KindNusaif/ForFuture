@@ -2,13 +2,12 @@ import { useEffect, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import MovementDetailView from '../components/movement/MovementDetailView'
-import ShareMovementButton from '../components/ShareMovementButton'
+import ShareButton from '../components/share/ShareButton'
 import EmptyState from '../components/EmptyState'
 import { MovementDetailSkeleton } from '../components/Skeleton'
 import { Inbox } from 'lucide-react'
 import { useMovementFollows } from '../hooks/useMovementFollows'
 import { useRelatedMovements } from '../hooks/useRelatedMovements'
-import { getMovementShareUrl } from '../lib/share'
 import { useToast } from '../hooks/useToast'
 import AsyncLoadHint from '../components/AsyncLoadHint'
 import { useJoinMovement } from '../hooks/useJoinMovement'
@@ -21,6 +20,7 @@ import { togglePostAction } from '../lib/postActions'
 import { signPetition } from '../lib/petitionSignatures'
 import { isPetitionMovement } from '../lib/petitions'
 import { formatError } from '../lib/errors'
+import { supportGateVariant } from '../lib/guestGate'
 
 interface MovementDetailProps {
   mode: 'guest' | 'member'
@@ -67,7 +67,7 @@ function MovementDetailContent({
   const showPageLoading = waitingForAuth || loading
   const { showSlowHint, showRecovery } = useLoadingProgress(showPageLoading)
 
-  const relatedDetailBase = isGuest ? '/movements' : '/feed'
+  const relatedDetailBase = isGuest ? '/explore' : '/feed'
   const { posts: relatedPosts, loading: relatedLoading } = useRelatedMovements(
     post?.id,
     post?.category,
@@ -75,9 +75,28 @@ function MovementDetailContent({
     Boolean(post) && !showPageLoading,
   )
 
-  if (!authLoading && isGuest && isMember) {
-    return <Navigate to={`/feed/${id}`} replace />
-  }
+  const memberOnGuestRoute = !authLoading && isGuest && isMember
+
+  useEffect(() => {
+    if (!post || isGuest) return
+    void movementFollows.refreshCountsForPosts([post.id])
+  }, [post?.id, isGuest, movementFollows])
+
+  useEffect(() => {
+    if (!post) return
+    const previous = document.title
+    document.title = `${post.title} · ForFuture`
+    return () => {
+      document.title = previous
+    }
+  }, [post?.title])
+
+  useEffect(() => {
+    if (!post || typeof window === 'undefined') return
+    if (window.location.hash !== '#discussion-heading') return
+    const el = document.getElementById('discussion-heading')
+    el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [post?.id])
 
   async function handlePetitionSign(postId: string) {
     if (isGuest) {
@@ -105,7 +124,7 @@ function MovementDetailContent({
 
   async function handleSupport(postId: string) {
     if (isGuest) {
-      openJoinModal()
+      openJoinModal(post ? supportGateVariant(post.movement_type) : 'support')
       return
     }
     if (!user || !post || isPetitionMovement(post.movement_type) || supporting) return
@@ -134,7 +153,7 @@ function MovementDetailContent({
 
   async function handlePollVote(postId: string, optionId: string) {
     if (isGuest || !optionId) {
-      openJoinModal()
+      openJoinModal('poll')
       return
     }
     if (!user || pollVoting) return
@@ -152,13 +171,6 @@ function MovementDetailContent({
       setPollVoting(false)
     }
   }
-
-  const shareUrl = post ? getMovementShareUrl(post.id, isGuest ? 'guest' : 'member') : ''
-
-  useEffect(() => {
-    if (!post || isGuest) return
-    void movementFollows.refreshCountsForPosts([post.id])
-  }, [post?.id, isGuest, movementFollows])
 
   async function handleFollowToggle() {
     if (!post) return
@@ -181,6 +193,10 @@ function MovementDetailContent({
     }
   }
 
+  if (memberOnGuestRoute) {
+    return <Navigate to={`/feed/${id}`} replace />
+  }
+
   return (
     <>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -192,9 +208,7 @@ function MovementDetailContent({
           <ArrowLeft className="h-4 w-4" />
           {backLabel}
         </button>
-        {post && (
-          <ShareMovementButton url={shareUrl} title={post.title} variant="secondary" />
-        )}
+        {post && <ShareButton post={post} variant="secondary" showLabel />}
       </div>
 
       <AsyncLoadHint
@@ -221,7 +235,7 @@ function MovementDetailContent({
           relatedPosts={relatedPosts}
           relatedLoading={relatedLoading}
           relatedDetailBase={relatedDetailBase}
-          showFollow={!isGuest}
+          showFollow
           isFollowing={movementFollows.isFollowing(post.id)}
           followLoading={movementFollows.processingId === post.id}
           followerCount={movementFollows.followerCounts[post.id] ?? post.follower_count}
@@ -234,6 +248,9 @@ function MovementDetailContent({
           supporting={supporting}
           petitionSigning={petitionSigning}
           pollVoting={pollVoting}
+          currentUserId={user?.id}
+          detailPath={isGuest ? `/explore/${post.id}` : `/feed/${post.id}`}
+          onPostDeleted={() => navigate(backTo, { replace: true })}
         />
       ) : null}
     </>

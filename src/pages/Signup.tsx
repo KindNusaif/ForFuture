@@ -1,145 +1,187 @@
-import { useState, type FormEvent } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import AuthForm, { FormField, inputClass, inputErrorClass } from '../components/AuthForm'
-import PasswordField from '../components/PasswordField'
-import { signUp } from '../lib/auth'
-import { formatError } from '../lib/errors'
+import { AuthShell } from '../components/auth/AuthPremium'
+import { resendSignupConfirmation, signUp, signInWithGoogle } from '../lib/auth'
+import {
+  isSignupExistingEmailMessage,
+  isSignupProfileSetupMessage,
+  mapAuthError,
+} from '../lib/authUserMessages'
 import { isSupabaseConfigured } from '../lib/supabase'
-import { isValidEmail, validateSignup } from '../lib/validation'
+import { mapSignupValidationMessage } from '../lib/mapSignupValidation'
+import { validateSignup } from '../lib/validation'
+import { resolveAuthReturn } from '../lib/authReturn'
+
+const RESEND_COOLDOWN_MS = 60_000
 
 export default function Signup() {
   const { t } = useTranslation()
-  const navigate = useNavigate()
   const location = useLocation()
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? '/feed'
+  const from = resolveAuthReturn(location.state)
+
+  const [displayName, setDisplayName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  const [fieldErrors, setFieldErrors] = useState<{
-    name?: string
-    email?: string
-    password?: string
-  }>({})
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null)
+  const [resendLoading, setResendLoading] = useState(false)
+  const [resendSent, setResendSent] = useState(false)
+  const [resendCooldown, setResendCooldown] = useState(false)
+  const resendCooldownTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  useEffect(() => {
+    const previous = document.title
+    document.title = `${t('auth.signupTitle')} — ForFuture`
+    return () => {
+      document.title = previous
+      if (resendCooldownTimer.current) clearTimeout(resendCooldownTimer.current)
+    }
+  }, [t])
+
+  function startResendCooldown() {
+    setResendCooldown(true)
+    if (resendCooldownTimer.current) clearTimeout(resendCooldownTimer.current)
+    resendCooldownTimer.current = setTimeout(() => {
+      setResendCooldown(false)
+      resendCooldownTimer.current = null
+    }, RESEND_COOLDOWN_MS)
+  }
+
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    if (loading) return
+    if (loading || pendingEmail) return
 
-    setFieldErrors({})
     setError(null)
     setSuccess(null)
+    setResendSent(false)
 
     if (!isSupabaseConfigured) {
-      setError('Supabase is not configured. Check your .env file.')
+      setError(t('auth.setupRequired'))
       return
     }
 
-    const form = new FormData(e.currentTarget)
-    const name = String(form.get('name') ?? '').trim()
-    const email = String(form.get('email') ?? '').trim()
-    const password = String(form.get('password') ?? '')
+    const name = displayName.trim()
+    const trimmedEmail = email.trim()
 
-    const errors: typeof fieldErrors = {}
-    if (!name.trim() || name.trim().length < 2) {
-      errors.name = t('auth.nameRequired')
-    }
-    if (!email) {
-      errors.email = t('auth.emailRequired')
-    } else if (!isValidEmail(email)) {
-      errors.email = t('auth.emailInvalid')
-    }
-    if (!password) {
-      errors.password = t('auth.passwordRequired')
-    } else if (password.length < 6) {
-      errors.password = t('auth.passwordTooShort')
-    }
-
-    if (Object.keys(errors).length > 0) {
-      setFieldErrors(errors)
-      return
-    }
-
-    const validationError = validateSignup(name, email, password)
+    const validationError = validateSignup(name, trimmedEmail, password)
     if (validationError) {
-      setError(validationError)
+      setError(mapSignupValidationMessage(validationError, t))
       return
     }
 
     setLoading(true)
     try {
-      const result = await signUp(email, password, name)
+      const result = await signUp(trimmedEmail, password, name)
+
       if (result.needsEmailConfirmation) {
-        setSuccess(t('auth.confirmEmailSent'))
+        setPendingEmail(trimmedEmail)
+        setLoading(false)
         return
       }
-      navigate('/onboarding', { replace: true, state: { from: { pathname: from } } })
+
+      setSuccess(t('auth.signupSuccess'))
+      setLoading(false)
+      /* GuestRoute redirects when AuthContext receives the new session. */
     } catch (err) {
-      setError(formatError(err))
-    } finally {
+      setError(mapAuthError(err, 'signup'))
       setLoading(false)
     }
   }
 
+  async function handleResendConfirmation() {
+    if (!pendingEmail || resendLoading || resendCooldown) return
+    if (!isSupabaseConfigured) {
+      setError(t('auth.setupRequired'))
+      return
+    }
+
+    setResendLoading(true)
+    setError(null)
+    try {
+      await resendSignupConfirmation(pendingEmail)
+      setResendSent(true)
+      startResendCooldown()
+    } catch (err) {
+      setError(mapAuthError(err, 'signup'))
+    } finally {
+      setResendLoading(false)
+    }
+  }
+
+  async function handleGoogle() {
+    if (googleLoading || loading || pendingEmail) return
+    if (!isSupabaseConfigured) {
+      setError(t('auth.setupRequired'))
+      return
+    }
+    setError(null)
+    setGoogleLoading(true)
+    try {
+      await signInWithGoogle(from)
+    } catch (err) {
+      setError(mapAuthError(err, 'oauth'))
+      setGoogleLoading(false)
+    }
+  }
+
+  const errorActions =
+    error && isSignupExistingEmailMessage(error) ? (
+      <>
+        <Link to="/login" state={location.state} className="auth-alert-action-link">
+          {t('auth.goToLogin')}
+        </Link>
+        <Link to="/forgot-password" className="auth-alert-action-link auth-alert-action-link--muted">
+          {t('auth.forgotPassword')}
+        </Link>
+      </>
+    ) : error && isSignupProfileSetupMessage(error) ? (
+      <Link to="/login" state={location.state} className="auth-alert-action-link">
+        {t('auth.goToLogin')}
+      </Link>
+    ) : undefined
+
   return (
-    <AuthForm
-      title={t('auth.signupTitle')}
-      subtitle={t('auth.signupSubtitle')}
-      submitLabel={t('auth.signupButton')}
-      loadingLabel={t('auth.pleaseWait')}
+    <AuthShell
+      mode="signup"
       loading={loading}
-      error={error}
-      success={success}
+      googleLoading={googleLoading}
+      email={email}
+      setEmail={setEmail}
+      password={password}
+      setPassword={setPassword}
+      displayName={displayName}
+      setDisplayName={setDisplayName}
       onSubmit={handleSubmit}
-      footer={
-        <>
-          {t('auth.hasAccount')}{' '}
-          <Link
-            to="/login"
-            className="font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
-          >
-            {t('auth.logInLink')}
-          </Link>
-        </>
+      onGoogle={() => void handleGoogle()}
+      error={error}
+      errorActions={errorActions}
+      success={success}
+      authLinkState={location.state}
+      pendingConfirmation={
+        pendingEmail
+          ? {
+              email: pendingEmail,
+              onResend: () => void handleResendConfirmation(),
+              resendLoading,
+              resendDisabled: resendCooldown,
+              resendSent,
+            }
+          : undefined
       }
-    >
-      <FormField label={t('auth.displayName')} id="name" error={fieldErrors.name}>
-        <input
-          id="name"
-          name="name"
-          type="text"
-          required
-          autoComplete="name"
-          disabled={loading}
-          aria-invalid={Boolean(fieldErrors.name)}
-          className={`${inputClass} ${fieldErrors.name ? inputErrorClass : ''}`}
-          placeholder="Jordan Chen"
-        />
-      </FormField>
-      <FormField label={t('auth.email')} id="email" error={fieldErrors.email}>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          required
-          autoComplete="email"
-          disabled={loading}
-          aria-invalid={Boolean(fieldErrors.email)}
-          className={`${inputClass} ${fieldErrors.email ? inputErrorClass : ''}`}
-          placeholder="you@example.com"
-        />
-      </FormField>
-      <PasswordField
-        id="password"
-        name="password"
-        label={t('auth.password')}
-        error={fieldErrors.password}
-        autoComplete="new-password"
-        minLength={6}
-        placeholder="At least 6 characters"
-        disabled={loading}
-        footer={<p className="form-hint mt-1.5">{t('auth.passwordHint')}</p>}
-      />
-    </AuthForm>
+      footer={
+        pendingEmail ? null : (
+          <>
+            {t('auth.hasAccount')}{' '}
+            <Link to="/login" state={location.state}>
+              {t('auth.logInLink')}
+            </Link>
+          </>
+        )
+      }
+    />
   )
 }

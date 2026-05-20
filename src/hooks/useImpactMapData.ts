@@ -106,6 +106,7 @@ export function useImpactMapData(userLocation: GeoPosition | null) {
       volunteer: allEntries.filter((e) => e.layerType === 'volunteer').length,
       civic: allEntries.filter((e) => e.layerType === 'civic_action').length,
       issues: allEntries.filter((e) => e.layerType === 'issue').length,
+      relief: allEntries.filter((e) => e.layerType === 'relief').length,
     }),
     [allEntries],
   )

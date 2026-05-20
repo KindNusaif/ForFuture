@@ -1,19 +1,24 @@
 import type { ReactNode } from 'react'
-import { Link, Navigate } from 'react-router-dom'
-import { Loader2 } from 'lucide-react'
-import AsyncLoadHint from './AsyncLoadHint'
+import { Link, Navigate, useLocation } from 'react-router-dom'
+import SessionBootstrapLoader from './auth/SessionBootstrapLoader'
 import { useAuth } from '../hooks/useAuth'
 import { useLoadingProgress } from '../hooks/useLoadingProgress'
 import { isOnboardingComplete } from '../lib/onboarding'
 import { isAuthProfileReady } from '../lib/authReady'
+import { resolveAuthReturn } from '../lib/authReturn'
 
 /** Redirect logged-in users away from login/signup */
 export default function GuestRoute({ children }: { children: ReactNode }) {
-  const { user, loading, configured, profile, profileError, authError } = useAuth()
+  const location = useLocation()
+  const { user, loading, loggingOut, configured, profile, profileError, authError } = useAuth()
   const { showSlowHint, showRecovery } = useLoadingProgress(loading)
   const profileReady = isAuthProfileReady(loading, user?.id, profile, profileError)
 
   if (!configured) return <>{children}</>
+
+  if (loggingOut) {
+    return <SessionBootstrapLoader showSlowHint={false} showRecovery={false} minHeight="half" />
+  }
 
   if (authError) {
     return (
@@ -39,23 +44,12 @@ export default function GuestRoute({ children }: { children: ReactNode }) {
   }
 
   if (!profileReady) {
-    return (
-      <main className="flex min-h-[50vh] flex-col items-center justify-center gap-4 px-4">
-        <Loader2 className="h-8 w-8 animate-spin text-brand-600" aria-label="Loading" />
-        <p className="text-sm text-muted">Loading your session…</p>
-        <AsyncLoadHint
-          className="w-full max-w-md"
-          showSlowHint={showSlowHint}
-          showRecovery={showRecovery}
-          slowMessage="Still connecting to ForFuture…"
-          onRetry={() => window.location.reload()}
-        />
-      </main>
-    )
+    return <SessionBootstrapLoader showSlowHint={showSlowHint} showRecovery={showRecovery} minHeight="half" />
   }
 
   if (user) {
-    const dest = isOnboardingComplete(profile) ? '/feed' : '/onboarding'
+    const returnTo = resolveAuthReturn(location.state, '/feed')
+    const dest = isOnboardingComplete(profile) ? returnTo : '/onboarding'
     return <Navigate to={dest} replace />
   }
 

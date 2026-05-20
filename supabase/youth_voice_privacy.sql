@@ -1,15 +1,18 @@
 -- Youth Voice privacy hardening
 -- Run AFTER youth_voice_id.sql
--- Then run fix_posts_private_schema.sql (moves posts to private + security_invoker views)
+--
+-- IMPORTANT: public.posts is a VIEW (facade over private.posts).
+-- Row-level BEFORE/AFTER triggers must target private.posts only.
+-- If you have not run fix_posts_private_schema.sql yet, run that first.
 
 -- ---------------------------------------------------------------------------
--- 1. Enforce safe author_name and immutable ownership on posts
+-- 1. Enforce safe author_name and immutable ownership on posts (base table)
 -- ---------------------------------------------------------------------------
 
 create or replace function public.posts_enforce_youth_voice_privacy()
 returns trigger
 language plpgsql
-set search_path = pg_catalog, public
+set search_path = pg_catalog, private, public
 as $$
 begin
   if new.posting_identity = 'youth_voice' then
@@ -27,9 +30,12 @@ begin
 end;
 $$;
 
+-- public.posts may be a view — drop legacy trigger names from either target
 drop trigger if exists posts_enforce_youth_voice_privacy on public.posts;
+drop trigger if exists posts_enforce_youth_voice_privacy on private.posts;
+
 create trigger posts_enforce_youth_voice_privacy
-  before insert or update on public.posts
+  before insert or update on private.posts
   for each row
   execute function public.posts_enforce_youth_voice_privacy();
 
@@ -51,3 +57,17 @@ create policy "Users can read own profile"
 -- ---------------------------------------------------------------------------
 -- 4. Posts SELECT policies — applied on private.posts in fix_posts_private_schema.sql
 -- ---------------------------------------------------------------------------
+
+-- ---------------------------------------------------------------------------
+-- 5. Guest read: posts_public_safe + supports (anon)
+-- ---------------------------------------------------------------------------
+
+grant select on public.posts_public_safe to anon, authenticated;
+
+grant select on public.supports to anon, authenticated;
+
+create policy "Supports are publicly readable by guests"
+  on public.supports
+  for select
+  to anon
+  using (true);

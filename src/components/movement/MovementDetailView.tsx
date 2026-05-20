@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Calendar, MapPin } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -12,6 +13,11 @@ import PetitionActionButton from '../PetitionActionButton'
 import ReliefActionButton from '../relief/ReliefActionButton'
 import FollowMovementButton from '../FollowMovementButton'
 import ReportContentButton from '../ReportContentButton'
+import ShareButton from '../share/ShareButton'
+import PostOwnerControls from '../content/PostOwnerControls'
+import PostOwnerBadge from '../content/PostOwnerBadge'
+import { isPostOwner } from '../../lib/postOwnership'
+import { isYouthVoicePost } from '../../lib/postIdentity'
 import PostCard from '../PostCard'
 import { PostCardSkeleton } from '../Skeleton'
 import {
@@ -30,6 +36,10 @@ import { getMovementVisual } from '../../lib/movementVisual'
 import { getReliefDisplaySubtype, isReliefPost } from '../../lib/reliefHub'
 import { isPollMovement } from '../../lib/movements'
 import { isPetitionMovement } from '../../lib/petitions'
+import CommentsSection from '../comments/CommentsSection'
+import CommentCountLink from '../comments/CommentCountLink'
+import { canPostHaveComments } from '../../lib/commentEligibility'
+import { fetchCommentCount } from '../../lib/comments'
 import type { Post } from '../../types'
 
 export interface MovementDetailViewProps {
@@ -50,6 +60,8 @@ export interface MovementDetailViewProps {
   supporting?: boolean
   petitionSigning?: boolean
   pollVoting?: boolean
+  currentUserId?: string
+  onPostDeleted?: () => void
 }
 
 export default function MovementDetailView({
@@ -57,7 +69,7 @@ export default function MovementDetailView({
   guestMode = false,
   relatedPosts = [],
   relatedLoading = false,
-  relatedDetailBase = '/movements',
+  relatedDetailBase = '/explore',
   showFollow = false,
   isFollowing = false,
   followLoading = false,
@@ -69,6 +81,9 @@ export default function MovementDetailView({
   supporting,
   petitionSigning,
   pollVoting,
+  currentUserId,
+  detailPath,
+  onPostDeleted,
 }: MovementDetailViewProps) {
   const { t } = useTranslation()
   const visual = getMovementVisual(post.movement_type)
@@ -89,6 +104,25 @@ export default function MovementDetailView({
 
   const participating = !guestMode && Boolean(post.supported_by_me)
   const actionCount = post.support_count ?? 0
+  const isOwner = isPostOwner(post, currentUserId)
+  const shareMode = guestMode ? 'guest' : 'member'
+  const showOwnerBadge = isOwner && isYouthVoicePost(post)
+  const commentsAllowed = canPostHaveComments(post)
+  const [commentCount, setCommentCount] = useState(0)
+
+  useEffect(() => {
+    if (!commentsAllowed) {
+      setCommentCount(0)
+      return
+    }
+    let cancelled = false
+    void fetchCommentCount(post.id).then((total) => {
+      if (!cancelled) setCommentCount(total)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [commentsAllowed, post.id])
 
   return (
     <div className="space-y-6">
@@ -108,8 +142,19 @@ export default function MovementDetailView({
               </span>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              {!guestMode && <ReportContentButton post={post} />}
-              {showFollow && onFollowToggle && (
+              {showOwnerBadge && <PostOwnerBadge />}
+              {isOwner && currentUserId ? (
+                <PostOwnerControls
+                  post={post}
+                  currentUserId={currentUserId}
+                  shareMode={shareMode}
+                  detailPath={detailPath}
+                  onDeleted={onPostDeleted}
+                />
+              ) : (
+                !guestMode && <ReportContentButton post={post} />
+              )}
+              {showFollow && onFollowToggle && !isOwner && (
                 <FollowMovementButton
                   isFollowing={isFollowing}
                   loading={followLoading}
@@ -212,7 +257,8 @@ export default function MovementDetailView({
         </div>
 
         <div className="mt-6 flex flex-col gap-4 border-t border-default pt-5 sm:flex-row sm:items-center sm:justify-between">
-          {isPoll ? (
+          <div className="min-w-0 flex-1">
+            {isPoll ? (
             <PollVoteBlock
               post={post}
               guestMode={guestMode}
@@ -248,8 +294,22 @@ export default function MovementDetailView({
               onClick={() => onSupport(post.id)}
             />
           ) : null}
+          </div>
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
+            {commentsAllowed && (
+              <CommentCountLink post={post} count={commentCount} onPage />
+            )}
+            <ShareButton post={post} variant="secondary" showLabel className="shrink-0" />
+          </div>
         </div>
       </MovementDetailPanel>
+
+      <CommentsSection
+        post={post}
+        guestMode={guestMode}
+        currentUserId={currentUserId}
+        onCountChange={setCommentCount}
+      />
 
       {!isPoll && <MovementCardExtras post={post} />}
 
@@ -277,6 +337,7 @@ export default function MovementDetailView({
                       post={related}
                       detailPath={`${relatedDetailBase}/${related.id}`}
                       guestMode={guestMode}
+                      currentUserId={currentUserId}
                     />
                   </li>
                 ))}
@@ -290,7 +351,7 @@ export default function MovementDetailView({
       )}
 
       <p className="text-center">
-        <Link to={guestMode ? '/movements' : '/feed'} className="auth-link text-sm">
+        <Link to={guestMode ? '/explore' : '/feed'} className="auth-link text-sm">
           {t('movement.backToFeed', { defaultValue: '← Back to movements' })}
         </Link>
       </p>

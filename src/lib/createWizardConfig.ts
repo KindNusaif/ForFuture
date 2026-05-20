@@ -57,7 +57,7 @@ export const WIZARD_TYPE_OPTIONS: {
   },
   {
     option: { kind: 'poll' },
-    label: 'Quick Youth Poll',
+    label: 'Community Poll',
     description: 'Ask the community for opinions on an issue.',
     icon: BarChart3,
   },

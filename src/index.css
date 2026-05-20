@@ -1,5 +1,16 @@
 @import 'tailwindcss';
+
+/* Tailwind `dark:` utilities follow html data-theme (not prefers-color-scheme alone) */
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
 @import './styles/design-system.css';
+@import './styles/landing-lovable.css';
+@import './styles/app-premium.css';
+@import './styles/auth-premium.css';
+@import './styles/dark-theme.css';
+@import './styles/relief-hub.css';
+@import './styles/launch-polish.css';
+@import './styles/community-polls.css';
 
 /* ─── Brand palette (unchanged) ─── */
 @theme {
@@ -148,25 +159,27 @@
 }
 
 [data-theme='dark'] {
-  --ff-page-1: #080c14;
-  --ff-page-2: #0b1220;
-  --ff-page-3: #101a2e;
-  --ff-card: rgb(28 38 56 / 0.94);
-  --ff-card-elevated: rgb(35 48 70 / 0.96);
-  --ff-section: rgb(20 30 48 / 0.72);
-  --ff-card-border: rgb(71 85 105 / 0.5);
-  --ff-muted: #1a2538;
-  --ff-muted-soft: rgb(24 34 52 / 0.9);
-  --ff-surface: #1e2a3f;
-  --ff-nav: rgb(12 18 32 / 0.94);
-  --ff-input-bg: #1a2436;
-  --ff-input-border: rgb(71 85 105 / 0.75);
-  --ff-text-primary: #f4f7fb;
-  --ff-text-secondary: #b8c5d6;
-  --ff-text-muted: #94a3b8;
-  --ff-border: rgb(51 65 85 / 0.75);
-  --ff-shadow: rgb(0 0 0 / 0.35);
-  --ff-backdrop: rgb(2 6 23 / 0.72);
+  /* Midnight navy stack — aligned with premium auth panel */
+  --ff-page-1: oklch(0.12 0.045 265);
+  --ff-page-2: oklch(0.15 0.05 268);
+  --ff-page-3: oklch(0.18 0.055 272);
+  --ff-card: oklch(0.2 0.04 265 / 0.92);
+  --ff-card-elevated: oklch(0.24 0.045 268 / 0.96);
+  --ff-modal: oklch(0.26 0.05 270 / 0.98);
+  --ff-section: oklch(0.17 0.04 265 / 0.78);
+  --ff-card-border: oklch(0.42 0.04 265 / 0.45);
+  --ff-muted: oklch(0.18 0.04 265);
+  --ff-muted-soft: oklch(0.2 0.038 265 / 0.88);
+  --ff-surface: oklch(0.22 0.042 266);
+  --ff-nav: oklch(0.14 0.045 265 / 0.94);
+  --ff-input-bg: oklch(0.19 0.04 265);
+  --ff-input-border: oklch(0.45 0.04 265 / 0.55);
+  --ff-text-primary: oklch(0.96 0.02 95);
+  --ff-text-secondary: oklch(0.82 0.03 265);
+  --ff-text-muted: oklch(0.68 0.03 265);
+  --ff-border: oklch(0.4 0.035 265 / 0.55);
+  --ff-shadow: oklch(0.08 0.04 265 / 0.45);
+  --ff-backdrop: oklch(0.1 0.04 265 / 0.72);
   --ff-glow-accent: rgb(79 70 229 / 0.15);
   --ff-glow-brand: rgb(16 185 129 / 0.12);
   --ff-selection-bg: #3730a3;
@@ -376,6 +389,10 @@
   :focus-visible {
     outline: 2px solid var(--color-accent-500);
     outline-offset: 2px;
+  }
+
+  [data-theme='dark'] :focus-visible {
+    outline-color: var(--color-accent-400);
   }
 
   /* Respect OS + user reduce-motion (functional spinners preserved) */
@@ -749,7 +766,12 @@
 .public-nav-link-active {
   background: var(--ff-nav-active-bg);
   color: var(--ff-nav-active-text);
-  box-shadow: inset 0 0 0 1px rgb(99 102 241 / 0.2);
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px rgb(99 102 241 / 0.22);
+}
+
+[data-theme='dark'] .public-nav-link-active {
+  box-shadow: inset 0 0 0 1px rgb(129 140 248 / 0.32);
 }
 
 .landing-stat-icon {

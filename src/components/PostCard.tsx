@@ -25,10 +25,15 @@ import ReliefSubtypeBadge from './relief/ReliefSubtypeBadge'
 import UnderReviewBadge from './UnderReviewBadge'
 import VerifiedOrganizerBadge from './VerifiedOrganizerBadge'
 import ReportContentButton from './ReportContentButton'
+import ShareButton from './share/ShareButton'
+import PostOwnerControls from './content/PostOwnerControls'
+import PostOwnerBadge from './content/PostOwnerBadge'
+import { isPostOwner } from '../lib/postOwnership'
 import FollowMovementButton from './FollowMovementButton'
 import MovementMediaFeedPreview from './media/MovementMediaFeedPreview'
 import MovementMediaDetail from './media/MovementMediaDetail'
 import MovementCardStats from './movement/MovementCardStats'
+import CommentCountLink from './comments/CommentCountLink'
 import type { Post } from '../types'
 
 const categoryColors: Record<string, string> = {
@@ -62,6 +67,9 @@ interface PostCardProps {
   followLoading?: boolean
   followerCount?: number
   onFollowToggle?: () => void
+  currentUserId?: string
+  onPostDeleted?: (postId: string) => void
+  commentCount?: number
 }
 
 function isInteractiveTarget(target: EventTarget | null): boolean {
@@ -90,6 +98,9 @@ export default function PostCard({
   followLoading = false,
   followerCount,
   onFollowToggle,
+  currentUserId,
+  onPostDeleted,
+  commentCount = 0,
 }: PostCardProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -116,6 +127,8 @@ export default function PostCard({
   const showMomentum = shouldShowMomentumPill(post.movement_type, actionCount, pollVotes)
   const momentumLabel = getMomentumLabel(post.movement_type, actionCount, pollVotes)
   const cardNavigable = Boolean(detailPath) && !showFullMedia
+  const isOwner = isPostOwner(post, currentUserId)
+  const shareMode = guestMode ? 'guest' : 'member'
 
   function openDetail() {
     if (detailPath) navigate(detailPath)
@@ -183,12 +196,13 @@ export default function PostCard({
             {isAnonymous && (
               <ProtectedVoicePill youthVoiceId={post.youth_voice_id} />
             )}
+            {isOwner && isAnonymous && <PostOwnerBadge />}
             {showMomentum && momentumLabel && (
               <span className="momentum-pill">{momentumLabel}</span>
             )}
           </div>
           <div className="flex shrink-0 items-start gap-2" data-no-card-nav>
-            {showFollow && onFollowToggle && (
+            {showFollow && onFollowToggle && !isOwner && (
               <FollowMovementButton
                 isFollowing={isFollowing}
                 loading={followLoading}
@@ -198,7 +212,22 @@ export default function PostCard({
               />
             )}
             <div className="flex flex-col items-end gap-1">
-              <ReportContentButton post={post} />
+              <div className="flex items-center gap-1">
+                <ShareButton post={post} variant="icon" />
+                {isOwner && currentUserId ? (
+                  <PostOwnerControls
+                    post={post}
+                    currentUserId={currentUserId}
+                    shareMode={shareMode}
+                    detailPath={detailPath}
+                    compact
+                    showAnonymousBadge={false}
+                    onDeleted={() => onPostDeleted?.(post.id)}
+                  />
+                ) : (
+                  <ReportContentButton post={post} />
+                )}
+              </div>
               <time className="text-xs font-medium text-muted" dateTime={post.created_at}>
                 {date}
               </time>
@@ -247,7 +276,12 @@ export default function PostCard({
       <div className="px-4 pb-4 sm:px-5 sm:pb-5" data-no-card-nav>
         {!showFullMedia && (
           <div className="movement-card-footer-metrics mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-default pt-4">
-            <MovementCardStats post={post} showPrimary className="!mt-0 !border-0 !pt-0" />
+            <div className="flex flex-wrap items-center gap-2">
+              <MovementCardStats post={post} showPrimary className="!mt-0 !border-0 !pt-0" />
+              {detailPath && (
+                <CommentCountLink post={post} count={commentCount} detailPath={detailPath} />
+              )}
+            </div>
             {cardNavigable && detailPath && (
               <button
                 type="button"

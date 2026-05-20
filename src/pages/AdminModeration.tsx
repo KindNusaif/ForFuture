@@ -17,6 +17,7 @@ import {
 import { CONTENT_REPORT_REASONS } from '../lib/moderation'
 import type { ContentReportReason, ContentReportStatus } from '../lib/moderation'
 import { formatError } from '../lib/errors'
+import AdminCommentReportsPanel from '../components/admin/AdminCommentReportsPanel'
 
 const REASON_LABELS = Object.fromEntries(
   CONTENT_REPORT_REASONS.map((r) => [r.value, r.label]),
@@ -30,7 +31,7 @@ const ADMIN_ACTIONS: { status: ContentReportStatus; label: string }[] = [
 ]
 
 function contentTypeLabel(type: string) {
-  if (type === 'poll') return 'Quick Youth Poll'
+  if (type === 'poll') return 'Community Poll'
   if (type === 'comment') return 'Comment'
   return 'Movement'
 }
@@ -250,6 +251,8 @@ export default function AdminModeration() {
           ))}
         </ul>
       )}
+
+      <AdminCommentReportsPanel />
     </section>
   )
 }

@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { useAuthUser } from '../../hooks/useAuthUser'
+import { useJoinMovement } from '../../hooks/useJoinMovement'
 
 export interface CreateMovementCtaProps {
   /** Shorter label for narrow sidebars (e.g. trending panel). */
@@ -9,6 +11,8 @@ export interface CreateMovementCtaProps {
   variant?: 'primary' | 'secondary'
   fullWidth?: boolean
   className?: string
+  /** When true, guests open the join modal instead of navigating to /create. */
+  gateForGuests?: boolean
 }
 
 /**
@@ -20,8 +24,11 @@ export default function CreateMovementCta({
   variant = 'primary',
   fullWidth = false,
   className = '',
+  gateForGuests = true,
 }: CreateMovementCtaProps) {
   const { t } = useTranslation()
+  const { isGuest, loading } = useAuthUser()
+  const { openJoinModal } = useJoinMovement()
   const label = compact
     ? t('nav.createMovementShort', { defaultValue: 'Start a movement' })
     : t('nav.createMovement', { defaultValue: 'Create a Youth Movement' })
@@ -29,9 +36,16 @@ export default function CreateMovementCta({
   const variantClass =
     variant === 'primary' ? 'create-movement-cta--primary' : 'create-movement-cta--secondary'
 
+  function handleClick(e: React.MouseEvent<HTMLAnchorElement>) {
+    if (!gateForGuests || loading || !isGuest) return
+    e.preventDefault()
+    openJoinModal('create')
+  }
+
   return (
     <Link
       to="/create"
+      onClick={handleClick}
       className={[
         'create-movement-cta',
         variantClass,

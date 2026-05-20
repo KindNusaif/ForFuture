@@ -98,13 +98,19 @@ export default function ChooseYourVoice({
         })}
       </div>
       {value === 'youth_voice' && (
-        <p className="privacy-panel flex items-start gap-2.5">
-          <Shield className="mt-0.5 h-4 w-4 shrink-0 text-accent-600 dark:text-accent-400" aria-hidden />
-          <span>
-            Your profile name will not appear publicly on this post. For platform safety, the post
-            remains securely linked to your account internally.
-          </span>
-        </p>
+        <>
+          <p className="privacy-panel flex items-start gap-2.5">
+            <Shield className="mt-0.5 h-4 w-4 shrink-0 text-accent-600 dark:text-accent-400" aria-hidden />
+            <span>
+              Your profile name will not appear publicly on this post. For platform safety, the post
+              remains securely linked to your account internally.
+            </span>
+          </p>
+          <p className="youth-voice-trust-note text-xs leading-relaxed text-secondary">
+            Your identity stays hidden from the public, and you can manage or delete this post anytime
+            from your profile.
+          </p>
+        </>
       )}
     </fieldset>
   )

@@ -173,6 +173,21 @@ export interface Post {
   collection_location?: string | null
   relief_deadline?: string | null
   organizer_transparency_note?: string | null
+  campaign_summary?: string | null
+  external_donation_url?: string | null
+  donation_method?: 'external_link' | 'contact_organizer' | 'interest_only' | null
+  donation_contact_note?: string | null
+  impact_report?: Record<string, unknown> | null
+  publication_status?:
+    | 'draft'
+    | 'submitted'
+    | 'under_review'
+    | 'published'
+    | 'needs_changes'
+    | 'rejected'
+    | 'paused'
+    | 'completed'
+    | null
   review_status?: CampaignReviewStatus
   reviewed_campaign_type?: ReviewedCampaignType | null
   reviewed_at?: string | null

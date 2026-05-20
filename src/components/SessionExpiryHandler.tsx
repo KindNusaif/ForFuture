@@ -32,7 +32,7 @@ function isPublicPath(pathname: string): boolean {
 export default function SessionExpiryHandler() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { user, loading } = useAuth()
+  const { user, loading, loggingOut } = useAuth()
   const toast = useToast()
   const handledRef = useRef(false)
 
@@ -57,7 +57,7 @@ export default function SessionExpiryHandler() {
 
     window.addEventListener(SESSION_EXPIRED_EVENT, onSessionExpired)
     return () => window.removeEventListener(SESSION_EXPIRED_EVENT, onSessionExpired)
-  }, [location.pathname, location.search, navigate, toast, user, loading])
+  }, [location.pathname, location.search, navigate, toast, user, loading, loggingOut])
 
   return null
 }

@@ -1,15 +1,19 @@
 import type { ReactNode } from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
-import { Loader2 } from 'lucide-react'
-import AsyncLoadHint from './AsyncLoadHint'
+import LogoutTransitionLoader from './auth/LogoutTransitionLoader'
+import SessionBootstrapLoader from './auth/SessionBootstrapLoader'
 import { useAuth } from '../hooks/useAuth'
 import { useLoadingProgress } from '../hooks/useLoadingProgress'
 import { sanitizeErrorForDisplay } from '../lib/supabaseErrors'
 
 export default function ProtectedRoute({ children }: { children: ReactNode }) {
-  const { user, loading, configured, authError, profileError } = useAuth()
+  const { user, loading, loggingOut, configured, authError, profileError } = useAuth()
   const location = useLocation()
   const { showSlowHint, showRecovery } = useLoadingProgress(loading && !authError)
+
+  if (loggingOut) {
+    return <LogoutTransitionLoader />
+  }
 
   if (!configured) {
     return (
@@ -33,19 +37,7 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
   }
 
   if (loading) {
-    return (
-      <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-muted px-4">
-        <Loader2 className="h-10 w-10 animate-spin text-brand-600" aria-label="Loading" />
-        <p className="text-sm text-muted">Loading your session…</p>
-        <AsyncLoadHint
-          className="w-full max-w-md"
-          showSlowHint={showSlowHint}
-          showRecovery={showRecovery}
-          slowMessage="Still connecting to ForFuture…"
-          onRetry={() => window.location.reload()}
-        />
-      </main>
-    )
+    return <SessionBootstrapLoader showSlowHint={showSlowHint} showRecovery={showRecovery} minHeight="screen" />
   }
 
   if (authError) {

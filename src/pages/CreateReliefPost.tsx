@@ -18,6 +18,7 @@ import {
   requiresProfileForReliefSubtype,
   type ReliefCreateSubtype,
 } from '../lib/reliefHub'
+import { canCreateFundraisingCampaign } from '../lib/reliefCampaignPublic'
 import { scrollToFirstFieldError } from '../lib/createPostForm'
 import { createPost } from '../lib/posts'
 import { ensureYouthVoiceId } from '../lib/auth'
@@ -81,6 +82,7 @@ export default function CreateReliefPost() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string | undefined>>({})
   const pendingMedia = usePendingMovementMedia()
 
+  const canFundraise = canCreateFundraisingCampaign(profile)
   const requiresProfile = subtype ? requiresProfileForReliefSubtype(subtype) : false
   const effectivePostingIdentity = requiresProfile ? 'profile' : postingIdentity
   const defaultAuthorName = profile?.display_name ?? ''
@@ -172,8 +174,12 @@ export default function CreateReliefPost() {
         }
       }
 
+      const successMessage =
+        subtype === 'fundraising'
+          ? t('reliefHub.fundraisingReviewPending')
+          : t('relief.publishSuccess')
       navigate('/relief', {
-        state: { toast: { type: 'success', message: t('relief.publishSuccess') } },
+        state: { toast: { type: 'success', message: successMessage } },
       })
     }, [
       user,
@@ -203,6 +209,11 @@ export default function CreateReliefPost() {
 
     if (!subtype) {
       setError(t('relief.chooseSubtype'))
+      return
+    }
+
+    if (subtype === 'fundraising' && !canFundraise) {
+      setError(t('reliefHub.fundraisingLocked'))
       return
     }
 
@@ -296,7 +307,20 @@ export default function CreateReliefPost() {
           <p className="mb-3 text-xs font-bold uppercase tracking-wide text-muted">
             {t('relief.chooseSubtype')}
           </p>
-          <ReliefSubtypePicker value={subtype} onChange={handleSubtypeChange} disabled={publishing} />
+          <ReliefSubtypePicker
+            value={subtype}
+            onChange={handleSubtypeChange}
+            disabled={publishing}
+            lockedSubtypes={canFundraise ? [] : ['fundraising']}
+          />
+          {!canFundraise && (
+            <p className="mt-3 text-sm text-secondary">
+              {t('reliefHub.fundraisingVerifyHint')}{' '}
+              <Link to="/verification" className="font-semibold text-mint hover:underline">
+                {t('reliefHub.applyVerification')}
+              </Link>
+            </p>
+          )}
         </div>
 
         {subtype && (

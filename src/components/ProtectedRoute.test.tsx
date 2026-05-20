@@ -25,6 +25,7 @@ describe('ProtectedRoute', () => {
       profileError: null,
       isGuest: true,
       isMember: false,
+      loggingOut: false,
       refreshProfile: vi.fn(),
       logout: vi.fn(),
     })
@@ -52,6 +53,7 @@ describe('ProtectedRoute', () => {
       profileError: null,
       isGuest: true,
       isMember: false,
+      loggingOut: false,
       refreshProfile: vi.fn(),
       logout: vi.fn(),
     })

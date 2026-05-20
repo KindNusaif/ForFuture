@@ -1,43 +1,47 @@
-import { useState, type FormEvent } from 'react'
+import { useState, useId, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { CheckCircle2, Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import AuthForm from '../components/AuthForm'
-import PasswordField from '../components/PasswordField'
-import Logo from '../components/Logo'
+import {
+  AuthField,
+  AuthPasswordInput,
+  AuthSimpleShell,
+} from '../components/auth/AuthPremium'
+import AuthPasswordHelper from '../components/auth/AuthPasswordHelper'
 import { usePasswordRecoverySession } from '../hooks/usePasswordRecoverySession'
 import { signOut, updatePassword } from '../lib/auth'
-import { formatError } from '../lib/errors'
+import { mapAuthError } from '../lib/authUserMessages'
 import { isSupabaseConfigured } from '../lib/supabase'
-import {
-  hasPasswordResetErrors,
-  PASSWORD_MIN_LENGTH,
-  validatePasswordReset,
-} from '../lib/validation'
+import { hasPasswordResetErrors, validatePasswordReset } from '../lib/validation'
 
 export default function ResetPassword() {
   const { t } = useTranslation()
   const recoveryStatus = usePasswordRecoverySession()
+  const reactId = useId()
+  const passId = `${reactId}-pw`
+  const confirmId = `${reactId}-confirm`
 
+  const [password, setPassword] = useState('')
+  const [confirm, setConfirm] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<{ password?: string; confirm?: string }>({})
   const [success, setSuccess] = useState(false)
 
-  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault()
+    if (loading) return
     if (!isSupabaseConfigured) {
-      setError('Supabase is not configured. Check your .env file.')
+      setError(t('auth.setupRequired'))
       return
     }
 
-    const form = new FormData(e.currentTarget)
-    const password = String(form.get('password') ?? '')
-    const confirm = String(form.get('confirm') ?? '')
-
     const errors = validatePasswordReset(password, confirm)
     setFieldErrors(errors)
-    if (hasPasswordResetErrors(errors)) return
+    if (hasPasswordResetErrors(errors)) {
+      setError(errors.password ?? errors.confirm ?? null)
+      return
+    }
 
     setLoading(true)
     setError(null)
@@ -46,7 +50,7 @@ export default function ResetPassword() {
       await signOut()
       setSuccess(true)
     } catch (err) {
-      setError(formatError(err, { passwordRecovery: true }) || t('auth.resetUpdateFailed'))
+      setError(mapAuthError(err, 'passwordReset') || t('auth.resetUpdateFailed'))
     } finally {
       setLoading(false)
     }
@@ -54,93 +58,99 @@ export default function ResetPassword() {
 
   if (recoveryStatus === 'loading') {
     return (
-      <main className="mx-auto flex min-h-[calc(100vh-12rem)] max-w-md flex-col items-center justify-center px-4 py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-brand-600" aria-hidden />
-        <p className="mt-4 text-sm text-secondary">{t('auth.resetVerifyingLink')}</p>
-      </main>
+      <div className="auth-premium-shell flex flex-col items-center justify-center gap-4">
+        <Loader2 className="h-8 w-8 animate-spin text-[var(--auth-indigo)]" aria-hidden />
+        <p className="text-sm text-[var(--auth-muted)]">{t('auth.resetVerifyingLink')}</p>
+      </div>
     )
   }
 
   if (recoveryStatus === 'invalid') {
     return (
-      <main className="mx-auto flex min-h-[calc(100vh-12rem)] max-w-md flex-col justify-center px-4 py-12">
-        <div className="mb-8 flex justify-center">
-          <Logo to="/" />
-        </div>
-        <div className="card-surface p-8 text-center">
-          <h1 className="text-xl font-bold text-primary">{t('auth.resetInvalidTitle')}</h1>
-          <p className="mt-3 text-sm leading-relaxed text-secondary">
-            {t('auth.resetInvalidMessage')}
-          </p>
-          <Link to="/forgot-password" className="btn-primary mt-6 inline-flex w-full justify-center">
+      <AuthSimpleShell
+        title={t('auth.resetInvalidTitle')}
+        subtitle={t('auth.resetInvalidMessage')}
+      >
+        <div className="flex flex-col gap-3">
+          <Link to="/forgot-password" className="auth-premium-submit text-center no-underline">
             {t('auth.requestNewResetLink')}
           </Link>
-          <Link
-            to="/login"
-            className="mt-3 block text-sm font-semibold text-brand-600 hover:text-brand-700"
-          >
+          <Link to="/login" className="auth-premium-forgot-link text-center">
             {t('auth.backToLogin')}
           </Link>
         </div>
-      </main>
+      </AuthSimpleShell>
     )
   }
 
   if (success) {
     return (
-      <main className="mx-auto flex min-h-[calc(100vh-12rem)] max-w-md flex-col justify-center px-4 py-12">
-        <div className="card-surface p-8 text-center">
-          <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+      <AuthSimpleShell
+        title={t('auth.resetSuccessTitle')}
+        subtitle={t('auth.resetSuccessMessage')}
+      >
+        <div className="text-center">
+          <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[color-mix(in_oklab,var(--auth-mint)_25%,white)] text-[var(--auth-indigo)]">
             <CheckCircle2 className="h-7 w-7" aria-hidden />
           </span>
-          <h1 className="mt-5 text-2xl font-bold text-primary">{t('auth.resetSuccessTitle')}</h1>
-          <p className="mt-3 text-sm leading-relaxed text-secondary">
-            {t('auth.resetSuccessMessage')}
-          </p>
           <Link
             to="/login"
             replace
             state={{ resetSuccess: true }}
-            className="btn-primary mt-8 inline-flex w-full justify-center"
+            className="auth-premium-submit mt-8 inline-flex w-full justify-center no-underline"
           >
             {t('auth.goToLogin')}
           </Link>
         </div>
-      </main>
+      </AuthSimpleShell>
     )
   }
 
   return (
-    <AuthForm
+    <AuthSimpleShell
       title={t('auth.resetTitle')}
       subtitle={t('auth.resetSubtitle')}
-      submitLabel={t('auth.updatePassword')}
-      loading={loading}
       error={error}
-      onSubmit={handleSubmit}
       footer={
-        <Link to="/login" className="font-semibold text-brand-600 hover:text-brand-700">
+        <Link to="/login" className="auth-premium-forgot-link">
           {t('auth.backToLogin')}
         </Link>
       }
     >
-      <PasswordField
-        id="password"
-        name="password"
-        label={t('auth.newPassword')}
-        error={fieldErrors.password}
-        autoComplete="new-password"
-        placeholder={t('auth.passwordMinHint', { count: PASSWORD_MIN_LENGTH })}
-        minLength={PASSWORD_MIN_LENGTH}
-      />
-      <PasswordField
-        id="confirm"
-        name="confirm"
-        label={t('auth.confirmPassword')}
-        error={fieldErrors.confirm}
-        autoComplete="new-password"
-        minLength={PASSWORD_MIN_LENGTH}
-      />
-    </AuthForm>
+      <form onSubmit={handleSubmit} className="auth-premium-form-stack">
+        <AuthField fieldId={passId} label={t('auth.newPassword')}>
+          <AuthPasswordInput
+            inputId={passId}
+            value={password}
+            onChange={setPassword}
+            disabled={loading}
+            autoComplete="new-password"
+          />
+        </AuthField>
+        <AuthPasswordHelper password={password} onUseSuggested={setPassword} />
+        {fieldErrors.password && (
+          <p className="auth-premium-alert auth-premium-alert--error -mt-1 py-2 text-xs" role="alert">
+            {fieldErrors.password}
+          </p>
+        )}
+        <AuthField fieldId={confirmId} label={t('auth.confirmPassword')}>
+          <AuthPasswordInput
+            inputId={confirmId}
+            value={confirm}
+            onChange={setConfirm}
+            disabled={loading}
+            autoComplete="new-password"
+          />
+        </AuthField>
+        {fieldErrors.confirm && (
+          <p className="auth-premium-alert auth-premium-alert--error -mt-1 py-2 text-xs" role="alert">
+            {fieldErrors.confirm}
+          </p>
+        )}
+        <button type="submit" disabled={loading} className="auth-premium-submit">
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : t('auth.updatePassword')}
+        </button>
+      </form>
+    </AuthSimpleShell>
   )
 }

@@ -1,0 +1,736 @@
+/* Lovable landing — scoped tokens & utilities (isolated from app chrome) */
+
+.layout-lovable-marketing {
+  --lv-navy: oklch(0.22 0.08 265);
+  --lv-indigo: oklch(0.52 0.22 275);
+  --lv-mint: oklch(0.78 0.15 175);
+  --lv-cream: oklch(0.97 0.04 95);
+  --lv-ink: oklch(0.16 0.04 265);
+  --lv-muted-foreground: oklch(0.45 0.04 265);
+  --lv-border: oklch(0.88 0.02 265 / 0.6);
+  --lv-font-display: 'Instrument Serif', ui-serif, Georgia, serif;
+  background: var(--lv-cream);
+}
+
+.layout-lovable-marketing #main-content {
+  background: transparent;
+}
+
+.layout-lovable-marketing .nav-shell-lovable {
+  border-color: var(--lv-border);
+  background: color-mix(in srgb, var(--lv-cream) 78%, transparent);
+  box-shadow: 0 1px 0 var(--lv-border);
+}
+
+.layout-lovable-marketing .public-nav-link {
+  color: var(--lv-muted-foreground);
+  font-weight: 500;
+}
+
+.layout-lovable-marketing .public-nav-link:hover {
+  color: var(--lv-ink);
+  background: color-mix(in srgb, var(--lv-indigo) 7%, var(--lv-cream));
+}
+
+.layout-lovable-marketing .public-nav-link-active {
+  color: var(--lv-ink);
+  font-weight: 600;
+  background: color-mix(in srgb, var(--lv-indigo) 11%, white);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lv-indigo) 20%, transparent);
+  border-radius: 0.5rem;
+}
+
+[data-theme='dark'] .layout-lovable-marketing .public-nav-link {
+  color: color-mix(in srgb, var(--lv-cream) 72%, var(--lv-muted-foreground));
+}
+
+[data-theme='dark'] .layout-lovable-marketing .public-nav-link:hover {
+  color: var(--lv-cream);
+  background: color-mix(in srgb, var(--lv-indigo) 18%, transparent);
+}
+
+[data-theme='dark'] .layout-lovable-marketing .public-nav-link-active {
+  color: var(--lv-cream);
+  background: color-mix(in srgb, var(--lv-indigo) 28%, rgb(30 27 55 / 0.55));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lv-indigo) 42%, transparent);
+}
+
+.layout-lovable-marketing .lovable-nav-join {
+  display: inline-flex;
+  height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  padding-inline: 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background: var(--lv-navy);
+  color: var(--lv-cream) !important;
+  box-shadow: 0 8px 24px -8px color-mix(in oklab, var(--lv-navy) 45%, transparent);
+  transition: opacity 0.15s ease;
+}
+
+.layout-lovable-marketing .lovable-nav-join:hover {
+  opacity: 0.92;
+}
+
+.layout-lovable-marketing .lovable-nav-login {
+  align-items: center;
+  padding-inline: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--lv-ink);
+}
+
+.layout-lovable-marketing .lovable-nav-login:hover {
+  color: var(--lv-ink);
+  background: transparent;
+}
+
+.layout-lovable-marketing .text-foreground {
+  color: var(--lv-ink);
+}
+
+.layout-lovable-marketing .text-muted-foreground {
+  color: var(--lv-muted-foreground);
+}
+
+.layout-lovable-marketing .font-display {
+  font-family: var(--lv-font-display);
+  letter-spacing: -0.02em;
+}
+
+.layout-lovable-marketing .logo-lovable-tagline {
+  letter-spacing: 0.18em;
+}
+
+@theme {
+  --color-navy: oklch(0.22 0.08 265);
+  --color-indigo: oklch(0.52 0.22 275);
+  --color-mint: oklch(0.78 0.15 175);
+  --color-cream: oklch(0.97 0.04 95);
+  --color-ink: oklch(0.16 0.04 265);
+}
+
+.landing-lovable {
+  --lv-radius: 0.875rem;
+  --lv-navy: oklch(0.22 0.08 265);
+  --lv-indigo: oklch(0.52 0.22 275);
+  --lv-mint: oklch(0.78 0.15 175);
+  --lv-cream: oklch(0.97 0.04 95);
+  --lv-ink: oklch(0.16 0.04 265);
+  --lv-background: var(--lv-cream);
+  --lv-foreground: var(--lv-ink);
+  --lv-card: oklch(1 0 0);
+  --lv-card-foreground: var(--lv-ink);
+  --lv-primary: var(--lv-navy);
+  --lv-primary-foreground: var(--lv-cream);
+  --lv-secondary: oklch(0.94 0.02 90);
+  --lv-secondary-foreground: var(--lv-ink);
+  --lv-muted: oklch(0.94 0.02 90);
+  --lv-muted-foreground: oklch(0.45 0.04 265);
+  --lv-border: oklch(0.88 0.02 265 / 0.6);
+  --lv-gradient-hero: radial-gradient(
+      ellipse 75% 55% at 88% 12%,
+      color-mix(in oklab, var(--lv-indigo) 28%, transparent),
+      transparent 62%
+    ),
+    radial-gradient(
+      ellipse 65% 55% at 8% 88%,
+      color-mix(in oklab, var(--lv-mint) 34%, transparent),
+      transparent 62%
+    ),
+    linear-gradient(180deg, var(--lv-cream) 0%, oklch(0.985 0.025 95) 100%);
+  --lv-gradient-dark: linear-gradient(135deg, var(--lv-navy) 0%, oklch(0.28 0.1 270) 100%);
+  --lv-gradient-glow: linear-gradient(135deg, var(--lv-indigo), var(--lv-mint));
+  --lv-shadow-elegant: 0 30px 80px -30px color-mix(in oklab, var(--lv-navy) 35%, transparent);
+  --lv-shadow-soft: 0 8px 30px -10px color-mix(in oklab, var(--lv-navy) 18%, transparent);
+  --lv-font-display: 'Instrument Serif', ui-serif, Georgia, serif;
+  --lv-font-sans: 'Inter', 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+
+  background: var(--lv-background);
+  color: var(--lv-foreground);
+  font-family: var(--lv-font-sans);
+  font-feature-settings: 'ss01', 'cv11';
+  -webkit-font-smoothing: antialiased;
+}
+
+[data-theme='dark'] .landing-lovable {
+  --lv-background: oklch(0.12 0.045 265);
+  --lv-foreground: oklch(0.96 0.02 95);
+  --lv-card: oklch(0.2 0.04 265);
+  --lv-card-foreground: oklch(0.96 0.02 95);
+  --lv-secondary: oklch(0.17 0.04 265);
+  --lv-muted: oklch(0.18 0.04 265);
+  --lv-muted-foreground: oklch(0.75 0.03 265);
+  --lv-border: oklch(0.4 0.035 265 / 0.5);
+  --lv-primary: oklch(0.22 0.08 265);
+  --lv-primary-foreground: oklch(0.97 0.04 95);
+  --lv-gradient-hero: linear-gradient(
+    165deg,
+    oklch(0.14 0.05 268) 0%,
+    oklch(0.12 0.045 265) 50%,
+    oklch(0.16 0.05 272) 100%
+  );
+  --lv-gradient-dark: linear-gradient(145deg, oklch(0.16 0.06 268), oklch(0.12 0.045 265));
+  --lv-shadow-elegant: 0 24px 48px -12px oklch(0.08 0.04 265 / 0.55);
+}
+
+.landing-lovable h1,
+.landing-lovable h2,
+.landing-lovable h3,
+.landing-lovable .font-display {
+  font-family: var(--lv-font-display);
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+
+/* Shim shadcn-style semantic utilities used by the Lovable markup */
+.landing-lovable .bg-background {
+  background-color: var(--lv-background);
+}
+.landing-lovable .text-foreground {
+  color: var(--lv-foreground);
+}
+.landing-lovable .bg-card {
+  background-color: var(--lv-card);
+}
+.landing-lovable .bg-primary {
+  background-color: var(--lv-primary);
+}
+.landing-lovable .text-primary-foreground {
+  color: var(--lv-primary-foreground);
+}
+.landing-lovable .bg-secondary {
+  background-color: var(--lv-secondary);
+}
+.landing-lovable .text-secondary {
+  color: var(--lv-secondary-foreground);
+}
+.landing-lovable .text-muted-foreground {
+  color: var(--lv-muted-foreground);
+}
+.landing-lovable .border-border {
+  border-color: var(--lv-border);
+}
+.landing-lovable .bg-hero {
+  background: var(--lv-gradient-hero);
+}
+.landing-lovable .bg-dark {
+  background: var(--lv-gradient-dark);
+}
+.landing-lovable .text-gradient {
+  background: var(--lv-gradient-glow);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.landing-lovable .shadow-elegant {
+  box-shadow: var(--lv-shadow-elegant);
+}
+.landing-lovable .shadow-soft {
+  box-shadow: var(--lv-shadow-soft);
+}
+.landing-lovable .grain {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0'/></filter><rect width='100%' width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+.landing-lovable .bg-gradient-glow {
+  background: var(--lv-gradient-glow);
+}
+.landing-lovable .text-cream {
+  color: var(--lv-cream);
+}
+.landing-lovable .text-ink {
+  color: var(--lv-ink);
+}
+.landing-lovable .bg-mint {
+  background-color: var(--lv-mint);
+}
+.landing-lovable .text-mint {
+  color: var(--lv-mint);
+}
+.landing-lovable .from-indigo {
+  --tw-gradient-from: var(--lv-indigo);
+}
+.landing-lovable .to-mint {
+  --tw-gradient-to: var(--lv-mint);
+}
+.landing-lovable .from-mint {
+  --tw-gradient-from: var(--lv-mint);
+}
+.landing-lovable .to-indigo {
+  --tw-gradient-to: var(--lv-indigo);
+}
+.landing-lovable .from-navy {
+  --tw-gradient-from: var(--lv-navy);
+}
+.landing-lovable .to-navy {
+  --tw-gradient-to: var(--lv-navy);
+}
+.landing-lovable .from-indigo.to-mint {
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
+.landing-lovable .text-indigo {
+  color: var(--lv-indigo);
+}
+
+.landing-lovable .text-navy {
+  color: var(--lv-navy);
+}
+
+.landing-lovable .hero-preview-row {
+  background: color-mix(in srgb, var(--lv-cream) 85%, white);
+}
+
+@keyframes lv-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+.landing-lovable .animate-float {
+  animation: lv-float 6s ease-in-out infinite;
+}
+
+@keyframes lv-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.landing-lovable .animate-marquee {
+  animation: lv-marquee 40s linear infinite;
+}
+
+/* —— Hero first viewport (pixel reference) —— */
+
+.landing-lovable .landing-hero {
+  position: relative;
+  isolation: isolate;
+}
+
+.landing-lovable .landing-hero-glow {
+  pointer-events: none;
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(72px);
+}
+
+.landing-lovable .landing-hero-glow--mint {
+  bottom: -8%;
+  left: -6%;
+  width: min(52vw, 28rem);
+  height: min(52vw, 28rem);
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--lv-mint) 42%, transparent) 0%,
+    transparent 68%
+  );
+}
+
+.landing-lovable .landing-hero-glow--indigo {
+  top: -6%;
+  right: -4%;
+  width: min(48vw, 26rem);
+  height: min(48vw, 26rem);
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--lv-indigo) 32%, transparent) 0%,
+    transparent 70%
+  );
+}
+
+.landing-lovable .landing-hero-badge {
+  border-radius: 9999px;
+  border: 1px solid var(--lv-border);
+  background: color-mix(in srgb, var(--lv-card) 88%, var(--lv-cream));
+  padding: 0.4rem 0.85rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--lv-muted-foreground);
+  box-shadow: 0 1px 0 color-mix(in srgb, white 80%, transparent);
+}
+
+.landing-lovable .landing-hero-badge-dot {
+  height: 0.375rem;
+  width: 0.375rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  background: var(--lv-mint);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.landing-lovable .landing-hero-headline {
+  font-family: var(--lv-font-display);
+  font-size: clamp(2.75rem, 6.5vw, 5.5rem);
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  color: var(--lv-ink);
+}
+
+.landing-lovable .landing-hero-subcopy {
+  font-size: clamp(1.0625rem, 1.6vw, 1.25rem);
+  line-height: 1.65;
+  color: var(--lv-muted-foreground);
+  max-width: 36rem;
+}
+
+.landing-lovable .landing-hero-cta-primary,
+.landing-lovable .landing-hero-cta-secondary {
+  display: inline-flex;
+  min-height: 3.5rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  padding-inline: 1.75rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.landing-lovable .landing-hero-cta-primary {
+  background: var(--lv-navy);
+  color: var(--lv-cream);
+  box-shadow: 0 14px 40px -12px color-mix(in oklab, var(--lv-navy) 55%, transparent);
+}
+
+.landing-lovable .landing-hero-cta-primary:hover {
+  transform: translateY(-1px);
+  opacity: 0.94;
+}
+
+.landing-lovable .landing-hero-cta-arrow {
+  transition: transform 0.2s ease;
+}
+
+.landing-lovable .landing-hero-cta-primary:hover .landing-hero-cta-arrow {
+  transform: translateX(3px);
+}
+
+html[data-reduce-motion='true'] .landing-lovable .landing-hero-cta-primary:hover .landing-hero-cta-arrow {
+  transform: none;
+}
+
+.landing-lovable .landing-hero-cta-placeholder {
+  display: inline-flex;
+  min-height: 3.5rem;
+  min-width: min(100%, 14rem);
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--lv-border) 55%, transparent);
+  animation: landing-cta-pulse 1.2s ease-in-out infinite;
+}
+
+.landing-lovable .landing-hero-cta-placeholder--on-dark {
+  background: color-mix(in srgb, var(--lv-cream) 18%, transparent);
+}
+
+@keyframes landing-cta-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.75;
+  }
+}
+
+html[data-reduce-motion='true'] .landing-lovable .landing-hero-cta-placeholder {
+  animation: none;
+  opacity: 0.5;
+}
+
+.landing-lovable .landing-hero-cta-secondary {
+  border: 1px solid color-mix(in srgb, var(--lv-ink) 14%, transparent);
+  background: color-mix(in srgb, var(--lv-card) 95%, var(--lv-cream));
+  color: var(--lv-ink);
+}
+
+.landing-lovable .landing-hero-cta-secondary:hover {
+  transform: translateY(-1px);
+  background: var(--lv-secondary);
+}
+
+.landing-lovable .landing-hero-cta-primary:focus-visible,
+.landing-lovable .landing-hero-cta-secondary:focus-visible {
+  outline: 2px solid var(--lv-indigo);
+  outline-offset: 3px;
+}
+
+.landing-lovable .landing-hero-social {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.landing-lovable .landing-hero-avatars {
+  display: flex;
+  padding-left: 0.25rem;
+}
+
+.landing-lovable .landing-hero-avatar {
+  height: 2.25rem;
+  width: 2.25rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  border: 2px solid var(--lv-cream);
+  margin-left: -0.5rem;
+}
+
+.landing-lovable .landing-hero-avatar:first-child {
+  margin-left: 0;
+}
+
+.landing-lovable .landing-hero-social-text {
+  max-width: 16rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--lv-muted-foreground);
+}
+
+.landing-lovable .landing-hero-social-highlight {
+  font-weight: 600;
+  color: var(--lv-ink);
+}
+
+.landing-lovable .landing-hero-preview-wrap {
+  width: 100%;
+  max-width: 26rem;
+  margin-inline: auto;
+}
+
+@media (min-width: 1024px) {
+  .landing-lovable .landing-hero-preview-wrap {
+    margin-inline: 0 0 auto;
+    max-width: none;
+  }
+}
+
+.landing-lovable .landing-hero-preview-halo {
+  position: absolute;
+  inset: -1.5rem;
+  border-radius: 2rem;
+  background: var(--lv-gradient-glow);
+  opacity: 0.22;
+  filter: blur(48px);
+}
+
+.landing-lovable .landing-hero-preview-card {
+  position: relative;
+  border-radius: 1.5rem;
+  border: 1px solid var(--lv-border);
+  background: var(--lv-card);
+  padding: 1.5rem;
+  box-shadow: var(--lv-shadow-elegant);
+}
+
+.landing-lovable .landing-hero-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.landing-lovable .landing-hero-preview-label {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--lv-muted-foreground);
+}
+
+.landing-lovable .landing-hero-preview-pill {
+  border-radius: 9999px;
+  background: color-mix(in oklab, var(--lv-mint) 22%, transparent);
+  padding: 0.25rem 0.5rem;
+  font-size: 0.625rem;
+  font-weight: 500;
+  color: var(--lv-ink);
+}
+
+.landing-lovable .landing-hero-preview-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  border-radius: 1rem;
+  border: 1px solid var(--lv-border);
+  background: color-mix(in srgb, var(--lv-cream) 82%, white);
+  padding: 1rem;
+  transition: background-color 0.2s ease;
+}
+
+.landing-lovable .landing-hero-preview-row:hover {
+  background: color-mix(in srgb, var(--lv-secondary) 70%, white);
+}
+
+.landing-lovable .landing-hero-preview-icon {
+  display: grid;
+  height: 2.5rem;
+  width: 2.5rem;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: 0.75rem;
+  color: var(--lv-cream);
+}
+
+.landing-lovable .landing-hero-preview-tag {
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--lv-muted-foreground);
+}
+
+.landing-lovable .landing-hero-preview-title {
+  margin-top: 0.125rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--lv-ink);
+}
+
+.landing-lovable .landing-hero-preview-stats {
+  margin-top: 1.25rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.landing-lovable .landing-hero-preview-stat {
+  border-radius: 0.75rem;
+  border: 1px solid var(--lv-border);
+  background: var(--lv-card);
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+}
+
+.landing-lovable .landing-hero-preview-stat-label {
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--lv-muted-foreground);
+}
+
+.landing-lovable .landing-hero-preview-stat-value {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background: var(--lv-gradient-glow);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.landing-lovable .landing-hero-floating-chip {
+  position: absolute;
+  bottom: -1rem;
+  left: 1.5rem;
+  z-index: 2;
+  display: inline-flex;
+  max-width: min(calc(100vw - 2.5rem), 17.5rem);
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  background: var(--lv-navy);
+  padding: 0.5rem 0.875rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--lv-cream);
+  text-align: left;
+  box-shadow: 0 12px 32px -10px color-mix(in oklab, var(--lv-navy) 50%, transparent);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+@media (min-width: 480px) {
+  .landing-lovable .landing-hero-floating-chip {
+    max-width: none;
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+  }
+}
+
+.landing-lovable .landing-hero-floating-chip:hover {
+  transform: translateY(-1px);
+}
+
+.landing-lovable .landing-hero-floating-chip:focus-visible {
+  outline: 2px solid var(--lv-mint);
+  outline-offset: 3px;
+}
+
+/* Lovable home navbar */
+
+.layout-lovable-marketing .nav-shell-lovable {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.layout-lovable-marketing .nav-shell-lovable > div:first-child {
+  height: 4rem;
+  max-width: 80rem;
+  padding-inline: clamp(0.75rem, 3vw, 1.5rem);
+}
+
+.layout-lovable-marketing .lovable-nav-main {
+  flex-wrap: nowrap;
+  max-width: none;
+}
+
+.layout-lovable-marketing .lovable-nav-actions {
+  flex-wrap: nowrap;
+}
+
+.layout-lovable-marketing .lovable-nav-icon-btn {
+  display: grid;
+  height: 2.5rem;
+  width: 2.5rem;
+  place-items: center;
+  border-radius: 9999px;
+  border: 1px solid var(--lv-border);
+  background: color-mix(in srgb, var(--lv-card) 75%, var(--lv-cream));
+  color: var(--lv-ink);
+  transition: background-color 0.15s ease;
+}
+
+.layout-lovable-marketing .lovable-nav-icon-btn:hover {
+  background: var(--lv-secondary);
+}
+
+.layout-lovable-marketing .menu-trigger-landing {
+  height: 2.5rem;
+  border-radius: 9999px;
+  border: 1px solid var(--lv-border);
+  background: color-mix(in srgb, var(--lv-card) 75%, var(--lv-cream));
+  color: var(--lv-ink);
+  font-weight: 500;
+  box-shadow: none;
+}
+
+.layout-lovable-marketing .menu-trigger-landing:hover {
+  background: var(--lv-secondary);
+  border-color: var(--lv-border);
+  color: var(--lv-ink);
+}
+
+.layout-lovable-marketing .menu-trigger-landing svg {
+  color: var(--lv-muted-foreground);
+}

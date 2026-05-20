@@ -130,7 +130,7 @@ async function insertProfileForUser(userId: string, displayName: string): Promis
 
       if (error.code === '42501') {
         throw new Error(
-          'Your account was created. Please confirm your email (if required), then log in to finish setup.',
+          'PROFILE_SETUP_PENDING: Your account was created, but we could not finish setting up your profile. Please confirm your email if required, then log in.',
         )
       }
 
@@ -145,8 +145,24 @@ async function insertProfileForUser(userId: string, displayName: string): Promis
   }
 
   throw new Error(
-    'Your account may have been created. Please try logging in. If that does not work, contact support.',
+    'PROFILE_SETUP_FAILED: Your account may have been created, but we could not finish setting up your profile. Please try logging in or refresh this page.',
   )
+}
+
+/** Resend signup confirmation email (email confirmation enabled in Supabase). */
+export async function resendSignupConfirmation(email: string): Promise<void> {
+  const client = requireSupabase()
+  const { error } = await withTimeout(
+    client.auth.resend({
+      type: 'signup',
+      email: email.trim(),
+      options: {
+        emailRedirectTo: `${getAppOrigin()}/login`,
+      },
+    }),
+    DEFAULT_REQUEST_TIMEOUT_MS,
+  )
+  if (error) throw error
 }
 
 export async function signUp(
@@ -183,12 +199,27 @@ export async function signUp(
     } catch (profileErr) {
       if (profileErr instanceof Error) throw profileErr
       throw new Error(
-        'Your account was created. Please log in to complete setup.',
+        'PROFILE_SETUP_FAILED: Your account was created, but we could not finish setting up your profile. Please try logging in.',
       )
     }
   }
 
   return { user: data.user, needsEmailConfirmation }
+}
+
+/** Google OAuth — redirects away from the app; enable Google provider in Supabase. */
+export async function signInWithGoogle(redirectPath = '/feed'): Promise<void> {
+  const client = requireSupabase()
+  const path = redirectPath.startsWith('/') ? redirectPath : `/${redirectPath}`
+  const redirectTo = `${getAppOrigin()}${path}`
+  const { error } = await withTimeout(
+    client.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo },
+    }),
+    DEFAULT_REQUEST_TIMEOUT_MS,
+  )
+  if (error) throw error
 }
 
 export async function signIn(email: string, password: string): Promise<User> {

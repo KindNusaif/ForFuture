@@ -121,6 +121,12 @@ function mapPostRow(
     collection_location: (row.collection_location as string | null) ?? null,
     relief_deadline: (row.relief_deadline as string | null) ?? null,
     organizer_transparency_note: (row.organizer_transparency_note as string | null) ?? null,
+    campaign_summary: (row.campaign_summary as string | null) ?? null,
+    external_donation_url: (row.external_donation_url as string | null) ?? null,
+    donation_method: (row.donation_method as Post['donation_method']) ?? null,
+    donation_contact_note: (row.donation_contact_note as string | null) ?? null,
+    impact_report: (row.impact_report as Record<string, unknown> | null) ?? null,
+    publication_status: (row.publication_status as Post['publication_status']) ?? 'published',
     review_status:
       (row.review_status as Post['review_status']) ??
       (row.is_trusted_campaign ? 'reviewed' : 'unreviewed'),
@@ -275,6 +281,50 @@ async function fetchPublicFeedRows(params: FetchPostsPageParams): Promise<{
   throw enhanceSupabaseError(lastError)
 }
 
+/** Single public post row — same column fallbacks as the feed (detail page). */
+async function fetchPublicPostRowById(
+  postId: string,
+  signal?: AbortSignal,
+): Promise<Record<string, unknown> | null> {
+  const client = requireSupabase()
+  const columnSets = [POST_PUBLIC_COLUMNS, POST_PUBLIC_COLUMNS_LEGACY, POST_PUBLIC_COLUMNS_CORE]
+  let lastError: unknown
+
+  for (const columns of columnSets) {
+    try {
+      const { data, error } = await withTimeout(
+        client.from(FEED_SOURCE).select(columns).eq('id', postId).maybeSingle(),
+        FEED_REQUEST_TIMEOUT_MS,
+        undefined,
+        signal,
+      )
+      if (error) throw error
+      return (data ?? null) as Record<string, unknown> | null
+    } catch (error) {
+      lastError = error
+      if (isMissingRelation(error)) {
+        throw enhanceSupabaseError(error)
+      }
+      if (!isMissingColumn(error)) {
+        throw enhanceSupabaseError(error)
+      }
+    }
+  }
+
+  try {
+    const { data, error } = await withTimeout(
+      client.from(FEED_SOURCE).select('*').eq('id', postId).maybeSingle(),
+      FEED_REQUEST_TIMEOUT_MS,
+      undefined,
+      signal,
+    )
+    if (error) throw error
+    return (data ?? null) as Record<string, unknown> | null
+  } catch (error) {
+    throw enhanceSupabaseError(lastError ?? error)
+  }
+}
+
 async function fetchOwnPostRows(
   userId: string,
   options?: { limit?: number; offset?: number },
@@ -413,31 +463,7 @@ export async function fetchPostById(
 ): Promise<Post | null> {
   return withAutoRetry(
     async () => {
-      const client = requireSupabase()
-
-      const fetchRow = async (columns: string) => {
-        const { data, error } = await client
-          .from(FEED_SOURCE)
-          .select(columns)
-          .eq('id', postId)
-          .maybeSingle()
-        if (error) throw error
-        return data
-      }
-
-      const row = await withTimeout(
-        (async () => {
-          try {
-            return await fetchRow(POST_PUBLIC_COLUMNS)
-          } catch (error) {
-            if (isMissingColumn(error)) return await fetchRow(POST_PUBLIC_COLUMNS_LEGACY)
-            throw error
-          }
-        })(),
-        FEED_REQUEST_TIMEOUT_MS,
-        undefined,
-        signal,
-      )
+      const row = await fetchPublicPostRowById(postId, signal)
 
       if (!row) return null
 
@@ -618,6 +644,9 @@ function buildInsertRow(input: CreateMovementInput): Record<string, unknown> {
       row.petition_impact_note = trim(input.petition_impact_note)
       break
     }
+    case 'quick_youth_poll':
+      row.issue_summary = trim(input.issue_summary)
+      break
   }
 
   return row

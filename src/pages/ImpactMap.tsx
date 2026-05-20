@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { Map } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { List, Map } from 'lucide-react'
 import ImpactMapCanvas from '../components/impact-map/ImpactMapCanvas'
 import ImpactMapDetail from '../components/impact-map/ImpactMapDetail'
 import ImpactMapFilters from '../components/impact-map/ImpactMapFilters'
@@ -14,11 +14,14 @@ import { useGeolocation } from '../hooks/useGeolocation'
 import { useImpactMapData } from '../hooks/useImpactMapData'
 import { useAuth } from '../hooks/useAuth'
 import { FOCUSED_MAP_ZOOM, USER_LOCATION_ZOOM } from '../lib/mapConfig'
+import { forwardGeocode, isGoogleMapsConfigured, reverseGeocode } from '../lib/googleMaps'
 import type { ImpactMapEntry } from '../lib/impactMap'
+
+type MobilePanel = 'map' | 'list'
 
 export default function ImpactMapPage() {
   const { isMember } = useAuth()
-  const geo = useGeolocation()
+  const geo = useGeolocation({ tryInitialOnMount: false })
   const {
     loading,
     error,
@@ -31,7 +34,10 @@ export default function ImpactMapPage() {
   } = useImpactMapData(geo.position)
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [mobilePanel, setMobilePanel] = useState<MobilePanel>('list')
   const [mobileListOpen, setMobileListOpen] = useState(true)
+  const [detectedAreaLabel, setDetectedAreaLabel] = useState<string | null>(null)
+  const pendingNearMeRef = useRef(false)
   const { showSlowHint, showRecovery } = useLoadingProgress(loading)
   const [selectionFlyTo, setSelectionFlyTo] = useState<{
     lat: number
@@ -44,7 +50,7 @@ export default function ImpactMapPage() {
     [filtered, selectedId],
   )
 
-  const detailBase = isMember ? '/feed' : '/movements'
+  const detailBase = isMember ? '/feed' : '/explore'
 
   const flyTo = useMemo(() => {
     if (selectionFlyTo) return selectionFlyTo
@@ -53,6 +59,50 @@ export default function ImpactMapPage() {
     }
     return null
   }, [selectionFlyTo, geo.position, filters.nearMeEnabled])
+
+  const showMapEmptyOverlay = filtered.length > 0 && mappable.length === 0
+
+  useEffect(() => {
+    if (!geo.position) {
+      setDetectedAreaLabel(null)
+      return
+    }
+    if (!isGoogleMapsConfigured()) return
+
+    let cancelled = false
+    void reverseGeocode(geo.position.lat, geo.position.lng).then((label) => {
+      if (!cancelled && label) setDetectedAreaLabel(label)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [geo.position?.lat, geo.position?.lng])
+
+  useEffect(() => {
+    if (!geo.position || geo.loading) return
+    if (pendingNearMeRef.current) {
+      filters.setNearMeEnabled(true)
+      pendingNearMeRef.current = false
+    }
+  }, [geo.position, geo.loading, filters])
+
+  useEffect(() => {
+    if (geo.error && pendingNearMeRef.current) {
+      pendingNearMeRef.current = false
+    }
+  }, [geo.error])
+
+  useEffect(() => {
+    if (!filters.district || !isGoogleMapsConfigured()) return
+    let cancelled = false
+    void forwardGeocode(`${filters.district}, Sri Lanka`).then((coords) => {
+      if (cancelled || !coords) return
+      setSelectionFlyTo({ lat: coords.lat, lng: coords.lng, zoom: FOCUSED_MAP_ZOOM })
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [filters.district])
 
   function handleSelectEntry(entry: ImpactMapEntry) {
     setSelectedId(entry.id)
@@ -63,13 +113,19 @@ export default function ImpactMapPage() {
         zoom: FOCUSED_MAP_ZOOM,
       })
     }
+    setMobilePanel('map')
   }
 
-  function handleUseMyLocation() {
-    geo.requestLocation()
-    filters.setNearMeEnabled(true)
+  const handleUseMyLocation = useCallback(() => {
+    pendingNearMeRef.current = true
     setSelectionFlyTo(null)
-  }
+    geo.requestLocation()
+  }, [geo])
+
+  const handleRequestLocationForNearMe = useCallback(() => {
+    pendingNearMeRef.current = true
+    geo.requestLocation()
+  }, [geo])
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:py-8">
@@ -90,6 +146,7 @@ export default function ImpactMapPage() {
           volunteer={stats.volunteer}
           civic={stats.civic}
           issues={stats.issues}
+          relief={stats.relief}
           visibleCount={filtered.length}
         />
       )}
@@ -112,9 +169,11 @@ export default function ImpactMapPage() {
           search={filters.search}
           onSearchChange={filters.setSearch}
           onUseMyLocation={handleUseMyLocation}
+          onRequestLocationForNearMe={handleRequestLocationForNearMe}
           geoLoading={geo.loading}
           geoError={geo.error}
           hasUserLocation={Boolean(geo.position)}
+          detectedAreaLabel={detectedAreaLabel}
         />
       </div>
 
@@ -149,44 +208,86 @@ export default function ImpactMapPage() {
           )}
         </div>
       ) : (
-        <div className="mt-6 flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,22rem)_1fr] lg:gap-5">
-          <div className="card-surface order-2 flex min-h-80 flex-col overflow-hidden lg:order-1 lg:max-h-[calc(100vh-12rem)]">
-            <ImpactMapList
-              entries={filtered}
-              selectedId={selectedId}
-              onSelect={handleSelectEntry}
-              mobileExpanded={mobileListOpen}
-              onToggleMobile={() => setMobileListOpen((o) => !o)}
-            />
+        <>
+          <div
+            className="mt-4 flex gap-2 lg:hidden"
+            role="tablist"
+            aria-label="Map or list view"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={mobilePanel === 'map'}
+              className={
+                mobilePanel === 'map' ? 'profile-tab profile-tab-active flex-1' : 'profile-tab flex-1'
+              }
+              onClick={() => setMobilePanel('map')}
+            >
+              <Map className="mr-1.5 inline h-4 w-4" aria-hidden />
+              Map
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={mobilePanel === 'list'}
+              className={
+                mobilePanel === 'list' ? 'profile-tab profile-tab-active flex-1' : 'profile-tab flex-1'
+              }
+              onClick={() => setMobilePanel('list')}
+            >
+              <List className="mr-1.5 inline h-4 w-4" aria-hidden />
+              List ({filtered.length})
+            </button>
           </div>
 
-          <div className="order-1 flex min-h-0 flex-col gap-4 lg:order-2">
-            <div className="card-surface overflow-hidden p-1 lg:min-h-[min(520px,65vh)]">
-              <ImpactMapCanvas
-                entries={mappable}
-                selectedId={selectedId}
-                onSelect={(id) => {
-                  if (!id) {
-                    setSelectedId(null)
-                    return
-                  }
-                  const entry = filtered.find((e) => e.id === id)
-                  if (entry) handleSelectEntry(entry)
-                }}
-                flyTo={flyTo}
-                className="min-h-[min(50vh,420px)]"
-              />
+          <div className="mt-4 flex flex-col gap-4 lg:mt-6 lg:grid lg:grid-cols-[minmax(0,22rem)_1fr] lg:gap-5">
+            <div
+              className={`order-2 min-h-0 lg:order-1 ${mobilePanel === 'list' ? 'block' : 'hidden lg:block'}`}
+            >
+              <div className="card-surface flex h-full min-h-[min(40vh,420px)] flex-col overflow-hidden lg:min-h-[min(520px,65vh)]">
+                <ImpactMapList
+                  entries={filtered}
+                  selectedId={selectedId}
+                  onSelect={handleSelectEntry}
+                  mobileExpanded={mobileListOpen}
+                  onToggleMobile={() => setMobileListOpen((o) => !o)}
+                />
+              </div>
             </div>
 
-            {selectedEntry && (
-              <ImpactMapDetail
-                entry={selectedEntry}
-                detailPath={`${detailBase}/${selectedEntry.id}`}
-                onClose={() => setSelectedId(null)}
-              />
-            )}
+            <div
+              className={`order-1 flex min-h-0 flex-col gap-4 lg:order-2 ${mobilePanel === 'map' ? 'flex' : 'hidden lg:flex'}`}
+            >
+              <div className="card-surface overflow-hidden p-1 lg:min-h-[min(520px,65vh)]">
+                <ImpactMapCanvas
+                  entries={mappable}
+                  selectedId={selectedId}
+                  onSelect={(id) => {
+                    if (!id) {
+                      setSelectedId(null)
+                      return
+                    }
+                    const entry = filtered.find((e) => e.id === id)
+                    if (entry) handleSelectEntry(entry)
+                  }}
+                  flyTo={flyTo}
+                  userLocation={geo.position}
+                  showEmptyOverlay={showMapEmptyOverlay}
+                  emptyOverlayMessage="No map pins match your filters. Adjust filters or browse the list — some results may only list an area without an exact pin."
+                  className="min-h-[min(50vh,420px)]"
+                />
+              </div>
+
+              {selectedEntry && (
+                <ImpactMapDetail
+                  entry={selectedEntry}
+                  detailPath={`${detailBase}/${selectedEntry.id}`}
+                  onClose={() => setSelectedId(null)}
+                />
+              )}
+            </div>
           </div>
-        </div>
+        </>
       )}
 
       <p className="mt-6 text-center text-xs text-muted">

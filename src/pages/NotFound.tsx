@@ -12,7 +12,7 @@ export default function NotFound() {
         action={{ label: 'Back to ForFuture', to: '/' }}
       />
       <p className="mt-6 text-center">
-        <Link to="/movements" className="text-sm font-semibold text-accent-600 hover:underline dark:text-accent-400">
+        <Link to="/explore" className="text-sm font-semibold text-accent-600 hover:underline dark:text-accent-400">
           Browse movements
         </Link>
       </p>

@@ -64,7 +64,7 @@ export default function LandingHero() {
             <CTAButton to="/signup" icon={ArrowRight} className="w-full sm:w-auto">
               {t('landing.joinCta')}
             </CTAButton>
-            <CTAButton to="/discover" variant="secondary" icon={Compass} className="w-full sm:w-auto">
+            <CTAButton to="/explore" variant="secondary" icon={Compass} className="w-full sm:w-auto">
               {t('landing.exploreCta')}
             </CTAButton>
           </div>
@@ -79,7 +79,10 @@ export default function LandingHero() {
                 </li>
               ))}
             </ul>
-            <p className="max-w-xs text-center text-sm text-secondary sm:text-left">{t('landing.socialProof')}</p>
+            <div className="max-w-xs text-center text-sm text-secondary sm:text-left">
+              <p className="font-semibold text-primary">{t('landing.socialProof')}</p>
+              <p className="mt-1 text-muted">{t('landing.socialProofSubtext')}</p>
+            </div>
           </div>
         </div>
 
@@ -120,14 +123,18 @@ export default function LandingHero() {
                 <div key={label} className="landing-metric-cell">
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">{label}</p>
                   <p className="landing-metric-value mt-0.5 text-sm font-bold">
-                    {t('landing.heroMetricGrowing')}
+                    {label === t('landing.heroMetricMovements')
+                      ? t('landing.heroMetricMovementsTrend')
+                      : label === t('landing.heroMetricPetitions')
+                        ? t('landing.heroMetricPetitionsTrend')
+                        : t('landing.heroMetricReliefTrend')}
                   </p>
                 </div>
               ))}
             </div>
           </div>
           <Link
-            to="/discover"
+            to="/discover?focus=nearby"
             tabIndex={-1}
             className="pointer-events-none absolute -bottom-3 -left-3 hidden rounded-2xl bg-brand-500 px-4 py-2 text-xs font-bold text-white shadow-lg lg:block"
             aria-hidden

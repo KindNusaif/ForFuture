@@ -38,7 +38,7 @@ export function formatError(error: unknown, options?: FormatErrorOptions): strin
       return 'An account with this email already exists. Try logging in instead.'
     }
     if (authCode === 'weak_password') {
-      return 'Password must be at least 6 characters.'
+      return 'Please use a stronger password.'
     }
     if (authCode === 'signup_disabled') {
       return 'Sign-ups are temporarily unavailable. Please try again later.'
@@ -73,7 +73,7 @@ export function formatError(error: unknown, options?: FormatErrorOptions): strin
     }
 
     if (error.message.includes('Invalid login credentials')) {
-      return 'Wrong email or password.'
+      return "We couldn't sign you in with those details. Please check your email and password."
     }
     if (
       error.message.includes('User already registered') ||

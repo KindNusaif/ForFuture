@@ -5,7 +5,7 @@ import { useTheme } from '../../hooks/useTheme'
 import type { AppearanceMode } from '../../lib/theme/types'
 
 interface ThemeMenuProps {
-  variant?: 'compact' | 'nav'
+  variant?: 'compact' | 'nav' | 'landing'
   className?: string
 }
 
@@ -43,7 +43,9 @@ export default function ThemeMenu({ variant = 'compact', className = '' }: Theme
   const triggerClass =
     variant === 'nav'
       ? 'rounded-lg px-3 py-2 text-sm font-medium text-secondary transition hover:bg-muted hover:text-primary'
-      : 'rounded-xl p-2.5 text-secondary ring-1 ring-default transition hover:bg-muted hover:text-primary'
+      : variant === 'landing'
+        ? 'lovable-nav-icon-btn'
+        : 'rounded-xl p-2.5 text-secondary ring-1 ring-default transition hover:bg-muted hover:text-primary'
 
   return (
     <div ref={rootRef} className={`relative ${className}`.trim()}>
@@ -55,7 +57,7 @@ export default function ThemeMenu({ variant = 'compact', className = '' }: Theme
         aria-expanded={open}
         aria-haspopup="menu"
       >
-        <CurrentIcon className="h-5 w-5" aria-hidden />
+        <CurrentIcon className={variant === 'landing' ? 'h-4 w-4' : 'h-5 w-5'} aria-hidden />
       </button>
 
       {open && (

@@ -1,8 +1,12 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 export interface GeoPosition {
   lat: number
   lng: number
+}
+
+interface UseGeolocationOptions {
+  tryInitialOnMount?: boolean
 }
 
 interface UseGeolocationResult {
@@ -14,18 +18,26 @@ interface UseGeolocationResult {
   clearLocation: () => void
 }
 
-export function useGeolocation(): UseGeolocationResult {
+const GEO_OPTIONS: PositionOptions = {
+  enableHighAccuracy: false,
+  timeout: 12_000,
+  maximumAge: 120_000,
+}
+
+export function useGeolocation(options: UseGeolocationOptions = {}): UseGeolocationResult {
+  const { tryInitialOnMount = true } = options
   const [position, setPosition] = useState<GeoPosition | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [requested, setRequested] = useState(false)
+  const initialAttempted = useRef(false)
 
   const requestLocation = useCallback(() => {
     setRequested(true)
     setError(null)
 
     if (!navigator.geolocation) {
-      setError('Location is not supported in this browser.')
+      setError('Location is not supported in this browser. You can still search by district or area.')
       return
     }
 
@@ -40,14 +52,37 @@ export function useGeolocation(): UseGeolocationResult {
         setLoading(false)
         setPosition(null)
         if (err.code === err.PERMISSION_DENIED) {
-          setError('Location permission denied. Use district filters instead.')
+          setError(
+            'We couldn’t access your location. You can still search by district or area.',
+          )
         } else {
-          setError('Could not determine your location. Try district filters.')
+          setError(
+            'We couldn’t access your location. You can still search by district or area.',
+          )
         }
       },
-      { enableHighAccuracy: false, timeout: 12_000, maximumAge: 60_000 },
+      GEO_OPTIONS,
     )
   }, [])
+
+  useEffect(() => {
+    if (!tryInitialOnMount || initialAttempted.current) return
+    if (!navigator.geolocation) return
+    initialAttempted.current = true
+    setLoading(true)
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+        setLoading(false)
+        setError(null)
+        setRequested(true)
+      },
+      () => {
+        setLoading(false)
+      },
+      { ...GEO_OPTIONS, maximumAge: 300_000 },
+    )
+  }, [tryInitialOnMount])
 
   const clearLocation = useCallback(() => {
     setPosition(null)

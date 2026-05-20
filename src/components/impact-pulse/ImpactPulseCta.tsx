@@ -25,7 +25,7 @@ export default function ImpactPulseCta({ isMember }: Props) {
             {t('impactPulse.cta.create')}
           </Link>
         )}
-        <Link to={isMember ? '/feed' : '/movements'} className="btn-secondary w-full sm:w-auto">
+        <Link to={isMember ? '/feed' : '/explore'} className="btn-secondary w-full sm:w-auto">
           <Compass className="h-5 w-5 text-accent-600" aria-hidden />
           {t('impactPulse.cta.explore')}
           <ArrowRight className="h-4 w-4" aria-hidden />

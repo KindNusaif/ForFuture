@@ -49,7 +49,7 @@ export default function Landing() {
       icon: Compass,
       title: t('landing.toolkitFeedTitle'),
       text: t('landing.toolkitFeedText'),
-      link: '/movements',
+      link: '/explore',
       linkLabel: t('landing.toolkitFeedCta'),
       featured: true,
       className: 'lg:col-span-2 lg:row-span-2',

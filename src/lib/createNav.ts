@@ -15,3 +15,12 @@ export function isCreateMovementNavActive(location: Pick<Location, 'pathname' | 
 export function isQuickPollNavActive(location: Pick<Location, 'pathname' | 'search'>): boolean {
   return getCreateNavMode(location) === 'poll'
 }
+
+export function isCommunityPollsNavActive(location: Pick<Location, 'pathname'>): boolean {
+  return (
+    location.pathname === '/polls' ||
+    location.pathname.startsWith('/polls/') ||
+    location.pathname === '/explore/polls' ||
+    location.pathname.startsWith('/explore/polls/')
+  )
+}

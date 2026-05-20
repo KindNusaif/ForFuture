@@ -19,6 +19,7 @@ const LAYER_RING: Record<ImpactMapEntry['layerType'], string> = {
   volunteer: 'ring-brand-200 border-brand-200',
   civic_action: 'ring-accent-200 border-accent-200',
   issue: 'ring-rose-200 border-rose-200',
+  relief: 'ring-amber-200 border-amber-200',
 }
 
 export default function ImpactMapList({
@@ -54,7 +55,7 @@ export default function ImpactMapList({
       >
         {entries.map((entry) => {
           const selected = entry.id === selectedId
-          const hasPin = entry.latitude != null && entry.longitude != null
+          const hasPin = entry.hasPreciseCoordinates
           return (
             <li key={entry.id} className="mb-2">
               <button
@@ -88,16 +89,12 @@ export default function ImpactMapList({
                   {hasPin ? (
                     <>
                       <MapPin className="h-3 w-3" aria-hidden />
-                      {entry.isApproximatePin
-                        ? 'Approximate area on map'
-                        : entry.hasPreciseCoordinates
-                          ? 'On map'
-                          : 'On map'}
+                      On map
                     </>
                   ) : (
                     <>
                       <MapPinOff className="h-3 w-3" aria-hidden />
-                      List only — no map pin
+                      Area listed — exact map pin not provided.
                     </>
                   )}
                 </p>

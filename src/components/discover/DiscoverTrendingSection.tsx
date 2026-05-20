@@ -19,6 +19,8 @@ export default function DiscoverTrendingSection({ items, loading, error }: Props
 
   return (
     <DiscoverSectionShell
+      id="discover-trending"
+      className="scroll-mt-24"
       eyebrow={t('discover.trendingEyebrow')}
       title={t('discover.trendingTitle')}
       subtitle={t('discover.trendingSubtitle')}
@@ -50,7 +52,7 @@ export default function DiscoverTrendingSection({ items, loading, error }: Props
             return (
               <li key={item.id}>
                 <Link
-                  to={`/movements/${item.id}`}
+                  to={`/explore/${item.id}`}
                   className="group card-surface flex h-full flex-col p-5 transition hover:border-accent-300 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
                 >
                   <div className="mb-3 flex items-start justify-between gap-2">

@@ -181,7 +181,7 @@
 .feed-hero-status {
   display: flex;
   gap: 0.75rem;
-  align-items: flex-start;
+  align-items: center;
   padding: 0.875rem 1rem;
   border-radius: 1rem;
   border: 1px solid rgb(255 255 255 / 0.35);
@@ -301,6 +301,8 @@
   border: 1px solid var(--ff-border);
   background: var(--ff-surface);
   box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
+  cursor: pointer;
+  text-decoration: none;
   transition:
     transform 200ms ease,
     box-shadow 200ms ease,
@@ -312,11 +314,17 @@
   transform: translateY(-1px);
   border-color: rgb(129 140 248 / 0.45);
   box-shadow: 0 4px 14px rgb(79 70 229 / 0.1);
+  background: color-mix(in srgb, var(--ff-surface) 92%, var(--ff-accent-500) 8%);
 }
 
-.quick-link-item:focus-within {
+.quick-link-item:focus-visible {
   outline: 2px solid var(--ff-accent-500, #6366f1);
   outline-offset: 2px;
+}
+
+[data-theme='dark'] .quick-link-item:hover {
+  border-color: color-mix(in srgb, var(--color-accent-400) 40%, var(--ff-border));
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.25);
 }
 
 .quick-link-icon {
@@ -424,7 +432,7 @@
 
 /* Unified “create movement” CTA — premium civic entry point */
 .create-movement-cta {
-  @apply inline-flex max-w-full min-h-11 items-center justify-center gap-2.5 rounded-xl px-4 py-2.5 text-sm font-semibold;
+  @apply inline-flex max-w-full min-h-11 items-center justify-center gap-2.5 rounded-xl px-4 py-2 text-sm font-semibold;
   flex-wrap: nowrap;
   transition:
     transform 200ms ease,
@@ -443,14 +451,14 @@
   color: #fff;
   border: 1px solid transparent;
   background: linear-gradient(
-    135deg,
-    var(--ff-accent-600, #4f46e5) 0%,
-    var(--ff-accent-700, #4338ca) 55%,
-    #3730a3 100%
+    145deg,
+    oklch(0.22 0.08 265) 0%,
+    oklch(0.32 0.1 270) 55%,
+    oklch(0.42 0.12 275) 100%
   );
   box-shadow:
     0 1px 2px rgb(15 23 42 / 0.08),
-    0 4px 14px rgb(79 70 229 / 0.28);
+    0 8px 24px -8px color-mix(in oklab, oklch(0.22 0.08 265) 45%, transparent);
 }
 
 .create-movement-cta--primary:hover {
@@ -506,7 +514,19 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  line-height: 1.25;
+  line-height: 1;
+}
+
+@media (max-width: 400px) {
+  .menu-trigger-compact .language-switcher-label {
+    display: none;
+  }
+
+  .menu-trigger-compact {
+    min-width: 2.25rem;
+    justify-content: center;
+    padding-inline: 0.5rem;
+  }
 }
 
 @media (max-width: 380px) {
@@ -532,6 +552,14 @@
 
 @utility menu-trigger-compact {
   @apply inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-default bg-surface px-2.5 py-1.5 text-xs font-medium text-secondary shadow-sm transition hover:border-accent-300 hover:bg-muted;
+}
+
+@utility menu-trigger-sidebar {
+  @apply inline-flex h-9 min-w-0 max-w-[4.25rem] shrink-0 items-center gap-1 rounded-lg border border-default bg-surface px-2 py-1.5 text-xs font-semibold text-secondary shadow-sm transition hover:border-accent-300 hover:bg-muted;
+}
+
+.menu-trigger-sidebar .language-switcher-label--code {
+  letter-spacing: 0.04em;
 }
 
 @utility menu-trigger-landing {
@@ -570,6 +598,199 @@
 .theme-menu-item-active {
   background: var(--ff-nav-active-bg);
   color: var(--ff-nav-active-text);
+}
+
+.content-owner-menu {
+  box-shadow: 0 12px 40px var(--ff-shadow);
+}
+
+.content-owner-trigger:focus-visible {
+  outline: 2px solid var(--ff-accent, #6366f1);
+  outline-offset: 2px;
+}
+
+.owner-anonymous-badge {
+  color: var(--ff-text-secondary);
+  background: color-mix(in srgb, var(--ff-muted) 70%, transparent);
+  border-color: var(--ff-border);
+  ring-color: var(--ff-border);
+}
+
+[data-theme='dark'] .owner-anonymous-badge {
+  background: color-mix(in srgb, var(--ff-muted) 40%, transparent);
+}
+
+.youth-voice-trust-note {
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--ff-border);
+  background: color-mix(in srgb, var(--ff-muted) 50%, transparent);
+}
+
+.contribution-filters {
+  scrollbar-width: thin;
+}
+
+.contribution-filter {
+  flex-shrink: 0;
+  white-space: nowrap;
+  border-radius: 9999px;
+  border: 1px solid var(--ff-border);
+  background: var(--ff-surface);
+  padding: 0.375rem 0.875rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ff-text-secondary);
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.contribution-filter:hover {
+  border-color: rgb(129 140 248 / 0.4);
+  color: var(--ff-text-primary);
+}
+
+.contribution-filter-active {
+  border-color: rgb(99 102 241 / 0.5);
+  background: color-mix(in srgb, var(--ff-accent, #6366f1) 12%, var(--ff-surface));
+  color: var(--ff-text-primary);
+}
+
+.contribution-status {
+  display: inline-flex;
+  border-radius: 9999px;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.contribution-status-active {
+  background: color-mix(in srgb, #10b981 15%, transparent);
+  color: #047857;
+}
+
+.contribution-status-closed {
+  background: color-mix(in srgb, var(--ff-muted) 80%, transparent);
+  color: var(--ff-text-secondary);
+}
+
+[data-theme='dark'] .contribution-status-active {
+  color: #6ee7b7;
+}
+
+.contribution-card {
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.contribution-card:hover {
+  border-color: rgb(129 140 248 / 0.3);
+}
+
+.share-icon-btn {
+  display: grid;
+  height: 2.25rem;
+  width: 2.25rem;
+  place-items: center;
+  border-radius: 0.625rem;
+  color: var(--ff-text-muted);
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.share-icon-btn:hover {
+  background: var(--ff-muted);
+  color: var(--ff-text-primary);
+}
+
+.share-dialog {
+  margin: auto;
+  max-height: calc(100dvh - 2rem);
+}
+
+.share-dialog-panel {
+  margin: 0;
+  width: 100%;
+  max-width: 28rem;
+}
+
+@media (max-width: 639px) {
+  .share-dialog {
+    margin: 0;
+    align-self: end;
+    width: 100%;
+    max-width: none;
+  }
+
+  .share-dialog-panel {
+    border-radius: 1.25rem 1.25rem 0 0;
+    margin-top: auto;
+  }
+}
+
+.share-dialog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.share-dialog-preview {
+  border-radius: 0.75rem;
+  background: var(--ff-muted-soft);
+  padding: 0.75rem 1rem;
+}
+
+.share-platform-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 4.5rem;
+  border-radius: 0.875rem;
+  border: 1px solid var(--ff-border);
+  background: var(--ff-surface);
+  padding: 0.75rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ff-text-secondary);
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.share-platform-btn:hover {
+  border-color: rgb(129 140 248 / 0.45);
+  background: var(--ff-muted-soft);
+  color: var(--ff-text-primary);
+}
+
+.share-copy-btn {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.875rem;
+  border: 1px solid var(--ff-border);
+  background: var(--ff-muted-soft);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ff-text-primary);
+  transition: background-color 0.15s ease;
+}
+
+.share-copy-btn:hover {
+  background: var(--ff-muted);
 }
 
 @utility sidebar-panel {
@@ -912,7 +1133,15 @@ html:not([data-reduce-motion='true']) .post-card-interactive:hover {
 }
 
 .notification-dropdown {
-  @apply absolute right-0 z-50 mt-2 w-[min(22rem,calc(100vw-2rem))];
+  @apply z-50 w-[min(22rem,calc(100vw-2rem))];
+}
+
+.notification-dropdown:not(.notification-dropdown-portal) {
+  @apply absolute right-0 mt-2;
+}
+
+.notification-dropdown-portal {
+  /* position set inline from trigger getBoundingClientRect */
 }
 
 .notification-panel {
@@ -1013,7 +1242,15 @@ html:not([data-reduce-motion='true']) .post-card-interactive:hover {
 }
 
 .notification-dropdown {
-  @apply absolute right-0 z-50 mt-2 w-[min(22rem,calc(100vw-2rem))];
+  @apply z-50 w-[min(22rem,calc(100vw-2rem))];
+}
+
+.notification-dropdown:not(.notification-dropdown-portal) {
+  @apply absolute right-0 mt-2;
+}
+
+.notification-dropdown-portal {
+  /* position set inline from trigger getBoundingClientRect */
 }
 
 .notification-panel {

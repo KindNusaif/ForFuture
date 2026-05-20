@@ -17,7 +17,7 @@ export default function DiscoverVisitorCta() {
           <Link to="/signup" className="btn-primary w-full sm:w-auto">
             {t('discover.createAccount')}
           </Link>
-          <Link to="/movements" className="btn-secondary w-full sm:w-auto">
+          <Link to="/explore" className="btn-secondary w-full sm:w-auto">
             {t('discover.exploreMovements')}
           </Link>
         </div>

@@ -1,29 +1,65 @@
 import { Link } from 'react-router-dom'
 import { Sparkles } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 interface LogoProps {
   to?: string
   className?: string
   showTagline?: boolean
+  /** Icon mark only — for tight mobile headers */
+  iconOnly?: boolean
+  variant?: 'default' | 'lovable'
 }
 
-export default function Logo({ to = '/', className = '', showTagline = false }: LogoProps) {
+export default function Logo({
+  to = '/',
+  className = '',
+  showTagline = false,
+  iconOnly = false,
+  variant = 'default',
+}: LogoProps) {
+  const { t } = useTranslation()
+  const isLovable = variant === 'lovable'
+
   return (
     <Link
       to={to}
-      className={`group flex items-center gap-2.5 transition-opacity hover:opacity-90 ${className}`}
+      aria-label={iconOnly ? t('landing.brandName', { defaultValue: 'ForFuture home' }) : undefined}
+      className={`group flex min-w-0 max-w-full items-center gap-2 transition-opacity hover:opacity-90 sm:gap-2.5 ${className}`}
     >
-      <span className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-linear-to-br from-accent-600 to-brand-600 text-white shadow-md shadow-accent-600/30">
-        <Sparkles className="h-5 w-5" aria-hidden />
+      <span
+        className={
+          isLovable
+            ? 'grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-indigo to-mint text-cream shadow-soft sm:h-10 sm:w-10'
+            : 'relative flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-accent-600 via-accent-600 to-brand-500 text-white shadow-md shadow-accent-600/25 sm:h-9 sm:w-9'
+        }
+      >
+        <Sparkles className={isLovable ? 'h-3.5 w-3.5 sm:h-4 sm:w-4' : 'h-4 w-4 sm:h-5 sm:w-5'} aria-hidden />
       </span>
-      <span className="flex flex-col leading-tight">
-        <span className="text-lg font-bold tracking-tight text-accent-900">ForFuture</span>
+      {!iconOnly && (
+      <span className="flex min-w-0 flex-col leading-tight">
+        <span
+          className={
+            isLovable
+              ? 'truncate font-display text-base text-foreground sm:text-xl'
+              : 'truncate text-base font-bold tracking-tight text-primary sm:text-lg'
+          }
+        >
+          ForFuture
+        </span>
         {showTagline && (
-          <span className="hidden text-[10px] font-medium uppercase tracking-wider text-muted sm:block">
-            Youth voices → movements
+          <span
+            className={
+              isLovable
+                ? 'logo-lovable-tagline hidden truncate text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground md:block'
+                : 'hidden truncate text-[10px] font-medium uppercase tracking-wider text-muted md:block'
+            }
+          >
+            {t('landing.logoTagline')}
           </span>
         )}
       </span>
+      )}
     </Link>
   )
 }

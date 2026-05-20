@@ -25,6 +25,7 @@ import {
   type TrustProfileSearchResult,
 } from '../lib/trustAdmin'
 import type { MovementType } from '../types'
+import AdminOrgVerificationQueue from '../components/admin/AdminOrgVerificationQueue'
 
 const MOVEMENT_FILTER_OPTIONS: { value: string; label: string }[] = [
   { value: '', label: 'All movement types' },
@@ -212,11 +213,13 @@ export default function AdminTrustReview() {
         slowMessage="Loading trust review tools…"
       />
 
+      <AdminOrgVerificationQueue />
+
       <section className="card-surface mt-8 overflow-hidden">
         <div className="border-b border-default bg-emerald-50/50 px-4 py-4 sm:px-6">
           <h2 className="flex items-center gap-2 text-lg font-bold text-primary">
             <BadgeCheck className="h-5 w-5 text-emerald-700" aria-hidden />
-            Organizer verification
+            Manual organizer verification
           </h2>
           <p className="mt-1 text-sm text-secondary">
             Search by display name, Youth Voice ID, or profile UUID.

@@ -9,6 +9,7 @@ export type ReportableContentType =
   | 'campaign'
   | 'relief'
   | 'comment'
+  | 'inspire'
 
 export type ContentReportReason =
   | 'misinformation'
@@ -114,6 +115,7 @@ export const REPORTABLE_CONTENT_TYPE_LABELS: Record<ReportableContentType, strin
   campaign: 'Civic campaign',
   relief: 'Relief cause',
   comment: 'Comment',
+  inspire: 'Inspire post',
 }
 
 export function getReportableContentTypeForPost(post: Post): ReportableContentType {

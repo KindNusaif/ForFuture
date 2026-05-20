@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 
 interface Props {
+  id?: string
   eyebrow?: string
   title: string
   subtitle?: string
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export default function DiscoverSectionShell({
+  id,
   eyebrow,
   title,
   subtitle,
@@ -16,7 +18,7 @@ export default function DiscoverSectionShell({
   className = '',
 }: Props) {
   return (
-    <section className={`py-10 sm:py-12 ${className}`}>
+    <section id={id} className={`py-10 sm:py-12 ${className}`}>
       <header className="mb-6 max-w-2xl">
         {eyebrow && <p className="eyebrow mb-2">{eyebrow}</p>}
         <h2 className="text-2xl font-bold tracking-tight text-primary sm:text-3xl">{title}</h2>

@@ -1,0 +1,302 @@
+/**
+ * ForFuture unified dark theme — layered surfaces, modals, forms, and Tailwind fixes.
+ * Requires [data-theme='dark'] on <html> (see lib/theme/apply.ts).
+ */
+
+/* ─── Surface hierarchy helpers ─── */
+[data-theme='dark'] .dialog-panel {
+  background: var(--ff-modal);
+  border-color: var(--ff-card-border);
+  box-shadow:
+    0 24px 48px -12px var(--ff-shadow),
+    0 0 0 1px color-mix(in oklab, var(--color-accent-500) 12%, transparent);
+}
+
+[data-theme='dark'] .dialog-panel .bg-accent-100 {
+  background-color: rgb(67 56 202 / 0.35);
+  color: #c7d2fe;
+}
+
+[data-theme='dark'] .dialog-panel .profile-hero-wash {
+  opacity: 0.35;
+}
+
+[data-theme='dark'] .toast-dismiss {
+  color: var(--ff-text-muted);
+}
+
+[data-theme='dark'] .toast-dismiss:hover {
+  background: var(--ff-muted);
+  color: var(--ff-text-primary);
+}
+
+[data-theme='dark'] .toast-item {
+  box-shadow: 0 12px 32px -8px var(--ff-shadow);
+}
+
+/* ─── Feed tabs & filters ─── */
+[data-theme='dark'] .feed-tab {
+  color: var(--ff-text-muted);
+}
+
+[data-theme='dark'] .feed-tab:hover {
+  color: var(--ff-text-secondary);
+  background: var(--ff-muted-soft);
+}
+
+[data-theme='dark'] .feed-tab-active {
+  background: var(--ff-nav-active-bg);
+  color: var(--ff-nav-active-text);
+  box-shadow:
+    0 2px 12px -4px color-mix(in oklab, var(--color-accent-500) 35%, transparent),
+    inset 0 0 0 1px color-mix(in oklab, var(--color-accent-400) 25%, transparent);
+}
+
+[data-theme='dark'] .filter-chip:hover {
+  border-color: color-mix(in oklab, var(--color-accent-400) 40%, var(--ff-border));
+  background: var(--ff-muted-soft);
+}
+
+[data-theme='dark'] .filter-chip-active {
+  border-color: color-mix(in oklab, var(--color-accent-400) 50%, transparent);
+}
+
+/* ─── Forms: checkbox, radio, select ─── */
+[data-theme='dark'] input[type='checkbox'],
+[data-theme='dark'] input[type='radio'] {
+  accent-color: var(--color-accent-500);
+  border-color: var(--ff-input-border);
+  background-color: var(--ff-input-bg);
+}
+
+[data-theme='dark'] input[type='checkbox']:focus-visible,
+[data-theme='dark'] input[type='radio']:focus-visible {
+  outline: 2px solid var(--color-accent-400);
+  outline-offset: 2px;
+}
+
+[data-theme='dark'] select option {
+  background: var(--ff-surface);
+  color: var(--ff-text-primary);
+}
+
+/* ─── Ghost / outline buttons ─── */
+[data-theme='dark'] .btn-ghost:hover {
+  background: var(--ff-muted-soft);
+  color: var(--ff-text-primary);
+}
+
+[data-theme='dark'] .btn-outline {
+  border-color: var(--ff-card-border);
+  background: color-mix(in oklab, var(--ff-card) 85%, transparent);
+}
+
+[data-theme='dark'] .btn-outline:hover {
+  border-color: color-mix(in oklab, var(--color-accent-400) 45%, var(--ff-border));
+  background: var(--ff-muted-soft);
+}
+
+/* ─── Secondary button (Tailwind utility in index.css) ─── */
+[data-theme='dark'] .btn-secondary {
+  background: color-mix(in oklab, var(--ff-card) 88%, transparent);
+  border-color: var(--ff-card-border);
+  color: var(--ff-text-primary);
+}
+
+[data-theme='dark'] .btn-secondary:hover {
+  background: var(--ff-muted-soft);
+  border-color: color-mix(in oklab, var(--color-accent-400) 35%, var(--ff-card-border));
+}
+
+/* ─── Cards & interactive surfaces ─── */
+[data-theme='dark'] .post-card-interactive:hover,
+[data-theme='dark'] .card-surface:hover {
+  border-color: color-mix(in oklab, var(--color-accent-400) 28%, var(--ff-card-border));
+}
+
+[data-theme='dark'] .card-inset {
+  background: var(--ff-muted-soft);
+  border-color: var(--ff-border);
+}
+
+[data-theme='dark'] .empty-state-premium {
+  background: color-mix(in oklab, var(--ff-card) 90%, var(--ff-page-2));
+  border-color: color-mix(in oklab, var(--color-accent-400) 18%, var(--ff-card-border));
+}
+
+[data-theme='dark'] .loading-state-premium {
+  background: color-mix(in oklab, var(--ff-card) 88%, transparent);
+}
+
+[data-theme='dark'] .feed-hero-status {
+  background: color-mix(in oklab, var(--ff-card) 82%, transparent);
+  border-color: var(--ff-card-border);
+}
+
+[data-theme='dark'] .skeleton-shimmer {
+  background: linear-gradient(
+    110deg,
+    var(--ff-muted) 0%,
+    var(--ff-muted) 38%,
+    color-mix(in oklab, var(--ff-surface) 90%, white) 50%,
+    var(--ff-muted) 62%,
+    var(--ff-muted) 100%
+  );
+  background-size: 220% 100%;
+}
+
+/* ─── Impact hero (keeps gradient but readable) ─── */
+[data-theme='dark'] .impact-page-hero,
+[data-theme='dark'] .community-polls-header {
+  border-color: color-mix(in oklab, var(--color-accent-400) 22%, transparent);
+  box-shadow: var(--ff-shadow-card-hover);
+}
+
+/* ─── Guest explore banner ─── */
+[data-theme='dark'] .guest-banner {
+  border-color: color-mix(in oklab, var(--color-accent-400) 25%, transparent);
+  background: color-mix(in oklab, var(--color-accent-600) 18%, var(--ff-card));
+  color: var(--ff-text-secondary);
+}
+
+/* ─── Auth pages: sync with app midnight tokens ─── */
+[data-theme='dark'] .auth-premium-page {
+  background: linear-gradient(
+    165deg,
+    var(--ff-page-1) 0%,
+    var(--ff-page-2) 40%,
+    var(--ff-page-3) 100%
+  );
+  --auth-ink: oklch(0.14 0.045 265);
+  --auth-cream: var(--ff-text-primary);
+  --auth-card: var(--ff-card-elevated);
+  --auth-border: var(--ff-card-border);
+  --auth-muted: var(--ff-text-muted);
+  --auth-headline-cream: oklch(0.94 0.035 98);
+  --auth-headline-lavender: oklch(0.88 0.045 285);
+}
+
+[data-theme='dark'] .auth-premium-card {
+  box-shadow: 0 32px 64px -12px var(--ff-shadow);
+}
+
+[data-theme='dark'] .auth-premium-form-wrap {
+  background: color-mix(in oklab, var(--ff-page-2) 92%, var(--ff-card) 8%);
+  /* Form column needs light “ink” for titles/labels; keep page-level --auth-ink dark for brand gradient */
+  --auth-ink: var(--ff-text-primary);
+}
+
+[data-theme='dark'] .auth-premium-brand {
+  background: linear-gradient(
+    168deg,
+    oklch(0.18 0.07 268) 0%,
+    var(--auth-ink) 42%,
+    oklch(0.12 0.045 265) 100%
+  );
+}
+
+[data-theme='dark'] .auth-premium-alert--error {
+  border-color: var(--ff-danger-border);
+  background: var(--ff-danger-bg);
+  color: var(--ff-danger-text);
+}
+
+[data-theme='dark'] .auth-premium-alert--success {
+  border-color: var(--ff-success-border);
+  background: var(--ff-success-bg);
+  color: var(--ff-success-text);
+}
+
+/* ─── Map / leaflet attribution ─── */
+[data-theme='dark'] .leaflet-control-attribution {
+  background: color-mix(in oklab, var(--ff-card) 90%, transparent);
+  color: var(--ff-text-muted);
+}
+
+/* ─── Extended Tailwind utility fixes (gray/stone/zinc families) ─── */
+@layer base {
+  [data-theme='dark'] .bg-gray-50,
+  [data-theme='dark'] .bg-gray-100,
+  [data-theme='dark'] .bg-gray-200,
+  [data-theme='dark'] .bg-stone-50,
+  [data-theme='dark'] .bg-stone-100,
+  [data-theme='dark'] .bg-zinc-50,
+  [data-theme='dark'] .bg-zinc-100 {
+    background-color: var(--ff-muted) !important;
+  }
+
+  [data-theme='dark'] .text-gray-900,
+  [data-theme='dark'] .text-gray-800,
+  [data-theme='dark'] .text-gray-700,
+  [data-theme='dark'] .text-stone-900,
+  [data-theme='dark'] .text-stone-800 {
+    color: var(--ff-text-primary) !important;
+  }
+
+  [data-theme='dark'] .text-gray-600,
+  [data-theme='dark'] .text-gray-500,
+  [data-theme='dark'] .text-gray-400,
+  [data-theme='dark'] .text-stone-600,
+  [data-theme='dark'] .text-stone-500 {
+    color: var(--ff-text-secondary) !important;
+  }
+
+  [data-theme='dark'] .border-gray-200,
+  [data-theme='dark'] .border-gray-300,
+  [data-theme='dark'] .border-stone-200 {
+    border-color: var(--ff-border) !important;
+  }
+
+  [data-theme='dark'] .divide-gray-200 > :not(:last-child),
+  [data-theme='dark'] .divide-stone-200 > :not(:last-child) {
+    border-color: var(--ff-divider);
+  }
+
+  [data-theme='dark'] .hover\:bg-gray-50:hover,
+  [data-theme='dark'] .hover\:bg-gray-100:hover {
+    background-color: var(--ff-muted) !important;
+  }
+
+  [data-theme='dark'] .bg-neutral-50,
+  [data-theme='dark'] .bg-neutral-100 {
+    background-color: var(--ff-muted) !important;
+  }
+
+  /* Cyan poll panel (explicit light tints) */
+  [data-theme='dark'] .border-cyan-500\/20 {
+    border-color: rgb(34 211 238 / 0.28) !important;
+  }
+
+  [data-theme='dark'] .bg-cyan-500\/5 {
+    background-color: rgb(22 78 99 / 0.35) !important;
+  }
+
+  [data-theme='dark'] .text-cyan-800 {
+    color: #a5f3fc !important;
+  }
+
+  [data-theme='dark'] .hover\:border-cyan-300:hover {
+    border-color: rgb(34 211 238 / 0.45) !important;
+  }
+
+  /* Deploy / setup banners */
+
+  [data-theme='dark'] .text-brand-800,
+  [data-theme='dark'] .text-brand-700 {
+    color: var(--color-brand-300);
+  }
+
+  /* Disabled states */
+  [data-theme='dark'] :disabled,
+  [data-theme='dark'] [aria-disabled='true'] {
+    opacity: 0.55;
+  }
+
+  [data-theme='dark'] input:disabled,
+  [data-theme='dark'] textarea:disabled,
+  [data-theme='dark'] select:disabled,
+  [data-theme='dark'] button:disabled {
+    background-color: color-mix(in oklab, var(--ff-muted) 70%, transparent);
+    color: var(--ff-text-muted);
+  }
+}

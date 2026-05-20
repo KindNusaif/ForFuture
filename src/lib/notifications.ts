@@ -75,6 +75,6 @@ export function notificationHref(
   mode: 'member' | 'guest' = 'member',
 ): string | null {
   if (!n.entity_id) return null
-  const base = mode === 'member' ? '/feed' : '/movements'
+  const base = mode === 'member' ? '/feed' : '/explore'
   return `${base}/${n.entity_id}`
 }

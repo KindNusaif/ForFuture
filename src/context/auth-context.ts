@@ -12,8 +12,10 @@ export interface AuthContextValue {
   profileError: string | null
   isGuest: boolean
   isMember: boolean
+  /** True while sign-out is in progress (blocks protected UI and member CTAs). */
+  loggingOut: boolean
   refreshProfile: () => Promise<void>
-  /** Clears local session immediately, then signs out of Supabase. */
+  /** Clears local session, then signs out of Supabase. */
   logout: () => Promise<void>
 }
 

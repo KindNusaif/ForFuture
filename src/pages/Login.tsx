@@ -1,151 +1,142 @@
 import { useState, type FormEvent } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Compass } from 'lucide-react'
+import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import AuthForm, { FormField, inputClass, inputErrorClass } from '../components/AuthForm'
-import PasswordField from '../components/PasswordField'
-import { signIn } from '../lib/auth'
-import { formatError } from '../lib/errors'
+import { AuthShell } from '../components/auth/AuthPremium'
+import { resendSignupConfirmation, signIn, signInWithGoogle } from '../lib/auth'
+import { isLoginUnconfirmedMessage, mapAuthError } from '../lib/authUserMessages'
 import { isSupabaseConfigured } from '../lib/supabase'
-import { isValidEmail, validateLogin } from '../lib/validation'
+import { isValidEmail } from '../lib/validation'
+import { resolveAuthReturn } from '../lib/authReturn'
+import { useToast } from '../hooks/useToast'
 
 export default function Login() {
   const { t } = useTranslation()
-  const navigate = useNavigate()
   const location = useLocation()
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? '/feed'
+  const toast = useToast()
+  const from = resolveAuthReturn(location.state)
   const resetSuccess = (location.state as { resetSuccess?: boolean })?.resetSuccess
 
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({})
+  const [resendLoading, setResendLoading] = useState(false)
+  const [resendSent, setResendSent] = useState(false)
 
-  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (loading) return
 
-    setFieldErrors({})
     setError(null)
 
     if (!isSupabaseConfigured) {
-      setError('Supabase is not configured. Check your .env file.')
+      setError(t('auth.setupRequired'))
       return
     }
 
-    const form = new FormData(e.currentTarget)
-    const email = String(form.get('email') ?? '').trim()
-    const password = String(form.get('password') ?? '')
-
-    const errors: { email?: string; password?: string } = {}
-    if (!email) {
-      errors.email = t('auth.emailRequired')
-    } else if (!isValidEmail(email)) {
-      errors.email = t('auth.emailInvalid')
+    const trimmedEmail = email.trim()
+    if (!trimmedEmail) {
+      setError(t('auth.emailRequired'))
+      return
+    }
+    if (!isValidEmail(trimmedEmail)) {
+      setError(t('auth.emailInvalid'))
+      return
     }
     if (!password) {
-      errors.password = t('auth.passwordRequired')
-    }
-
-    if (errors.email || errors.password) {
-      setFieldErrors(errors)
-      return
-    }
-
-    const validationError = validateLogin(email, password)
-    if (validationError) {
-      setError(validationError)
+      setError(t('auth.passwordRequired'))
       return
     }
 
     setLoading(true)
     try {
-      await signIn(email, password)
-      navigate(from, { replace: true })
+      await signIn(trimmedEmail, password)
+      toast.success(t('auth.loginWelcome'))
+      /* GuestRoute redirects once AuthContext receives SIGNED_IN — avoids racing ProtectedRoute. */
     } catch (err) {
-      setError(formatError(err))
-    } finally {
+      setError(mapAuthError(err, 'login'))
       setLoading(false)
     }
   }
 
+  async function handleResendConfirmation() {
+    const trimmed = email.trim()
+    if (!trimmed || resendLoading) return
+    setResendLoading(true)
+    setResendSent(false)
+    try {
+      await resendSignupConfirmation(trimmed)
+      setResendSent(true)
+      setError(null)
+    } catch (err) {
+      setError(mapAuthError(err, 'signup'))
+    } finally {
+      setResendLoading(false)
+    }
+  }
+
+  async function handleGoogle() {
+    if (googleLoading || loading) return
+    if (!isSupabaseConfigured) {
+      setError(t('auth.setupRequired'))
+      return
+    }
+    setError(null)
+    setGoogleLoading(true)
+    try {
+      await signInWithGoogle(from)
+    } catch (err) {
+      setError(mapAuthError(err, 'oauth'))
+      setGoogleLoading(false)
+    }
+  }
+
+  const errorActions =
+    error && isLoginUnconfirmedMessage(error) ? (
+      <button
+        type="button"
+        className="auth-alert-action-link"
+        disabled={resendLoading || !email.trim()}
+        onClick={() => void handleResendConfirmation()}
+      >
+        {resendLoading
+          ? t('auth.resendingConfirmation', { defaultValue: 'Sending…' })
+          : t('auth.resendConfirmation', { defaultValue: 'Resend confirmation email' })}
+      </button>
+    ) : undefined
+
   return (
-    <AuthForm
-      title={t('auth.loginTitle')}
-      subtitle={t('auth.loginSubtitle')}
-      submitLabel={t('auth.loginButton')}
-      loadingLabel={t('auth.signingIn')}
+    <AuthShell
+      mode="login"
       loading={loading}
+      googleLoading={googleLoading}
+      email={email}
+      setEmail={setEmail}
+      password={password}
+      setPassword={setPassword}
       onSubmit={handleSubmit}
-      success={
-        resetSuccess ? t('auth.resetSuccessLogin') : null
-      }
+      onGoogle={() => void handleGoogle()}
       error={error}
+      errorActions={errorActions}
+      banner={
+        resendSent
+          ? t('auth.confirmEmailSent', {
+              defaultValue: 'Confirmation email sent. Check your inbox.',
+            })
+          : resetSuccess
+            ? t('auth.resetSuccessLogin')
+            : null
+      }
+      showExploreLink
       footer={
         <>
           {t('auth.noAccount')}{' '}
-          <Link
-            to="/signup"
-            state={location.state}
-            className="font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
-          >
+          <Link to="/signup" state={location.state}>
             {t('auth.signUpLink')}
           </Link>
         </>
       }
-      belowFooter={
-        <div className="mt-8 space-y-4">
-          <div className="flex items-center gap-3">
-            <span className="h-px flex-1 bg-muted" aria-hidden />
-            <span className="text-xs font-medium uppercase tracking-wide text-muted">
-              {t('auth.orDivider')}
-            </span>
-            <span className="h-px flex-1 bg-muted" aria-hidden />
-          </div>
-          <Link
-            to="/movements"
-            className="btn-secondary flex w-full items-center justify-center gap-2 min-h-11!"
-          >
-            <Compass className="h-4 w-4 text-accent-600" aria-hidden />
-            {t('landing.exploreCta')}
-          </Link>
-          <p className="text-center text-xs leading-relaxed text-muted">
-            {t('auth.loginTrustNote')}
-          </p>
-        </div>
-      }
-    >
-      <FormField label={t('auth.email')} id="email" error={fieldErrors.email}>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          required
-          autoComplete="email"
-          aria-invalid={Boolean(fieldErrors.email)}
-          className={`${inputClass} ${fieldErrors.email ? inputErrorClass : ''}`}
-          placeholder="you@example.com"
-          disabled={loading}
-        />
-      </FormField>
-
-      <PasswordField
-        id="password"
-        name="password"
-        label={t('auth.password')}
-        error={fieldErrors.password}
-        autoComplete="current-password"
-        disabled={loading}
-        footer={
-          <p className="mt-2 text-right">
-            <Link
-              to="/forgot-password"
-              className="text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
-            >
-              {t('auth.forgotPassword')}
-            </Link>
-          </p>
-        }
-      />
-    </AuthForm>
+    />
   )
 }

@@ -7,6 +7,8 @@ import ChooseYourVoice from '../components/ChooseYourVoice'
 import MovementFields from '../components/MovementFields'
 import MovementTypePicker from '../components/MovementTypePicker'
 import PollFields from '../components/PollFields'
+import PollPurposePicker from '../components/polls/PollPurposePicker'
+import { categoryForPollPurpose, type PollPurposeId } from '../lib/pollPurposes'
 import { FormField, inputClass, inputErrorClass } from '../components/AuthForm'
 import { useAuth } from '../hooks/useAuth'
 import { emptyMovementFields } from '../lib/movementFieldValues'
@@ -107,7 +109,8 @@ export default function CreatePost() {
   const [authorNameOverride, setAuthorNameOverride] = useState<string | null>(null)
   const [postingIdentity, setPostingIdentity] = useState<PostingIdentity>('profile')
   const [movementFields, setMovementFields] = useState<MovementFieldValues>(() => emptyMovementFields())
-  const [pollOptions, setPollOptions] = useState<string[]>(emptyPollOptions)
+  const [pollOptions, setPollOptions] = useState<string[]>(() => emptyPollOptions())
+  const [pollPurpose, setPollPurpose] = useState<PollPurposeId | ''>('')
   const [loading, setLoading] = useState(false)
   const [uploadingMedia, setUploadingMedia] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -173,6 +176,10 @@ export default function CreatePost() {
       setTypeExplicitlyChosen(true)
     }
   }, [useWizardMode, typeFromUrl])
+
+  useEffect(() => {
+    if (isPoll && !category) setCategory('Community')
+  }, [isPoll, category])
 
   useEffect(() => {
     if (!useWizardMode) return
@@ -434,7 +441,7 @@ export default function CreatePost() {
         movementType,
         proposed_solution: movementFields.proposed_solution,
         expected_impact: movementFields.expected_impact,
-        issue_summary: movementFields.issue_summary,
+        issue_summary: isPoll ? pollPurpose || undefined : movementFields.issue_summary,
         desired_change: movementFields.desired_change,
         event_date: movementFields.event_date,
         event_time: movementFields.event_time,
@@ -494,18 +501,21 @@ export default function CreatePost() {
         setPublishedPostId(post.id)
         toast.success('Your movement is live!', `"${title.trim()}" is now on the feed.`)
       } else {
-        navigate('/feed', {
+        navigate(isPoll ? '/polls' : '/feed', {
           replace: true,
           state: {
             toast: {
               type: 'success' as const,
               message: isPoll
-                ? 'Poll published!'
+                ? t('polls.publishSuccess', { defaultValue: 'Poll published successfully.' })
                 : isPetition
                   ? 'Petition published!'
                   : 'Movement published!',
               detail: isPoll
-                ? 'Your community poll is now live.'
+                ? t('polls.pageSubtitle', {
+                    defaultValue:
+                      'Vote on local priorities, share public opinion, and help communities understand what matters most.',
+                  })
                 : isPetition
                   ? 'Your petition is now gathering youth support.'
                   : `"${title.trim()}" is now live on the feed.`,
@@ -514,7 +524,13 @@ export default function CreatePost() {
         })
       }
     } catch (err) {
-      setError(formatError(err))
+      setError(
+        isPoll
+          ? t('polls.publishFailed', {
+              defaultValue: "We couldn't publish your poll. Please try again.",
+            })
+          : formatError(err),
+      )
       formRef.current?.querySelector('[role="alert"]')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
     } finally {
       submittingRef.current = false
@@ -582,11 +598,11 @@ export default function CreatePost() {
   return (
     <section className="mx-auto min-w-0 max-w-2xl px-4 py-8 sm:px-6">
       <Link
-        to="/feed"
+        to={isPoll ? '/polls' : '/feed'}
         className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-secondary transition hover:text-brand-700"
       >
         <ArrowLeft className="h-4 w-4" />
-        Back to feed
+        {isPoll ? t('polls.backToPolls', { defaultValue: 'Back to Community Polls' }) : 'Back to feed'}
       </Link>
 
       <header className="mb-8">
@@ -601,12 +617,14 @@ export default function CreatePost() {
         </p>
       </header>
 
-      <ActionPathAI
-        currentMovementType={movementType}
-        onApplyDraft={(s) => applyActionPathSuggestion(s, 'draft')}
-        onApplyFields={(s) => applyActionPathSuggestion(s, 'fields')}
-        formDisabled={loading}
-      />
+      {!isPoll && (
+        <ActionPathAI
+          currentMovementType={movementType}
+          onApplyDraft={(s) => applyActionPathSuggestion(s, 'draft')}
+          onApplyFields={(s) => applyActionPathSuggestion(s, 'fields')}
+          formDisabled={loading}
+        />
+      )}
 
       <form
         ref={formRef}
@@ -636,11 +654,13 @@ export default function CreatePost() {
         )}
 
         <fieldset className="space-y-6" disabled={loading}>
-          <MovementTypePicker
-            value={movementType}
-            onChange={handleMovementTypeChange}
-            disabled={loading}
-          />
+          {!isPoll && (
+            <MovementTypePicker
+              value={movementType}
+              onChange={handleMovementTypeChange}
+              disabled={loading}
+            />
+          )}
 
           {isPoll ? (
             <section
@@ -649,12 +669,21 @@ export default function CreatePost() {
             >
               <div>
                 <h2 id="poll-details-heading" className="poll-heading text-base font-bold">
-                  {t('create.pollSectionTitle')}
+                  {t('polls.createFormTitle', { defaultValue: 'Create a Community Poll' })}
                 </h2>
                 <p className="poll-helper mt-1 text-sm opacity-90">
                   {t('create.pollSectionSubtitle')}
                 </p>
               </div>
+
+              <PollPurposePicker
+                value={pollPurpose}
+                onChange={(id) => {
+                  setPollPurpose(id)
+                  setCategory(categoryForPollPurpose(id))
+                }}
+                disabled={loading}
+              />
 
               <FormField label={t('polls.pollQuestion')} id="title" error={fieldErrors.title}>
                 <input
@@ -756,22 +785,26 @@ export default function CreatePost() {
             </>
           )}
 
-          <MovementFields
-            movementType={movementType}
-            values={movementFields}
-            onChange={updateMovementField}
-            mapLocation={mapLocation}
-            onMapChange={setMapLocation}
-            errors={fieldErrors}
-            disabled={loading}
-          />
+          {!isPoll && (
+            <MovementFields
+              movementType={movementType}
+              values={movementFields}
+              onChange={updateMovementField}
+              mapLocation={mapLocation}
+              onMapChange={setMapLocation}
+              errors={fieldErrors}
+              disabled={loading}
+            />
+          )}
 
-          <CategoryPicker
-            value={category}
-            onChange={setCategory}
-            error={fieldErrors.category}
-            disabled={loading}
-          />
+          {!isPoll && (
+            <CategoryPicker
+              value={category}
+              onChange={setCategory}
+              error={fieldErrors.category}
+              disabled={loading}
+            />
+          )}
 
           <ChooseYourVoice
             value={effectivePostingIdentity}
@@ -801,10 +834,10 @@ export default function CreatePost() {
 
         <div className="flex flex-col-reverse gap-3 border-t border-default pt-6 sm:flex-row sm:justify-end">
           <Link
-            to="/feed"
+            to={isPoll ? '/polls' : '/feed'}
             className="inline-flex min-h-12 items-center justify-center rounded-xl border border-default px-6 py-3 text-center text-sm font-semibold text-secondary transition hover:bg-muted"
           >
-            Cancel
+            {t('polls.cancel', { defaultValue: 'Cancel' })}
           </Link>
           <button
             type="submit"
@@ -825,7 +858,11 @@ export default function CreatePost() {
             ) : (
               <>
                 <Send className="h-5 w-5" />
-                {isPoll ? 'Publish poll' : isPetition ? 'Publish petition' : 'Publish movement'}
+                {isPoll
+                  ? t('create.publishPoll', { defaultValue: 'Publish Poll' })
+                  : isPetition
+                    ? 'Publish petition'
+                    : 'Publish movement'}
               </>
             )}
           </button>

@@ -290,13 +290,4 @@ export async function fetchDiscoverPageDataSafe(options?: {
   }
 }
 
-export function movementsFilterUrl(options: {
-  category?: Category
-  type?: MovementType
-}): string {
-  const params = new URLSearchParams()
-  if (options.category) params.set('category', options.category)
-  if (options.type) params.set('type', options.type)
-  const q = params.toString()
-  return q ? `/movements?${q}` : '/movements'
-}
+export { exploreFilterUrl, exploreFilterUrl as movementsFilterUrl } from './guestExplore'

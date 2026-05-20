@@ -1,4 +1,4 @@
-import { LocateFixed, Search } from 'lucide-react'
+﻿import { LocateFixed, Search } from 'lucide-react'
 import type {
   ImpactContentFilter,
   ImpactDateFilter,
@@ -22,9 +22,11 @@ interface ImpactMapFiltersProps {
   search: string
   onSearchChange: (v: string) => void
   onUseMyLocation: () => void
+  onRequestLocationForNearMe: () => void
   geoLoading: boolean
   geoError: string | null
   hasUserLocation: boolean
+  detectedAreaLabel?: string | null
 }
 
 export default function ImpactMapFilters({
@@ -44,10 +46,20 @@ export default function ImpactMapFilters({
   search,
   onSearchChange,
   onUseMyLocation,
+  onRequestLocationForNearMe,
   geoLoading,
   geoError,
   hasUserLocation,
+  detectedAreaLabel,
 }: ImpactMapFiltersProps) {
+  function handleNearMeChange(checked: boolean) {
+    if (checked && !hasUserLocation) {
+      onRequestLocationForNearMe()
+      return
+    }
+    onNearMeEnabledChange(checked)
+  }
+
   return (
     <div className="card-surface space-y-4 p-4 sm:p-5">
       <div className="flex flex-wrap items-center gap-2">
@@ -55,22 +67,30 @@ export default function ImpactMapFilters({
           type="button"
           onClick={onUseMyLocation}
           disabled={geoLoading}
-          className="btn-secondary min-h-10! py-2!"
+          aria-busy={geoLoading}
+          aria-label={hasUserLocation ? 'Update my location on the map' : 'Use my location on the map'}
+          className={`btn-secondary min-h-10! py-2! ${nearMeEnabled && hasUserLocation ? 'ring-2 ring-accent-500/40' : ''}`}
         >
-          <LocateFixed className={`h-4 w-4 ${geoLoading ? 'animate-pulse' : ''}`} />
+          <LocateFixed className={`h-4 w-4 ${geoLoading ? 'animate-pulse' : ''}`} aria-hidden />
           {geoLoading ? 'Locating…' : hasUserLocation ? 'Update my location' : 'Use my location'}
         </button>
-        <label className="inline-flex items-center gap-2 text-sm text-secondary">
+        <label
+          className={`inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 py-2 text-sm transition ${
+            nearMeEnabled && hasUserLocation
+              ? 'border-accent-300 bg-accent-50/80 text-accent-900'
+              : 'border-default text-secondary'
+          }`}
+        >
           <input
             type="checkbox"
-            checked={nearMeEnabled}
-            onChange={(e) => onNearMeEnabledChange(e.target.checked)}
-            disabled={!hasUserLocation}
+            checked={nearMeEnabled && hasUserLocation}
+            onChange={(e) => handleNearMeChange(e.target.checked)}
             className="h-4 w-4 rounded border-default text-accent-600 focus:ring-accent-500"
+            aria-label="Filter results near me"
           />
           Near me
         </label>
-        {nearMeEnabled && (
+        {nearMeEnabled && hasUserLocation && (
           <select
             value={nearRadiusKm}
             onChange={(e) => onNearRadiusKmChange(Number(e.target.value))}
@@ -84,10 +104,22 @@ export default function ImpactMapFilters({
           </select>
         )}
       </div>
-      {geoError && <p className="text-xs text-amber-700">{geoError}</p>}
+      {detectedAreaLabel && hasUserLocation && (
+        <p className="text-xs text-secondary">
+          <span className="font-medium text-primary">Detected area:</span> {detectedAreaLabel}
+        </p>
+      )}
+      {geoError && (
+        <p className="rounded-lg border border-amber-200 bg-amber-50/80 px-3 py-2 text-xs text-amber-900" role="status">
+          {geoError}
+        </p>
+      )}
+      {!hasUserLocation && !geoError && (
+        <p className="text-xs text-muted">Enable location for nearby filtering, or choose a district below.</p>
+      )}
 
       <div className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden />
         <input
           type="search"
           value={search}
@@ -110,6 +142,7 @@ export default function ImpactMapFilters({
             <option value="volunteer">Volunteer</option>
             <option value="civic_action">Civic actions</option>
             <option value="issue">Issues</option>
+            <option value="relief">Relief</option>
           </select>
         </label>
 

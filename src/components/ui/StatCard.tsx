@@ -34,7 +34,7 @@ export default function StatCard({
   return (
     <div
       className={cn(
-        'rounded-xl border border-default bg-surface px-4 py-4 shadow-sm ring-1 ring-default/60',
+        'metric-tile px-4 py-4',
         className,
       )}
     >

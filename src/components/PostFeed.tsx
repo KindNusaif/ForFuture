@@ -10,7 +10,10 @@ import PostCard from './PostCard'
 import { FeedPostListSkeleton } from './Skeleton'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
 import { useToast } from '../hooks/useToast'
-import { useJoinMovement } from '../hooks/useJoinMovement'
+import { useAuthGate } from '../hooks/useAuthGate'
+import { guestMovementDetailPath } from '../lib/guestExplore'
+import type { JoinMovementModalVariant } from '../context/join-movement-context'
+import { supportGateVariant } from '../lib/guestGate'
 import { getMovementConfig } from '../lib/movements'
 import type { MovementFilter } from '../lib/movements'
 import { isPollMovement } from '../lib/movements'
@@ -31,7 +34,10 @@ import {
   parseMovementFilterFromUrl,
 } from '../lib/feedUrlFilters'
 import type { ReliefHubFilter } from '../lib/reliefHub'
+import { matchesReliefTab, type ReliefHubTab } from '../lib/reliefCampaignPublic'
 import { applyFollowStateToPosts } from '../lib/movementFollows'
+import { canPostHaveComments } from '../lib/commentEligibility'
+import { fetchCommentCountsForPosts } from '../lib/comments'
 import { useMovementFollows } from '../hooks/useMovementFollows'
 import {
   buildFeedCacheKey,
@@ -57,7 +63,10 @@ interface PostFeedProps {
   showCreateButton?: boolean
   reliefHub?: boolean
   reliefSubtype?: ReliefHubFilter
-  /** Read/write ?category= and ?type= on /movements (guest discover links). */
+  reliefHubTab?: ReliefHubTab
+  reliefSearchQuery?: string
+  reliefDetailBase?: string
+  /** Read/write ?category= and ?type= on /explore (guest discover links). */
   syncFiltersFromUrl?: boolean
   feedTab?: FeedTab
   onFeedTabChange?: (tab: FeedTab) => void
@@ -81,13 +90,16 @@ function PostFeedContent({
   showCreateButton = true,
   reliefHub = false,
   reliefSubtype = 'all',
+  reliefHubTab = 'all',
+  reliefSearchQuery,
+  reliefDetailBase = '/relief',
   syncFiltersFromUrl = false,
   feedTab = 'discover',
   onFeedTabChange,
   className = '',
 }: PostFeedProps) {
   const { t } = useTranslation()
-  const { openJoinModal } = useJoinMovement()
+  const { gate, openJoinModal } = useAuthGate()
   const isGuest = mode === 'guest'
   const viewerUserId = isGuest ? undefined : userId
   const isFollowingFeed = !isGuest && feedTab === 'following'
@@ -115,12 +127,15 @@ function PostFeedContent({
   const [supportingId, setSupportingId] = useState<string | null>(null)
   const [petitionSigningId, setPetitionSigningId] = useState<string | null>(null)
   const [pollVotingId, setPollVotingId] = useState<string | null>(null)
+  const [commentCounts, setCommentCounts] = useState<Record<string, number>>({})
   const toast = useToast()
 
   const requestIdRef = useRef(0)
   const abortRef = useRef<AbortController | null>(null)
   const followsRef = useRef(movementFollows)
-  followsRef.current = movementFollows
+  useEffect(() => {
+    followsRef.current = movementFollows
+  }, [movementFollows])
 
   const followedIdsKey = useMemo(() => {
     if (!isFollowingFeed) return ''
@@ -335,18 +350,44 @@ function PostFeedContent({
   }, [movementFollows.followerCounts, movementFollows.followedIds, isGuest])
 
   const filtered = useMemo(() => {
-    const q = debouncedSearch.trim().toLowerCase()
-    if (!q) return posts
+    let list = posts
+    if (reliefHub) {
+      list = list.filter((p) =>
+        matchesReliefTab(p, reliefHubTab, { ownerUserId: userId }),
+      )
+    }
+    const q = (reliefSearchQuery ?? debouncedSearch).trim().toLowerCase()
+    if (!q) return list
 
-    return posts.filter(
+    return list.filter(
       (p) =>
         p.title.toLowerCase().includes(q) ||
         p.description.toLowerCase().includes(q) ||
+        (p.campaign_summary ?? '').toLowerCase().includes(q) ||
         (p.author_name ?? '').toLowerCase().includes(q) ||
         p.category.toLowerCase().includes(q) ||
         getMovementConfig(p.movement_type).label.toLowerCase().includes(q),
     )
-  }, [posts, debouncedSearch])
+  }, [posts, debouncedSearch, reliefSearchQuery, reliefHub, reliefHubTab, userId])
+
+  const commentEligibleIds = useMemo(
+    () => filtered.filter((p) => canPostHaveComments(p)).map((p) => p.id),
+    [filtered],
+  )
+
+  useEffect(() => {
+    if (commentEligibleIds.length === 0) {
+      setCommentCounts({})
+      return
+    }
+    let cancelled = false
+    void fetchCommentCountsForPosts(commentEligibleIds).then((counts) => {
+      if (!cancelled) setCommentCounts(counts)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [commentEligibleIds])
 
   const showFeedLoading =
     loading || (isFollowingFeed && movementFollows.loading) || (enriching && posts.length === 0)
@@ -361,15 +402,19 @@ function PostFeedContent({
     if (debouncedSearch.trim()) {
       return {
         title: 'No movements matched your search',
-        description: hasMore
-          ? 'Try different words or load more movements to search further.'
-          : 'Try different words or reset your filters.',
+        description: isGuest
+          ? t('explore.guestEmptyFilter')
+          : hasMore
+            ? 'Try different words or load more movements to search further.'
+            : 'Try different words or reset your filters.',
       }
     }
     if (reliefHub) {
+      const hasFilter =
+        reliefHubTab !== 'all' || Boolean((reliefSearchQuery ?? debouncedSearch).trim())
       return {
-        title: 'No relief requests found',
-        description: 'Try another filter or create a new support drive.',
+        title: t(hasFilter ? 'reliefHub.emptyFilterTitle' : 'reliefHub.emptyTitle'),
+        description: t(hasFilter ? 'reliefHub.emptyFilterBody' : 'reliefHub.emptyBody'),
       }
     }
     if (movementFilter !== 'All' && movementFilter !== 'donation_relief_hub') {
@@ -385,19 +430,40 @@ function PostFeedContent({
     if (category !== 'All') {
       return {
         title: `No ${category} movements`,
-        description: 'Try another category or movement type.',
+        description: isGuest
+          ? t('explore.guestEmptyFilter')
+          : 'Try another category or movement type.',
       }
     }
     return {
       title: 'No movements yet',
       description: isGuest
-        ? 'Check back soon — youth leaders are organizing action every day.'
+        ? t('explore.guestEmptyDefault')
         : 'Be the first to create a youth movement on ForFuture.',
     }
-  }, [debouncedSearch, movementFilter, category, isGuest, hasMore, reliefHub, isFollowingFeed, t])
+  }, [
+    debouncedSearch,
+    reliefSearchQuery,
+    reliefHubTab,
+    movementFilter,
+    category,
+    isGuest,
+    hasMore,
+    reliefHub,
+    isFollowingFeed,
+    t,
+  ])
 
-  function handleRestrictedAction(variant: 'default' | 'petition' = 'default') {
-    openJoinModal(variant)
+  function handleRestrictedAction(variant: JoinMovementModalVariant = 'default') {
+    gate(variant)
+  }
+
+  function handleGuestTabChange(tab: FeedTab) {
+    if (isGuest && tab === 'following') {
+      openJoinModal('following')
+      return
+    }
+    onFeedTabChange?.(tab)
   }
 
   useEffect(() => {
@@ -434,7 +500,7 @@ function PostFeedContent({
 
   async function handlePollVote(postId: string, optionId: string) {
     if (isGuest || !optionId) {
-      handleRestrictedAction()
+      handleRestrictedAction('poll')
       return
     }
     if (!userId || pollVotingId) return
@@ -487,7 +553,7 @@ function PostFeedContent({
 
   async function handleFollowToggle(postId: string) {
     if (isGuest) {
-      openJoinModal()
+      openJoinModal('follow')
       return
     }
     if (movementFollows.processingId) return
@@ -514,13 +580,12 @@ function PostFeedContent({
   }
 
   async function handleSupport(postId: string) {
+    const post = posts.find((p) => p.id === postId)
     if (isGuest) {
-      handleRestrictedAction()
+      openJoinModal(post ? supportGateVariant(post.movement_type) : 'support')
       return
     }
     if (!userId || supportingId) return
-
-    const post = posts.find((p) => p.id === postId)
     if (!post || isPetitionMovement(post.movement_type)) return
 
     setSupportingId(postId)
@@ -553,11 +618,11 @@ function PostFeedContent({
 
   return (
     <div className={className}>
-      {!isGuest && !reliefHub && onFeedTabChange && (
+      {!reliefHub && (isGuest || onFeedTabChange) && (
         <FeedTabs
-          active={feedTab}
-          onChange={onFeedTabChange}
-          followingCount={movementFollows.followedIds.size}
+          active={isGuest ? 'discover' : feedTab}
+          onChange={isGuest ? handleGuestTabChange : onFeedTabChange!}
+          followingCount={isGuest ? undefined : movementFollows.followedIds.size}
           className="mb-4"
         />
       )}
@@ -581,7 +646,7 @@ function PostFeedContent({
           onCategoryChange={syncFiltersFromUrl ? handleCategoryChange : setLocalCategory}
           isGuest={isGuest}
           showCreateButton={showCreateButton}
-          onGuestCreate={() => handleRestrictedAction()}
+          onGuestCreate={() => handleRestrictedAction('create')}
           onClearFilters={handleClearFilters}
           hasActiveFilters={hasActiveFilters}
         />
@@ -645,8 +710,13 @@ function PostFeedContent({
           )}
           {isGuest && (
             <p className="mt-6 text-center">
-              <button type="button" onClick={() => handleRestrictedAction()} className="btn-primary">
-                Join ForFuture to take action
+              <button
+                type="button"
+                onClick={() => handleRestrictedAction()}
+                className="btn-primary"
+                data-track="guest-locked-action-clicked"
+              >
+                {t('explore.guestJoin')}
               </button>
             </p>
           )}
@@ -658,7 +728,13 @@ function PostFeedContent({
               <li key={post.id} className="min-w-0">
                 <PostCard
                   post={post}
-                  detailPath={isGuest ? `/movements/${post.id}` : `/feed/${post.id}`}
+                  detailPath={
+                    reliefHub
+                      ? `${reliefDetailBase}/${post.id}`
+                      : isGuest
+                        ? guestMovementDetailPath(post.id)
+                        : `/feed/${post.id}`
+                  }
                   onSupport={
                     isPollMovement(post.movement_type) || isPetitionMovement(post.movement_type)
                       ? undefined
@@ -672,11 +748,17 @@ function PostFeedContent({
                   petitionSigning={petitionSigningId === post.id}
                   pollVoting={pollVotingId === post.id}
                   guestMode={isGuest}
-                  showFollow={!isGuest}
+                  showFollow
                   isFollowing={Boolean(post.followed_by_me)}
                   followLoading={movementFollows.processingId === post.id}
                   followerCount={post.follower_count}
                   onFollowToggle={() => void handleFollowToggle(post.id)}
+                  currentUserId={viewerUserId}
+                  commentCount={commentCounts[post.id] ?? 0}
+                  onPostDeleted={(postId) => {
+                    setPosts((prev) => prev.filter((p) => p.id !== postId))
+                    invalidateFeedCache(feedTab)
+                  }}
                 />
               </li>
             ))}

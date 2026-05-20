@@ -6,6 +6,7 @@ export {
   getSession,
   signIn,
   signOut,
+  resendSignupConfirmation,
   signUp,
   type SignUpResult,
 } from './auth'

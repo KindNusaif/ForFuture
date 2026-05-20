@@ -1,0 +1,190 @@
+/* Donation & Relief hub — premium trust-forward layout */
+
+.relief-hub-page {
+  min-height: 100%;
+}
+
+.relief-hub-hero {
+  text-align: center;
+}
+
+.relief-hub-eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-mint, #0d9488);
+}
+
+.relief-hub-title {
+  margin-top: 0.75rem;
+  font-family: var(--ff-display-font);
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.relief-hub-subtitle {
+  margin: 0.75rem auto 0;
+  max-width: 36rem;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.relief-hub-hero-actions {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.relief-hub-verify-hint {
+  margin-top: 1rem;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.relief-trust-strip {
+  margin: 2rem 0 1.5rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: 1rem;
+  border: 1px solid var(--border-default);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--surface-elevated) 92%, #0d9488 8%),
+    var(--surface-elevated)
+  );
+  box-shadow: var(--shadow-sm, 0 1px 3px rgb(0 0 0 / 0.06));
+}
+
+.relief-trust-strip-lead {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+.relief-trust-strip-grid {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.75rem;
+  list-style: none;
+  padding: 0;
+}
+
+@media (min-width: 640px) {
+  .relief-trust-strip-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .relief-trust-strip-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.relief-trust-strip-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.relief-trust-strip-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--color-mint, #0d9488) 12%, transparent);
+  color: var(--color-mint, #0d9488);
+}
+
+.relief-hub-toolbar {
+  margin-top: 2rem;
+}
+
+.relief-hub-search-wrap {
+  position: relative;
+  max-width: 28rem;
+}
+
+.relief-hub-search-icon {
+  position: absolute;
+  left: 0.875rem;
+  top: 50%;
+  width: 1.125rem;
+  height: 1.125rem;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.relief-hub-search {
+  width: 100%;
+  padding: 0.625rem 0.875rem 0.625rem 2.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-default);
+  background: var(--surface-elevated);
+  font-size: 0.9375rem;
+  color: var(--text-primary);
+}
+
+.relief-hub-search:focus {
+  outline: 2px solid color-mix(in srgb, var(--color-mint, #0d9488) 40%, transparent);
+  outline-offset: 1px;
+}
+
+.relief-hub-tabs {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.relief-hub-tab {
+  padding: 0.5rem 0.875rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border-default);
+  background: var(--surface-elevated);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.relief-hub-tab:hover {
+  border-color: color-mix(in srgb, var(--color-mint, #0d9488) 35%, var(--border-default));
+  color: var(--text-primary);
+}
+
+.relief-hub-tab--active {
+  border-color: var(--color-mint, #0d9488);
+  background: color-mix(in srgb, var(--color-mint, #0d9488) 12%, var(--surface-elevated));
+  color: var(--text-primary);
+}
+
+.relief-trust-panel {
+  border-color: color-mix(in srgb, var(--color-mint, #0d9488) 20%, var(--border-default));
+}
+
+.relief-hub-create-bar {
+  border-color: color-mix(in srgb, #e11d48 15%, var(--border-default));
+}
+
+[data-theme='dark'] .relief-trust-strip {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--surface-elevated) 88%, #14b8a6 12%),
+    var(--surface-elevated)
+  );
+}

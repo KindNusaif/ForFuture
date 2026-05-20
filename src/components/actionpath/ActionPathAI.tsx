@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import {
   ArrowRight,
   Loader2,
@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next'
 import {
   ACTIONPATH_INPUT_MAX,
   ACTIONPATH_INPUT_MIN,
+  ActionPathAiError,
   generateActionPath,
   type ActionPathSuggestion,
 } from '../../lib/actionPathAi'
@@ -42,18 +43,32 @@ export default function ActionPathAI({
   const [error, setError] = useState<string | null>(null)
   const [suggestion, setSuggestion] = useState<ActionPathSuggestion | null>(null)
   const [dismissed, setDismissed] = useState(false)
+  const inFlightRef = useRef(false)
 
   const trimmed = input.trim()
   const canGenerate =
-    trimmed.length >= ACTIONPATH_INPUT_MIN && trimmed.length <= ACTIONPATH_INPUT_MAX && !loading
+    trimmed.length > 0 &&
+    trimmed.length >= ACTIONPATH_INPUT_MIN &&
+    trimmed.length <= ACTIONPATH_INPUT_MAX &&
+    !loading &&
+    !formDisabled
+
+  function resolveErrorMessage(err: unknown): string {
+    if (err instanceof ActionPathAiError) {
+      if (err.code === 'rate_limit') return t('actionPath.errorBusy')
+      return err.message
+    }
+    return t('actionPath.errorGeneric')
+  }
 
   async function runGenerate() {
     if (!user) {
       openJoinModal('actionpath')
       return
     }
-    if (!canGenerate) return
+    if (!canGenerate || inFlightRef.current) return
 
+    inFlightRef.current = true
     setLoading(true)
     setError(null)
     setDismissed(false)
@@ -63,10 +78,18 @@ export default function ActionPathAI({
       setSuggestion(result)
     } catch (err) {
       setSuggestion(null)
-      setError(err instanceof Error ? err.message : t('actionPath.errorGeneric'))
+      setError(resolveErrorMessage(err))
     } finally {
       setLoading(false)
+      inFlightRef.current = false
     }
+  }
+
+  function handleStartOver() {
+    setSuggestion(null)
+    setDismissed(true)
+    setError(null)
+    setInput('')
   }
 
   function handleEditMyself() {
@@ -88,7 +111,7 @@ export default function ActionPathAI({
   return (
     <section
       aria-labelledby="actionpath-heading"
-      className="overflow-hidden rounded-2xl border border-accent-200/80 bg-linear-to-br from-accent-50/90 via-white to-brand-50/40 shadow-sm"
+      className="actionpath-panel overflow-hidden rounded-2xl border border-accent-200/80 bg-linear-to-br from-accent-50/90 via-white to-brand-50/40 shadow-sm dark:border-accent-500/25 dark:from-accent-950/40 dark:via-slate-900/80 dark:to-slate-900/60"
     >
       <div className="border-b border-accent-100/80 px-5 py-4 sm:px-6">
         <div className="flex items-start gap-3">
@@ -131,16 +154,42 @@ export default function ActionPathAI({
         </div>
 
         {error && (
-          <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-            {error}
-          </p>
+          <div
+            role="alert"
+            className="flex items-start gap-2.5 rounded-xl border border-red-200/80 bg-red-50/90 px-4 py-3 text-sm text-red-900 dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-100"
+          >
+            <p className="min-w-0 flex-1 leading-relaxed">{error}</p>
+            <button
+              type="button"
+              onClick={() => void runGenerate()}
+              disabled={!canGenerate}
+              className="shrink-0 inline-flex items-center gap-1.5 rounded-lg border border-red-300/80 bg-white px-3 py-1.5 text-xs font-semibold text-red-900 transition hover:bg-red-50 disabled:opacity-50 dark:border-red-500/40 dark:bg-red-950/60 dark:text-red-50"
+            >
+              <RefreshCw className="h-3.5 w-3.5" aria-hidden />
+              {t('actionPath.retry')}
+            </button>
+          </div>
+        )}
+
+        {loading && (
+          <div
+            className="animate-pulse space-y-3 rounded-xl border border-accent-100 bg-surface/60 p-4"
+            aria-live="polite"
+            aria-busy="true"
+          >
+            <p className="text-sm text-secondary">{t('actionPath.loadingHint')}</p>
+            <div className="h-3 w-2/3 rounded bg-muted" />
+            <div className="h-3 w-full rounded bg-muted" />
+            <div className="h-3 w-5/6 rounded bg-muted" />
+          </div>
         )}
 
         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
           <button
             type="button"
             onClick={() => void runGenerate()}
-            disabled={!canGenerate || formDisabled}
+            disabled={!canGenerate}
+            aria-busy={loading}
             className="btn-primary w-full sm:w-auto disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? (
@@ -159,7 +208,7 @@ export default function ActionPathAI({
             <button
               type="button"
               onClick={() => void runGenerate()}
-              disabled={!canGenerate || loading || formDisabled}
+              disabled={!canGenerate || loading}
               className="btn-secondary w-full sm:w-auto"
             >
               <RefreshCw className="h-4 w-4" aria-hidden />
@@ -200,44 +249,51 @@ export default function ActionPathAI({
 
             <article className="rounded-xl border border-default bg-muted/80 p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-accent-700">
-                {t('actionPath.whyFits')}
+                {t('actionPath.whyItMatters', { defaultValue: 'Why this matters' })}
               </p>
               <p className="mt-2 text-sm leading-relaxed text-secondary">
-                {suggestion.recommendation_reason}
+                {suggestion.whyItMatters}
               </p>
             </article>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="min-w-0 rounded-xl border border-default p-4">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted">
-                  {t('actionPath.improvedTitle')}
+                  {t('actionPath.suggestedTitle', { defaultValue: 'Suggested title' })}
                 </p>
                 <p className="mt-2 text-sm font-semibold text-primary wrap-anywhere break-words">
-                  {suggestion.improved_title}
+                  {suggestion.suggestedTitle}
                 </p>
               </div>
               <div className="min-w-0 rounded-xl border border-default p-4 sm:col-span-2">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted">
-                  {t('actionPath.improvedDescription')}
+                  {t('actionPath.refinedSummary', { defaultValue: 'Refined summary' })}
                 </p>
                 <p className="mt-2 text-sm leading-relaxed text-secondary wrap-anywhere break-words">
-                  {suggestion.improved_description}
+                  {suggestion.refinedSummary}
                 </p>
               </div>
             </div>
 
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-muted">
-                {t('actionPath.actionSteps')}
+                {t('actionPath.nextSteps', { defaultValue: 'Recommended next steps' })}
               </p>
               <ol className="mt-2 list-decimal space-y-2 pl-5 text-sm text-secondary">
-                {suggestion.suggested_action_steps.map((step) => (
+                {suggestion.nextSteps.map((step) => (
                   <li key={step} className="wrap-anywhere pl-1">
                     {step}
                   </li>
                 ))}
               </ol>
             </div>
+
+            {suggestion.safety_note && (
+              <p className="rounded-xl border border-amber-200 bg-amber-50/80 px-4 py-3 text-sm text-amber-950">
+                <span className="font-semibold">{t('actionPath.safetyNote')}: </span>
+                {suggestion.safety_note}
+              </p>
+            )}
 
             {fieldEntries.length > 0 && (
               <div>
@@ -277,21 +333,24 @@ export default function ActionPathAI({
                 disabled={formDisabled}
                 className="btn-primary w-full sm:w-auto"
               >
-                {t('actionPath.useDraft')}
+                {t('actionPath.useSuggestion', { defaultValue: 'Use this suggestion' })}
                 <ArrowRight className="h-4 w-4" aria-hidden />
+              </button>
+              <button type="button" onClick={handleEditMyself} className="btn-secondary w-full sm:w-auto">
+                {t('actionPath.editBeforePublish', { defaultValue: 'Edit before publishing' })}
               </button>
               {fieldEntries.length > 0 && (
                 <button
                   type="button"
                   onClick={() => onApplyFields(suggestion)}
                   disabled={formDisabled}
-                  className="btn-secondary w-full sm:w-auto"
+                  className="btn-ghost w-full sm:w-auto"
                 >
                   {t('actionPath.applyFields')}
                 </button>
               )}
-              <button type="button" onClick={handleEditMyself} className="btn-ghost w-full sm:w-auto">
-                {t('actionPath.editMyself')}
+              <button type="button" onClick={handleStartOver} className="btn-ghost w-full sm:w-auto">
+                {t('actionPath.startOver')}
               </button>
             </div>
           </div>

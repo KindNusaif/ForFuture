@@ -33,7 +33,7 @@ export default function YouthImpactPulse() {
   const { isMember } = useAuth()
   const { data, loading, error, needsMigration, reload } = useImpactPulseData()
   const { showSlowHint, showRecovery } = useLoadingProgress(loading)
-  const detailBase = isMember ? '/feed' : '/movements'
+  const detailBase = isMember ? '/feed' : '/explore'
   const unavailable = needsMigration
 
   const liveUpdatedLabel = useMemo(() => {
@@ -44,7 +44,7 @@ export default function YouthImpactPulse() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:py-10">
-      <header className="relative mb-10 overflow-hidden rounded-3xl border border-accent-200/60 bg-linear-to-br from-brand-950 via-accent-900 to-slate-900 px-6 py-10 text-white shadow-xl sm:px-10 sm:py-12">
+      <header className="impact-page-hero relative mb-10 overflow-hidden px-6 py-10 sm:px-10 sm:py-12">
         <div className="pointer-events-none absolute -right-16 top-0 h-56 w-56 rounded-full bg-accent-400/20 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-20 left-0 h-48 w-48 rounded-full bg-brand-400/15 blur-3xl" />
         <div className="relative">
@@ -52,7 +52,7 @@ export default function YouthImpactPulse() {
             <Activity className="h-4 w-4" aria-hidden />
             {t('impactPulse.eyebrow')}
           </p>
-          <h1 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-[2.75rem] lg:leading-tight">
+          <h1 className="mt-3 text-3xl sm:text-4xl lg:text-[2.75rem] lg:leading-tight">
             {t('impactPulse.heroTitle')}
           </h1>
           <p className="mt-4 max-w-2xl text-sm leading-relaxed text-white/80 sm:text-base">

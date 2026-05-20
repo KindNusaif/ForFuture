@@ -1,9 +1,10 @@
-import { HandHeart, MapPin, Megaphone } from 'lucide-react'
+import { HandHeart, HeartHandshake, MapPin, Megaphone } from 'lucide-react'
 
 interface ImpactMapStatsProps {
   volunteer: number
   civic: number
   issues: number
+  relief: number
   visibleCount: number
 }
 
@@ -11,6 +12,7 @@ export default function ImpactMapStats({
   volunteer,
   civic,
   issues,
+  relief,
   visibleCount,
 }: ImpactMapStatsProps) {
   const cards = [
@@ -32,13 +34,21 @@ export default function ImpactMapStats({
       icon: MapPin,
       className: 'bg-rose-50 text-rose-700 ring-rose-200/80',
     },
+    {
+      label: 'Relief campaigns',
+      value: relief,
+      icon: HeartHandshake,
+      className: 'bg-amber-50 text-amber-800 ring-amber-200/80',
+    },
   ]
 
   return (
-    <div className="grid gap-3 sm:grid-cols-3">
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {cards.map(({ label, value, icon: Icon, className }) => (
         <div key={label} className={`card-surface flex items-center gap-3 p-4 ${className}`}>
-          <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ring-1 ${className}`}>
+          <span
+            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ring-1 ${className}`}
+          >
             <Icon className="h-5 w-5" aria-hidden />
           </span>
           <div>
@@ -47,9 +57,9 @@ export default function ImpactMapStats({
           </div>
         </div>
       ))}
-      <p className="text-center text-xs text-muted sm:col-span-3">
-        Showing <span className="font-semibold text-secondary">{visibleCount}</span> results on
-        map and list
+      <p className="text-center text-xs text-muted sm:col-span-2 lg:col-span-4">
+        Showing <span className="font-semibold text-secondary">{visibleCount}</span> results on map
+        and list
       </p>
     </div>
   )

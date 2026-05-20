@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import Logo from './Logo'
 
 const EXPLORE_LINKS = [
-  { to: '/movements', labelKey: 'nav.movements' as const, fallback: 'Movements' },
+  { to: '/explore', labelKey: 'nav.exploreShort' as const, fallback: 'Explore' },
   { to: '/discover', labelKey: 'nav.discover' as const, fallback: 'Discover' },
   { to: '/impact', labelKey: 'nav.impactNav' as const, fallback: 'Impact' },
 ] as const

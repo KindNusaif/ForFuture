@@ -1,0 +1,296 @@
+/* ForFuture — final launch polish (global UX, alignment, motion, contrast) */
+
+/* Shared feature-page typography */
+@utility ff-page-eyebrow {
+  @apply text-[0.6875rem] font-bold uppercase tracking-[0.14em] text-mint;
+}
+
+@utility ff-page-title {
+  font-family: var(--ff-display-font);
+  @apply text-2xl font-normal tracking-tight text-primary sm:text-3xl;
+}
+
+@utility ff-page-subtitle {
+  @apply mt-2 max-w-2xl text-sm leading-relaxed text-secondary sm:text-base;
+}
+
+/* Premium card hover — calm lift */
+.card-surface,
+.card-elevated {
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.22s ease,
+    transform 0.22s ease;
+}
+
+@media (hover: hover) {
+  html:not([data-reduce-motion='true']) .card-surface:hover,
+  html:not([data-reduce-motion='true']) .card-elevated:hover {
+    border-color: color-mix(in srgb, var(--ff-indigo-accent, #6366f1) 22%, var(--border-default, #e5e7eb));
+    box-shadow: var(--ff-shadow-card-hover);
+  }
+}
+
+/* App shell navigation */
+.app-shell .nav-link {
+  @apply flex min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-secondary transition;
+}
+
+.app-shell .nav-link:hover {
+  background: var(--ff-nav-hover-bg, rgb(99 102 241 / 0.08));
+  color: var(--text-primary);
+}
+
+.app-shell .nav-link-active {
+  background: var(--ff-nav-active-bg, rgb(99 102 241 / 0.12));
+  color: var(--ff-nav-active-text, var(--text-primary));
+  box-shadow: inset 0 0 0 1px rgb(99 102 241 / 0.18);
+}
+
+.app-shell .nav-section-label {
+  letter-spacing: 0.08em;
+}
+
+/* Logged-in left sidebar — header, scroll gutter, account footer */
+.app-sidebar-inner {
+  position: sticky;
+  top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 3rem);
+  padding-right: 0.375rem;
+  scrollbar-gutter: stable;
+}
+
+.app-sidebar-header {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-bottom: 1rem;
+}
+
+.app-sidebar-brand {
+  flex-shrink: 0;
+}
+
+.app-sidebar-utilities {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.375rem;
+  min-width: 0;
+  margin-left: auto;
+  padding-right: 0.125rem;
+}
+
+.app-sidebar-utilities .btn-ghost {
+  min-height: 2.25rem !important;
+  width: 2.25rem !important;
+  padding: 0 !important;
+}
+
+.app-sidebar-utilities .rounded-xl.p-2\.5 {
+  min-height: 2.25rem;
+  min-width: 2.25rem;
+  padding: 0.5rem;
+}
+
+.app-sidebar-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+  scrollbar-width: thin;
+}
+
+.app-sidebar-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.app-sidebar-scroll::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--text-muted) 35%, transparent);
+}
+
+.app-sidebar-nav {
+  padding-right: 0.125rem;
+}
+
+.app-sidebar-voice {
+  margin-right: 0.125rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.app-sidebar-footer {
+  flex-shrink: 0;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  padding-right: 0.125rem;
+  border-top: 1px solid var(--border-default);
+}
+
+.app-sidebar-logout {
+  color: var(--text-secondary);
+}
+
+.app-sidebar-logout:hover {
+  color: var(--text-primary);
+}
+
+/* Action hub / right rail cards */
+.action-hub-card,
+.trending-panel-card {
+  border-radius: var(--ff-radius-card);
+}
+
+/* Public marketing nav — 3-zone single row (desktop) */
+@media (min-width: 1024px) {
+  .public-nav-bar {
+    column-gap: 1rem;
+  }
+
+  .public-nav-bar__brand {
+    justify-self: start;
+  }
+
+  .public-nav-bar__center {
+    justify-self: center;
+  }
+
+  .public-nav-bar__end {
+    justify-self: end;
+    min-width: max-content;
+  }
+}
+
+.public-nav-actions,
+.public-nav-utilities {
+  flex-wrap: nowrap;
+}
+
+.public-nav-actions {
+  min-height: 2.5rem;
+}
+
+.public-nav-utilities > * {
+  flex-shrink: 0;
+}
+
+/* Stronger focus for keyboard users */
+:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-accent-500, #6366f1) 75%, transparent);
+  outline-offset: 2px;
+}
+
+.btn-primary:focus-visible,
+.btn-secondary:focus-visible,
+.btn-ghost:focus-visible {
+  outline-offset: 3px;
+}
+
+/* Form controls — consistent height & contrast */
+.ff-input,
+input.ff-input,
+textarea.ff-input,
+select.ff-input {
+  min-height: 2.75rem;
+  border-radius: var(--ff-radius-control, 0.875rem);
+}
+
+.ff-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.85;
+}
+
+[data-theme='dark'] .ff-input {
+  background: color-mix(in srgb, var(--surface-elevated) 92%, black);
+}
+
+/* Empty states */
+.empty-state-premium h2,
+.empty-state-premium h3 {
+  @apply text-lg font-bold tracking-tight text-primary sm:text-xl;
+}
+
+/* Share / icon buttons */
+.share-icon-btn {
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+@media (hover: hover) {
+  html:not([data-reduce-motion='true']) .share-icon-btn:hover {
+    transform: translateY(-1px);
+  }
+}
+
+/* Poll vote bars */
+.poll-result-bar {
+  transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html[data-reduce-motion='true'] .poll-result-bar {
+  transition: none;
+}
+
+/* Modals */
+[role='dialog'] {
+  border-radius: var(--ff-radius-card);
+}
+
+/* Guest conversion — warm tone */
+.guest-explore-banner,
+.discover-guest-banner {
+  border-radius: var(--ff-radius-card);
+}
+
+/* Inspire hub inside app shell */
+.inspire-hub-page .inspire-hub-hero {
+  border-radius: calc(var(--ff-radius-card) + 0.25rem);
+}
+
+/* Relief hub page rhythm */
+.relief-hub-page .relief-hub-hero {
+  padding-bottom: 0.5rem;
+}
+
+/* Verification / trust forms */
+.verification-center-page .card-surface {
+  border-radius: var(--ff-radius-card);
+}
+
+/* ActionPath AI — integrated with create flow */
+[data-theme='dark'] .actionpath-panel {
+  color: var(--text-primary);
+}
+
+[data-theme='dark'] .actionpath-panel .text-accent-700 {
+  color: color-mix(in srgb, var(--ff-mint, #2dd4bf) 75%, white);
+}
+
+/* Toast readability */
+.toast-root,
+[data-sonner-toast] {
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+/* Mobile: prevent horizontal scroll from wide heroes */
+@media (max-width: 430px) {
+  .impact-page-hero,
+  .community-polls-header,
+  .relief-hub-hero {
+    padding-inline: 1rem;
+  }
+
+  .community-polls-tabs,
+  .relief-hub-tabs {
+    margin-inline: -0.25rem;
+    padding-inline: 0.25rem;
+  }
+}
