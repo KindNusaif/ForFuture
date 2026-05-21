@@ -5,6 +5,7 @@ import './index.css'
 import './i18n'
 import App from './App'
 import ErrorBoundaryReset from './components/ErrorBoundaryReset'
+import { ToastProvider } from './context/ToastProvider'
 
 if (typeof window !== 'undefined') {
   window.addEventListener('error', (event) => {
@@ -25,7 +26,9 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <ErrorBoundaryReset>
-        <App />
+        <ToastProvider>
+          <App />
+        </ToastProvider>
       </ErrorBoundaryReset>
     </BrowserRouter>
   </StrictMode>,

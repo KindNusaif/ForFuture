@@ -64,6 +64,9 @@ function buildStampPlugin() {
 
 export default defineConfig({
   plugins: [react(), tailwindcss(), buildStampPlugin(), bootLoaderPlugin()],
+  resolve: {
+    dedupe: ['react', 'react-dom'],
+  },
   define: {
     __FORFUTURE_BUILD_ID__: JSON.stringify(buildId),
   },
@@ -81,6 +84,15 @@ export default defineConfig({
         manualChunks(id) {
           if (id.includes('node_modules/leaflet')) return 'leaflet'
           if (id.includes('node_modules/@googlemaps')) return 'google-maps'
+          // Keep toast context in one chunk so lazy routes (Feed, PostFeed) share the same
+          // React context instance as ToastProvider — avoids "useToast must be used within ToastProvider".
+          if (
+            id.includes('/context/toast-context') ||
+            id.includes('/context/ToastProvider') ||
+            id.includes('/hooks/useToast')
+          ) {
+            return 'toast'
+          }
         },
       },
     },

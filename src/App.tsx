@@ -6,7 +6,6 @@ import { ThemeProvider } from './context/ThemeContext'
 import { JoinMovementProvider } from './context/JoinMovementContext'
 import { CreatePollProvider } from './context/CreatePollContext'
 import { ReportContentProvider } from './context/ReportContentContext'
-import { ToastProvider } from './context/ToastProvider'
 import AdminRoute from './components/AdminRoute'
 import Layout from './components/Layout'
 import ExploreLayout from './components/ExploreLayout'
@@ -79,7 +78,6 @@ export default function App() {
   return (
     <AuthProvider>
       <ThemeProvider>
-        <ToastProvider>
           <SessionExpiryHandler />
           <JoinMovementProvider>
             <CreatePollProvider>
@@ -413,7 +411,6 @@ export default function App() {
             </ReportContentProvider>
             </CreatePollProvider>
           </JoinMovementProvider>
-        </ToastProvider>
       </ThemeProvider>
     </AuthProvider>
   )

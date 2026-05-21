@@ -73,8 +73,7 @@ export default class ErrorBoundary extends Component<Props, State> {
               <button
                 type="button"
                 onClick={() => {
-                  this.setState({ hasError: false, errorMessage: undefined })
-                  window.location.reload()
+                  this.setState({ hasError: false, errorMessage: undefined, componentStack: undefined })
                 }}
                 className="btn-primary"
               >
