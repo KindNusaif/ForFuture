@@ -91,6 +91,7 @@ export default function ReportContentModal({
   return (
     <dialog
       ref={dialogRef}
+      translate="no"
       onClose={handleClose}
       className="w-[min(calc(100%-2rem),32rem)] max-w-lg rounded-2xl border-0 bg-transparent p-0 shadow-none backdrop:bg-black/50"
       aria-labelledby="report-content-title"

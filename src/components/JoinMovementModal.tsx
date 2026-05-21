@@ -165,6 +165,7 @@ export default function JoinMovementModal({
   return (
     <dialog
       ref={dialogRef}
+      translate="no"
       onClose={onClose}
       onCancel={onClose}
       className="w-[min(calc(100%-2rem),28rem)] max-w-md rounded-2xl border-0 bg-transparent p-0 shadow-none backdrop:bg-[var(--ff-backdrop)]"

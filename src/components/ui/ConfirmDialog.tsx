@@ -36,6 +36,7 @@ export default function ConfirmDialog({
   return (
     <dialog
       ref={dialogRef}
+      translate="no"
       onClose={onCancel}
       className="w-[min(calc(100%-2rem),24rem)] max-w-sm rounded-2xl border-0 bg-transparent p-0 shadow-none backdrop:bg-black/50 dark:backdrop:bg-black/70"
       aria-labelledby="confirm-dialog-title"

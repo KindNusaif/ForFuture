@@ -177,6 +177,7 @@ export default function CreatePollModal({ open, onClose, onPublished }: CreatePo
   return (
     <dialog
       ref={dialogRef}
+      translate="no"
       onClose={handleClose}
       className="create-poll-dialog w-[min(calc(100%-1.5rem),40rem)] max-w-2xl rounded-2xl border-0 bg-transparent p-0 shadow-none backdrop:bg-black/50"
       aria-labelledby="create-poll-title"

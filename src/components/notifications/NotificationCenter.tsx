@@ -239,6 +239,7 @@ export default function NotificationCenter() {
             className="notification-dropdown notification-dropdown-portal hidden lg:block"
             style={dropdownStyle}
             role="dialog"
+            translate="no"
             aria-label="Notifications"
           >
             {panel}
@@ -250,6 +251,7 @@ export default function NotificationCenter() {
         <div
           className="notification-sheet lg:hidden"
           role="dialog"
+          translate="no"
           aria-modal="true"
           aria-label="Notifications"
         >

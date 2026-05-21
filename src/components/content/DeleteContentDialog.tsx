@@ -35,6 +35,7 @@ export default function DeleteContentDialog({
   return (
     <dialog
       ref={dialogRef}
+      translate="no"
       onCancel={(e) => {
         e.preventDefault()
         if (!deleting) onCancel()

@@ -30,6 +30,7 @@ export default function DeleteMovementDialog({
   return (
     <dialog
       ref={dialogRef}
+      translate="no"
       onCancel={(e) => {
         e.preventDefault()
         if (!deleting) onCancel()

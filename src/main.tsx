@@ -24,12 +24,12 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter>
-      <ErrorBoundaryReset>
-        <ToastProvider>
+    <ToastProvider>
+      <BrowserRouter>
+        <ErrorBoundaryReset>
           <App />
-        </ToastProvider>
-      </ErrorBoundaryReset>
-    </BrowserRouter>
+        </ErrorBoundaryReset>
+      </BrowserRouter>
+    </ToastProvider>
   </StrictMode>,
 )

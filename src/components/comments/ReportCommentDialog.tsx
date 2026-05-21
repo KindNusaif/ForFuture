@@ -65,6 +65,7 @@ export default function ReportCommentDialog({ open, commentId, onClose }: Report
   return (
     <dialog
       ref={dialogRef}
+      translate="no"
       onCancel={(e) => {
         e.preventDefault()
         if (!submitting) onClose()

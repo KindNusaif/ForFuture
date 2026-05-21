@@ -68,6 +68,7 @@ export default function ShareDialog({ open, data, onClose }: ShareDialogProps) {
   return (
     <dialog
       ref={dialogRef}
+      translate="no"
       onCancel={(e) => {
         e.preventDefault()
         onClose()

@@ -28,6 +28,7 @@ export default function DeleteCommentDialog({
   return (
     <dialog
       ref={dialogRef}
+      translate="no"
       onCancel={(e) => {
         e.preventDefault()
         if (!deleting) onCancel()
