@@ -28,7 +28,15 @@ import {
 import { formatYouthVoiceLabel } from './youthVoiceId'
 import type { ReliefHubFilter } from './reliefHub'
 import { defaultReliefStatus } from './reliefHub'
-import type { Category, CreateMovementInput, MovementType, Post, PostingIdentity } from '../types'
+import { coerceCategory, safeArray } from './safeData'
+import type {
+  Category,
+  CreateMovementInput,
+  MovementAttachment,
+  MovementType,
+  Post,
+  PostingIdentity,
+} from '../types'
 
 type PostRowBase = Omit<Post, 'support_count' | 'supported_by_me'>
 
@@ -67,11 +75,11 @@ function mapPostRow(
 ): PostRowBase {
   const postingIdentity = (row.posting_identity as PostingIdentity) ?? 'profile'
   const base: PostRowBase = {
-    id: row.id as string,
+    id: typeof row.id === 'string' && row.id ? row.id : '',
     user_id: (row.user_id as string | null) ?? null,
     title: safeText(row.title, 'Untitled movement'),
     description: safeText(row.description),
-    category: row.category as Category,
+    category: coerceCategory(row.category),
     author_name:
       typeof row.author_name === 'string' && row.author_name.trim()
         ? row.author_name
@@ -81,7 +89,10 @@ function mapPostRow(
     posting_identity: postingIdentity,
     youth_voice_id: (row.youth_voice_id as string | null) ?? null,
     movement_type: coerceMovementType(row.movement_type),
-    created_at: row.created_at as string,
+    created_at:
+      typeof row.created_at === 'string' && row.created_at
+        ? row.created_at
+        : new Date().toISOString(),
     proposed_solution: (row.proposed_solution as string | null) ?? null,
     expected_impact: (row.expected_impact as string | null) ?? null,
     issue_summary: (row.issue_summary as string | null) ?? null,
@@ -245,7 +256,7 @@ async function queryPublicFeedRows(
 
   const { data, error } = await query
   if (error) throw error
-  return (data ?? []) as unknown as Record<string, unknown>[]
+  return safeArray<Record<string, unknown>>(data)
 }
 
 /** Paginated public feed — ordered by created_at desc, explicit columns only */
@@ -273,8 +284,11 @@ async function fetchPublicFeedRows(params: FetchPostsPageParams): Promise<{
       const raw = await queryPublicFeedRows(params, columns)
       const hasMore = raw.length > pageSize
       const slice = raw.slice(0, pageSize)
+      const rows = slice
+        .map((row) => mapPostRow(row, { viewerUserId }))
+        .filter((row) => Boolean(row.id))
       return {
-        rows: slice.map((row) => mapPostRow(row, { viewerUserId })),
+        rows,
         hasMore,
       }
     } catch (error) {
@@ -446,7 +460,7 @@ export async function enrichPosts(
     return {
       ...merged,
       poll: normalizePollVoteState(pollById.get(p.id) ?? merged.poll) ?? undefined,
-      attachments: attachById.get(p.id) ?? merged.attachments,
+      attachments: safeArray<MovementAttachment>(attachById.get(p.id) ?? merged.attachments),
     }
   })
 }

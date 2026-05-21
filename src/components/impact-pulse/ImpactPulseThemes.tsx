@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { ImpactPulseCategoryRow } from '../../lib/impactPulse'
+import { safeArray } from '../../lib/safeData'
 import { formatImpactCountFull, formatShare } from '../../lib/impactPulse'
 import SectionShell from './SectionShell'
 import { Skeleton } from '../Skeleton'
@@ -13,7 +14,8 @@ interface Props {
 
 export default function ImpactPulseThemes({ categories, loading, unavailable }: Props) {
   const { t } = useTranslation()
-  const max = useMemo(() => Math.max(...categories.map((c) => c.count), 1), [categories])
+  const rows = safeArray<ImpactPulseCategoryRow>(categories)
+  const max = useMemo(() => Math.max(...rows.map((c) => c.count), 1), [rows])
 
   if (unavailable && !loading) {
     return (
@@ -35,13 +37,13 @@ export default function ImpactPulseThemes({ categories, loading, unavailable }: 
       title={t('impactPulse.themes.title')}
       subtitle={t('impactPulse.themes.subtitle')}
     >
-      {!loading && categories.length === 0 ? (
+      {!loading && rows.length === 0 ? (
         <p className="card-surface border-dashed px-6 py-10 text-center text-sm text-secondary">
           {t('impactPulse.themes.empty')}
         </p>
       ) : (
         <ul className="card-surface divide-y divide-default p-4 sm:p-6" aria-label={t('impactPulse.themes.title')}>
-          {(loading ? Array.from({ length: 5 }) : categories).map((row, index) => {
+          {(loading ? Array.from({ length: 5 }) : rows).map((row, index) => {
             if (loading) {
               return (
                 <li key={index} className="py-4 first:pt-0 last:pb-0">

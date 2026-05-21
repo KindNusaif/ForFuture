@@ -224,9 +224,9 @@ function MovementDetailContent({
       ) : !post && !displayError ? (
         <EmptyState
           icon={Inbox}
-          title="This movement is unavailable"
-          description="It may have been removed or is no longer available."
-          action={{ label: backLabel, to: backTo }}
+          title="This movement may have been removed or is no longer available."
+          description="It might be private, deleted, or still syncing. Browse other movements below."
+          action={{ label: 'Back to Movements', to: backTo }}
         />
       ) : post ? (
         <MovementDetailView

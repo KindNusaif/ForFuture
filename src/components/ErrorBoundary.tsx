@@ -28,7 +28,10 @@ export default class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error('[ForFuture] UI error boundary', error, info.componentStack)
+    console.error('[ForFuture] UI error boundary', error.message, info.componentStack)
+    if (import.meta.env.PROD) {
+      console.error('[ForFuture] If this persists after refresh, report the route and steps to support.')
+    }
     this.setState({ errorMessage: error.message })
   }
 
@@ -58,7 +61,10 @@ export default class ErrorBoundary extends Component<Props, State> {
             <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
               <button
                 type="button"
-                onClick={() => this.setState({ hasError: false, errorMessage: undefined })}
+                onClick={() => {
+                  this.setState({ hasError: false, errorMessage: undefined })
+                  window.location.reload()
+                }}
                 className="btn-primary"
               >
                 Try again

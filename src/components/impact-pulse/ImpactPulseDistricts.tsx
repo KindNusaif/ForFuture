@@ -1,6 +1,7 @@
 import { MapPin } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { ImpactPulseDistrictRow } from '../../lib/impactPulse'
+import { safeArray } from '../../lib/safeData'
 import { formatImpactCountFull } from '../../lib/impactPulse'
 import SectionShell from './SectionShell'
 import { Skeleton } from '../Skeleton'
@@ -13,6 +14,7 @@ interface Props {
 
 export default function ImpactPulseDistricts({ districts, loading, unavailable }: Props) {
   const { t } = useTranslation()
+  const rows = safeArray<ImpactPulseDistrictRow>(districts)
 
   if (unavailable && !loading) {
     return (
@@ -34,13 +36,13 @@ export default function ImpactPulseDistricts({ districts, loading, unavailable }
       title={t('impactPulse.districts.title')}
       subtitle={t('impactPulse.districts.subtitle')}
     >
-      {!loading && districts.length === 0 ? (
+      {!loading && rows.length === 0 ? (
         <p className="card-surface border-dashed px-6 py-10 text-center text-sm text-secondary">
           {t('impactPulse.districts.empty')}
         </p>
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2">
-          {(loading ? Array.from({ length: 4 }) : districts).map((row, index) => {
+          {(loading ? Array.from({ length: 4 }) : rows).map((row, index) => {
             if (loading) {
               return (
                 <li key={index} className="card-surface p-4">

@@ -1,14 +1,15 @@
-import { getMovementConfig } from '../lib/movements'
+import { coerceMovementType, getMovementConfig } from '../lib/movements'
 import { getMovementVisual } from '../lib/movementVisual'
 import type { MovementType } from '../types'
 
 interface MovementTypeBadgeProps {
-  movementType: MovementType
+  movementType: MovementType | string
 }
 
 export default function MovementTypeBadge({ movementType }: MovementTypeBadgeProps) {
-  const config = getMovementConfig(movementType)
-  const visual = getMovementVisual(movementType)
+  const type = coerceMovementType(movementType)
+  const config = getMovementConfig(type)
+  const visual = getMovementVisual(type)
   const Icon = config.icon
 
   return (

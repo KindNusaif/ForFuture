@@ -9,6 +9,7 @@ import {
 } from './impactPulse'
 import { DEFAULT_REQUEST_TIMEOUT_MS, FEED_REQUEST_TIMEOUT_MS } from './requestConfig'
 import { isRequestAborted, withTimeout } from './supabaseRequest'
+import { coerceCategory } from './safeData'
 import type { Category, MovementType, Post } from '../types'
 import { CATEGORIES } from '../types'
 
@@ -130,10 +131,8 @@ async function fetchCategoryCountsFromDb(): Promise<DiscoverCategoryCount[]> {
   const counts = new Map<Category, number>()
   for (const cat of CATEGORIES) counts.set(cat, 0)
   for (const row of data ?? []) {
-    const cat = row.category as Category
-    if (CATEGORIES.includes(cat)) {
-      counts.set(cat, (counts.get(cat) ?? 0) + 1)
-    }
+    const cat = coerceCategory(row.category)
+    counts.set(cat, (counts.get(cat) ?? 0) + 1)
   }
   return CATEGORIES.filter((c) => c !== 'Other').map((category) => ({
     category,
@@ -142,7 +141,9 @@ async function fetchCategoryCountsFromDb(): Promise<DiscoverCategoryCount[]> {
 }
 
 function categoryCountsFromImpact(impact: ImpactPulseDashboard): DiscoverCategoryCount[] {
-  const map = new Map(impact.categories.map((r) => [r.category, r.count]))
+  const map = new Map(
+    (Array.isArray(impact.categories) ? impact.categories : []).map((r) => [r.category, r.count]),
+  )
   return CATEGORIES.filter((c) => c !== 'Other').map((category) => ({
     category,
     count: map.get(category) ?? 0,

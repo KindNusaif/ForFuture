@@ -4,6 +4,7 @@ import { ArrowRight } from 'lucide-react'
 import { isPollMovement } from '../lib/movements'
 import { isPetitionMovement } from '../lib/petitions'
 import { getMomentumLabel, getMovementVisual, shouldShowMomentumPill } from '../lib/movementVisual'
+import { safeArray, safeFormatShortDate } from '../lib/safeData'
 import { getReliefDisplaySubtype, isReliefPost } from '../lib/reliefHub'
 import { getPostAuthorPresentation } from '../lib/postIdentity'
 import { getMovementSummary } from '../lib/movementDetailContent'
@@ -34,7 +35,7 @@ import MovementMediaFeedPreview from './media/MovementMediaFeedPreview'
 import MovementMediaDetail from './media/MovementMediaDetail'
 import MovementCardStats from './movement/MovementCardStats'
 import CommentCountLink from './comments/CommentCountLink'
-import type { Post } from '../types'
+import type { MovementAttachment, Post } from '../types'
 
 const categoryColors: Record<string, string> = {
   Education: 'bg-blue-50/90 text-blue-800 ring-blue-200/80 dark:bg-blue-950/50 dark:text-blue-200 dark:ring-blue-800/50',
@@ -115,11 +116,8 @@ export default function PostCard({
   const showAuthorVerified = shouldShowAuthorVerification(post)
   const badgeClass = categoryColors[post.category] ?? categoryColors.Other
   const summary = getMovementSummary(post)
-  const date = new Date(post.created_at).toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  })
+  const date = safeFormatShortDate(post.created_at)
+  const attachments = safeArray<MovementAttachment>(post.attachments)
 
   const participating = !guestMode && Boolean(post.supported_by_me)
   const actionCount = post.support_count ?? 0
@@ -260,16 +258,16 @@ export default function PostCard({
           </p>
         )}
 
-        {post.attachments && post.attachments.length > 0 && !showFullMedia && (
+        {attachments.length > 0 && !showFullMedia && (
           <div data-no-card-nav>
-            <MovementMediaFeedPreview attachments={post.attachments} />
+            <MovementMediaFeedPreview attachments={attachments} />
           </div>
         )}
       </div>
 
-      {showFullMedia && post.attachments && post.attachments.length > 0 && (
+      {showFullMedia && attachments.length > 0 && (
         <div className="px-4 sm:px-5">
-          <MovementMediaDetail attachments={post.attachments} />
+          <MovementMediaDetail attachments={attachments} />
         </div>
       )}
 

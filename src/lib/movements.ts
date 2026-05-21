@@ -62,19 +62,22 @@ export function getActionTypeForMovement(
   return MOVEMENT_TO_ACTION_TYPE[type as keyof typeof MOVEMENT_TO_ACTION_TYPE]
 }
 
-export function getMovementConfig(type: MovementType): MovementTypeConfig {
-  return buildMovementConfig(type, i18n.t.bind(i18n))
+export function getMovementConfig(type: MovementType | string | null | undefined): MovementTypeConfig {
+  return buildMovementConfig(coerceMovementType(type), i18n.t.bind(i18n))
 }
 
 export function getMovementTypes(): MovementTypeConfig[] {
   return MOVEMENT_TYPE_VALUES.map((value) => getMovementConfig(value))
 }
 
-export function formatActionCount(type: MovementType, count: number): string {
+export function formatActionCount(type: MovementType | string | null | undefined, count: number): string {
   return getMovementConfig(type).countLabel(count)
 }
 
-export function getActionSuccessMessage(type: MovementType, participating: boolean): string {
+export function getActionSuccessMessage(
+  type: MovementType | string | null | undefined,
+  participating: boolean,
+): string {
   if (!participating) return i18n.t('movements.removedParticipation')
   return getMovementConfig(type).ctaSupportedLabel
 }

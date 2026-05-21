@@ -359,15 +359,22 @@ function PostFeedContent({
     const q = (reliefSearchQuery ?? debouncedSearch).trim().toLowerCase()
     if (!q) return list
 
-    return list.filter(
-      (p) =>
-        p.title.toLowerCase().includes(q) ||
-        p.description.toLowerCase().includes(q) ||
-        (p.campaign_summary ?? '').toLowerCase().includes(q) ||
-        (p.author_name ?? '').toLowerCase().includes(q) ||
-        p.category.toLowerCase().includes(q) ||
-        getMovementConfig(p.movement_type).label.toLowerCase().includes(q),
-    )
+    return list.filter((p) => {
+      const title = (p.title ?? '').toLowerCase()
+      const description = (p.description ?? '').toLowerCase()
+      const summary = (p.campaign_summary ?? '').toLowerCase()
+      const author = (p.author_name ?? '').toLowerCase()
+      const category = (p.category ?? 'Other').toLowerCase()
+      const movementLabel = getMovementConfig(p.movement_type).label.toLowerCase()
+      return (
+        title.includes(q) ||
+        description.includes(q) ||
+        summary.includes(q) ||
+        author.includes(q) ||
+        category.includes(q) ||
+        movementLabel.includes(q)
+      )
+    })
   }, [posts, debouncedSearch, reliefSearchQuery, reliefHub, reliefHubTab, userId])
 
   const commentEligibleIds = useMemo(

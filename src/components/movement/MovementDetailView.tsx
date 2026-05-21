@@ -33,6 +33,7 @@ import {
   getWhyThisMatters,
 } from '../../lib/movementDetailContent'
 import { getMovementVisual } from '../../lib/movementVisual'
+import { safeFormatLongDate } from '../../lib/safeData'
 import { getReliefDisplaySubtype, isReliefPost } from '../../lib/reliefHub'
 import { isPollMovement } from '../../lib/movements'
 import { isPetitionMovement } from '../../lib/petitions'
@@ -95,12 +96,7 @@ export default function MovementDetailView({
   const why = getWhyThisMatters(post)
   const outcome = getDesiredOutcome(post)
   const location = getMovementLocationLabel(post)
-  const date = new Date(post.created_at).toLocaleDateString(undefined, {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  })
+  const date = safeFormatLongDate(post.created_at)
 
   const participating = !guestMode && Boolean(post.supported_by_me)
   const actionCount = post.support_count ?? 0
