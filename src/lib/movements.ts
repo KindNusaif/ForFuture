@@ -39,6 +39,16 @@ export const MOVEMENT_TO_ACTION_TYPE: Record<
 
 export const MOVEMENT_TYPE_VALUES = MOVEMENT_TYPES_BASE.map((m) => m.value)
 
+const MOVEMENT_TYPE_SET = new Set<string>(MOVEMENT_TYPE_VALUES)
+
+/** Coerce unknown DB/API values to a known movement type (prevents render crashes). */
+export function coerceMovementType(raw: unknown): MovementType {
+  if (typeof raw === 'string' && MOVEMENT_TYPE_SET.has(raw)) {
+    return raw as MovementType
+  }
+  return 'idea_for_change'
+}
+
 export function getActionTypeForMovement(
   type: MovementType,
   donationSubtype?: string | null,

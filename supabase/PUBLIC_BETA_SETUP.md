@@ -14,6 +14,7 @@ Open **Supabase Dashboard → SQL Editor → New query**. For each step: paste t
 | 1 | `fix_missing_features.sql` | Patches schema columns/views if your DB is behind the app (polls, trust view) |
 | 2 | `content_reports.sql` | Reports table + admin RPCs (skip if already applied) |
 | 3–5 | **`RUN_PUBLIC_BETA_IN_SUPABASE.sql`** | **One paste** — constraints + report types + RLS |
+| 6 | **`fix_rls_performance_linter.sql`** | **Optional** — clears Supabase linter WARNs (RLS initplan, duplicate indexes) |
 
 Or run steps 3–5 individually:
 

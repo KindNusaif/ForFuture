@@ -69,6 +69,55 @@ export const POST_PUBLIC_COLUMNS = [
   'author_organization_verification_type',
 ].join(', ')
 
+/**
+ * Matches posts_public_safe after fix_database.sql before relief/trust migrations
+ * (petition + movement fields + legacy org verification only).
+ */
+export const POST_PUBLIC_COLUMNS_AFTER_FIX_DATABASE = [
+  'id',
+  'user_id',
+  'title',
+  'description',
+  'category',
+  'author_name',
+  'posting_identity',
+  'youth_voice_id',
+  'movement_type',
+  'created_at',
+  'proposed_solution',
+  'expected_impact',
+  'issue_summary',
+  'desired_change',
+  'event_date',
+  'event_time',
+  'location',
+  'volunteer_slots',
+  'contact_note',
+  'fundraising_goal_amount',
+  'fundraising_purpose',
+  'beneficiary_description',
+  'current_raised_amount',
+  'action_date',
+  'action_time',
+  'action_location',
+  'action_purpose',
+  'safety_note',
+  'petition_issue',
+  'petition_requested_change',
+  'petition_target_authority',
+  'petition_support_goal',
+  'petition_closing_date',
+  'petition_impact_note',
+  'location_name',
+  'latitude',
+  'longitude',
+  'is_trusted_campaign',
+  'trusted_campaign_type',
+  'trusted_at',
+  'author_is_verified_organization',
+  'author_organization_verification_type',
+].join(', ')
+
 /** Subset when trust / join columns are missing on older DBs (posts_public_safe) */
 export const POST_PUBLIC_COLUMNS_LEGACY = [
   'id',

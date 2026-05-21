@@ -23,7 +23,7 @@ export function isMissingColumn(error: unknown): boolean {
 }
 
 const DEV_SCHEMA_HINT =
-  'In Supabase → SQL Editor, run supabase/fix_missing_features.sql (or supabase/RUN_PUBLIC_BETA_IN_SUPABASE.sql for public beta). Hard-refresh when done.'
+  'In Supabase → SQL Editor, run supabase/FIX_MOVEMENTS_FEED_NOW.sql (after fix_database.sql). Hard-refresh when done.'
 
 function logDeveloperHint(context: string, error: PostgrestError) {
   if (typeof import.meta !== 'undefined' && import.meta.env?.DEV) {

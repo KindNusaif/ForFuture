@@ -122,6 +122,22 @@ export async function fetchPollOptionsForPosts(
   return result
 }
 
+/** Ensures poll state is safe to render (options array, numeric totals). */
+export function normalizePollVoteState(
+  poll: PollVoteState | null | undefined,
+): PollVoteState | null {
+  if (!poll || typeof poll !== 'object') return null
+  const options = Array.isArray(poll.options) ? poll.options : []
+  const totalVotes = Number.isFinite(poll.totalVotes)
+    ? poll.totalVotes
+    : options.reduce((sum, o) => sum + (o.vote_count ?? 0), 0)
+  return {
+    options,
+    totalVotes,
+    myVoteOptionId: poll.myVoteOptionId ?? null,
+  }
+}
+
 export async function enrichPostsWithPolls<T extends PostRow>(
   posts: T[],
   viewerUserId?: string,
@@ -132,7 +148,7 @@ export async function enrichPostsWithPolls<T extends PostRow>(
   const pollMap = await fetchPollOptionsForPosts(pollPostIds, viewerUserId)
   return posts.map((post) => {
     if (!isPollMovement(post.movement_type)) return post
-    const poll = pollMap.get(post.id)
+    const poll = normalizePollVoteState(pollMap.get(post.id))
     return poll ? { ...post, poll } : post
   })
 }
@@ -161,7 +177,7 @@ export async function castPollVote(
   }
 
   const pollMap = await fetchPollOptionsForPosts([postId], voterUserId)
-  const poll = pollMap.get(postId)
+  const poll = normalizePollVoteState(pollMap.get(postId))
   if (!poll) throw new Error('Could not load poll results.')
   return poll
 }

@@ -18,7 +18,8 @@ interface PollVoteBlockProps {
 
 function pollContextText(post: Post): string | null {
   const desc = post.description?.trim() ?? ''
-  if (!desc || desc === 'Community poll' || desc === post.title.trim()) return null
+  const title = post.title?.trim() ?? ''
+  if (!desc || desc === 'Community poll' || (title && desc === title)) return null
   const first = desc.split(/\n/)[0]?.trim() ?? desc
   return first.length > 200 ? `${first.slice(0, 197)}…` : first
 }
@@ -34,11 +35,13 @@ export default function PollVoteBlock({
   const { t } = useTranslation()
   const { gate } = useAuthGate()
   const poll = post.poll
+  const pollOptions = Array.isArray(poll?.options) ? poll.options : []
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null)
 
   const contextText = useMemo(() => pollContextText(post), [post])
 
   const formattedDate = useMemo(() => {
+    if (!post.created_at) return null
     try {
       return new Date(post.created_at).toLocaleDateString(undefined, {
         month: 'short',
@@ -55,14 +58,14 @@ export default function PollVoteBlock({
   const totalVotes = poll?.totalVotes ?? 0
 
   const winningOptionId = useMemo(() => {
-    if (!poll || !showResults || totalVotes === 0) return null
-    let best = poll.options[0]
-    for (const opt of poll.options) {
+    if (!poll || pollOptions.length === 0 || !showResults || totalVotes === 0) return null
+    let best = pollOptions[0]
+    for (const opt of pollOptions) {
       if ((opt.vote_count ?? 0) > (best.vote_count ?? 0)) best = opt
     }
-    const tied = poll.options.filter((o) => (o.vote_count ?? 0) === (best.vote_count ?? 0))
+    const tied = pollOptions.filter((o) => (o.vote_count ?? 0) === (best.vote_count ?? 0))
     return tied.length === 1 ? best.id : null
-  }, [poll, showResults, totalVotes])
+  }, [poll, pollOptions, showResults, totalVotes])
 
   if (!poll) {
     return (
@@ -72,7 +75,7 @@ export default function PollVoteBlock({
     )
   }
 
-  if (poll.options.length === 0) {
+  if (pollOptions.length === 0) {
     return (
       <p className="alert-info mt-3 px-3 py-2 text-sm">
         {t('polls.noOptions', { defaultValue: 'This poll has no voting options yet.' })}
@@ -154,7 +157,7 @@ export default function PollVoteBlock({
       </div>
 
       <ul className="space-y-2" role={showResults ? 'list' : 'radiogroup'} aria-label={t('polls.optionsAria', { defaultValue: 'Poll options' })}>
-        {poll.options.map((option) => {
+        {pollOptions.map((option) => {
           const pct = option.percentage ?? 0
           const isSelected = activeSelection === option.id
           const isMyVote = poll.myVoteOptionId === option.id

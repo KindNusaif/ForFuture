@@ -119,7 +119,12 @@ export function useAsyncLoad<T>(
     void run()
   }, [run])
 
-  const depsKey = JSON.stringify(deps)
+  let depsKey = '[]'
+  try {
+    depsKey = JSON.stringify(deps)
+  } catch {
+    depsKey = String(deps.length)
+  }
 
   useEffect(() => {
     executeRef.current = execute

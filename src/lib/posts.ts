@@ -3,12 +3,13 @@ import {
   POST_OWN_COLUMNS,
   POST_OWN_COLUMNS_LEGACY,
   POST_PUBLIC_COLUMNS,
+  POST_PUBLIC_COLUMNS_AFTER_FIX_DATABASE,
   POST_PUBLIC_COLUMNS_CORE,
   POST_PUBLIC_COLUMNS_LEGACY,
 } from './postColumns'
 import { enhanceSupabaseError, isMissingColumn, isMissingRelation } from './supabaseErrors'
-import { enrichPostsWithPolls, insertPollOptions } from './polls'
-import { isPollMovement } from './movements'
+import { enrichPostsWithPolls, insertPollOptions, normalizePollVoteState } from './polls'
+import { coerceMovementType, isPollMovement } from './movements'
 import { enrichPostsWithActions, fetchPostActionsForPosts } from './postActions'
 import { enrichPostsWithPetitionSignatures } from './petitionSignatures'
 import {
@@ -32,6 +33,10 @@ import type { Category, CreateMovementInput, MovementType, Post, PostingIdentity
 type PostRowBase = Omit<Post, 'support_count' | 'supported_by_me'>
 
 const FEED_SOURCE = 'posts_public_safe' as const
+
+function safeText(value: unknown, fallback = ''): string {
+  return typeof value === 'string' ? value : fallback
+}
 
 export const DEFAULT_FEED_PAGE_SIZE = 16
 export const PROFILE_POSTS_LIMIT = 100
@@ -64,8 +69,8 @@ function mapPostRow(
   const base: PostRowBase = {
     id: row.id as string,
     user_id: (row.user_id as string | null) ?? null,
-    title: row.title as string,
-    description: row.description as string,
+    title: safeText(row.title, 'Untitled movement'),
+    description: safeText(row.description),
     category: row.category as Category,
     author_name:
       typeof row.author_name === 'string' && row.author_name.trim()
@@ -75,7 +80,7 @@ function mapPostRow(
           : 'Anonymous',
     posting_identity: postingIdentity,
     youth_voice_id: (row.youth_voice_id as string | null) ?? null,
-    movement_type: (row.movement_type as Post['movement_type']) ?? 'idea_for_change',
+    movement_type: coerceMovementType(row.movement_type),
     created_at: row.created_at as string,
     proposed_solution: (row.proposed_solution as string | null) ?? null,
     expected_impact: (row.expected_impact as string | null) ?? null,
@@ -255,7 +260,12 @@ async function fetchPublicFeedRows(params: FetchPostsPageParams): Promise<{
     return { rows: [], hasMore: false }
   }
 
-  const columnSets = [POST_PUBLIC_COLUMNS, POST_PUBLIC_COLUMNS_LEGACY, POST_PUBLIC_COLUMNS_CORE]
+  const columnSets = [
+    POST_PUBLIC_COLUMNS,
+    POST_PUBLIC_COLUMNS_AFTER_FIX_DATABASE,
+    POST_PUBLIC_COLUMNS_CORE,
+    POST_PUBLIC_COLUMNS_LEGACY,
+  ]
   let lastError: unknown
 
   for (const columns of columnSets) {
@@ -287,7 +297,12 @@ async function fetchPublicPostRowById(
   signal?: AbortSignal,
 ): Promise<Record<string, unknown> | null> {
   const client = requireSupabase()
-  const columnSets = [POST_PUBLIC_COLUMNS, POST_PUBLIC_COLUMNS_LEGACY, POST_PUBLIC_COLUMNS_CORE]
+  const columnSets = [
+    POST_PUBLIC_COLUMNS,
+    POST_PUBLIC_COLUMNS_AFTER_FIX_DATABASE,
+    POST_PUBLIC_COLUMNS_CORE,
+    POST_PUBLIC_COLUMNS_LEGACY,
+  ]
   let lastError: unknown
 
   for (const columns of columnSets) {
@@ -430,7 +445,7 @@ export async function enrichPosts(
         : p
     return {
       ...merged,
-      poll: pollById.get(p.id) ?? merged.poll,
+      poll: normalizePollVoteState(pollById.get(p.id) ?? merged.poll) ?? undefined,
       attachments: attachById.get(p.id) ?? merged.attachments,
     }
   })

@@ -67,8 +67,13 @@ export const MOVEMENT_VISUAL: Record<MovementType, MovementVisualStyle> = {
   },
 }
 
-export function getMovementVisual(type: MovementType): MovementVisualStyle {
-  return MOVEMENT_VISUAL[type]
+const DEFAULT_MOVEMENT_VISUAL = MOVEMENT_VISUAL.idea_for_change
+
+export function getMovementVisual(type: MovementType | string | null | undefined): MovementVisualStyle {
+  if (type && type in MOVEMENT_VISUAL) {
+    return MOVEMENT_VISUAL[type as MovementType]
+  }
+  return DEFAULT_MOVEMENT_VISUAL
 }
 
 /** Show momentum pill when engagement is meaningfully active (real counts only). */

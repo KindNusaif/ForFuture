@@ -3,7 +3,7 @@ import { Flame, Layers, Tag, TrendingUp } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { ImpactPulseDashboard } from '../../lib/impactPulse'
 import { formatImpactCountFull } from '../../lib/impactPulse'
-import { buildMovementConfig } from '../../lib/movements'
+import { buildMovementConfig, coerceMovementType } from '../../lib/movements'
 import SectionShell from './SectionShell'
 import { Skeleton } from '../Skeleton'
 
@@ -67,7 +67,7 @@ export default function ImpactPulseWeekly({ weekly, loading, unavailable }: Prop
                   })}
                 </p>
                 <span className="mt-3 inline-flex rounded-full bg-accent-50 px-3 py-1 text-xs font-semibold text-accent-800 ring-1 ring-accent-200/80">
-                  {buildMovementConfig(weekly.most_supported.movement_type, t).shortLabel}
+                  {buildMovementConfig(coerceMovementType(weekly.most_supported.movement_type), t).shortLabel}
                 </span>
               </>
             ) : (
@@ -105,7 +105,7 @@ export default function ImpactPulseWeekly({ weekly, loading, unavailable }: Prop
           >
             {weekly.top_movement_type ? (
               <p className="text-lg font-bold text-primary">
-                {buildMovementConfig(weekly.top_movement_type, t).label}
+                {buildMovementConfig(coerceMovementType(weekly.top_movement_type), t).label}
               </p>
             ) : (
               <p className="text-sm text-muted">{t('impactPulse.weekly.noPickYet')}</p>

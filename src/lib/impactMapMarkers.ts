@@ -12,10 +12,14 @@ export const IMPACT_MARKER_COLORS: Record<
 
 /** SVG pin for Google Maps Marker icon */
 export function createImpactMarkerIconUrl(
-  layerType: ImpactLayerType,
+  layerType: ImpactLayerType | string,
   selected: boolean,
 ): string {
-  const { fill, ring } = IMPACT_MARKER_COLORS[layerType]
+  const colors =
+    layerType in IMPACT_MARKER_COLORS
+      ? IMPACT_MARKER_COLORS[layerType as ImpactLayerType]
+      : IMPACT_MARKER_COLORS.issue
+  const { fill, ring } = colors
   const size = selected ? 36 : 28
   const border = selected ? 3 : 2
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">

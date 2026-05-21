@@ -3,7 +3,7 @@ import { ArrowRight, Sparkles, Star } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { ImpactPulseSpotlight as SpotlightData } from '../../lib/impactPulse'
 import { formatImpactCountFull } from '../../lib/impactPulse'
-import { buildMovementConfig } from '../../lib/movements'
+import { buildMovementConfig, coerceMovementType } from '../../lib/movements'
 import CampaignReviewBadge from '../CampaignReviewBadge'
 import SectionShell from './SectionShell'
 import { Skeleton } from '../Skeleton'
@@ -63,7 +63,7 @@ export default function ImpactPulseSpotlight({
               </p>
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <span className="rounded-full bg-surface/15 px-3 py-1 text-xs font-semibold">
-                  {buildMovementConfig(spotlight.movement_type, t).shortLabel}
+                  {buildMovementConfig(coerceMovementType(spotlight.movement_type), t).shortLabel}
                 </span>
                 <span className="rounded-full bg-surface/10 px-3 py-1 text-xs font-semibold">
                   {t(`categories.${spotlight.category}`, { defaultValue: spotlight.category })}

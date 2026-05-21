@@ -1046,7 +1046,7 @@
     "retryNow": "Retry now",
     "loadFailed": "We could not load this content right now.",
     "checkConnection": "Please check your connection and try again.",
-    "databaseSetupHint": "If you operate this site: in Supabase → SQL Editor, run supabase/fix_database.sql (full schema repair), then supabase/RUN_PUBLIC_BETA_IN_SUPABASE.sql. Hard-refresh the app when both succeed."
+    "databaseSetupHint": "If you operate this site: in Supabase → SQL Editor, run supabase/FIX_MOVEMENTS_FEED_NOW.sql (repairs the movements feed view). Hard-refresh the app when it succeeds."
   },
   "map": {
     "pickerLabel": "Location on map",

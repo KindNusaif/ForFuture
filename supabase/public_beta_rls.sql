@@ -21,7 +21,7 @@ security definer
 set search_path = pg_catalog, public
 as $$
   select coalesce(
-    (select p.is_admin from public.profiles p where p.id = auth.uid()),
+    (select p.is_admin from public.profiles p where p.id = (select auth.uid())),
     false
   );
 $$;
@@ -36,28 +36,27 @@ grant execute on function public.is_platform_admin() to authenticated;
 alter table public.profiles enable row level security;
 
 drop policy if exists "Users can read own profile" on public.profiles;
-create policy "Users can read own profile"
-  on public.profiles for select to authenticated
-  using (auth.uid() = id);
+drop policy if exists "Public can read verified organization flags" on public.profiles;
+drop policy if exists "Public can read verified organizer flags" on public.profiles;
+drop policy if exists "Profiles select own or verified badges" on public.profiles;
+create policy "Profiles select own or verified badges"
+  on public.profiles for select to anon, authenticated
+  using (
+    (select auth.uid()) = id
+    or coalesce(is_verified_organization, false) = true
+    or coalesce(is_verified_organizer, false) = true
+  );
 
 drop policy if exists "Users can insert own profile" on public.profiles;
 create policy "Users can insert own profile"
   on public.profiles for insert to authenticated
-  with check (auth.uid() = id);
+  with check ((select auth.uid()) = id);
 
 drop policy if exists "Users can update own profile" on public.profiles;
 create policy "Users can update own profile"
   on public.profiles for update to authenticated
-  using (auth.uid() = id)
-  with check (auth.uid() = id);
-
-drop policy if exists "Public can read verified organization flags" on public.profiles;
-create policy "Public can read verified organization flags"
-  on public.profiles for select to anon, authenticated
-  using (
-    coalesce(is_verified_organization, false) = true
-    or coalesce(is_verified_organizer, false) = true
-  );
+  using ((select auth.uid()) = id)
+  with check ((select auth.uid()) = id);
 
 -- =============================================================================
 -- private.posts (base table — not exposed in API; RLS still applies to views)
@@ -70,6 +69,7 @@ begin
   ) then
     execute 'alter table private.posts enable row level security';
 
+    execute 'drop policy if exists "Users can read own posts from table" on private.posts';
     execute 'drop policy if exists "Posts readable via safe public view" on private.posts';
     execute $p$
       create policy "Posts readable via safe public view"
@@ -81,22 +81,22 @@ begin
     execute $p$
       create policy "Users can create own posts"
         on private.posts for insert to authenticated
-        with check (auth.uid() = user_id)
+        with check ((select auth.uid()) = user_id)
     $p$;
 
     execute 'drop policy if exists "Users can update own posts" on private.posts';
     execute $p$
       create policy "Users can update own posts"
         on private.posts for update to authenticated
-        using (auth.uid() = user_id)
-        with check (auth.uid() = user_id)
+        using ((select auth.uid()) = user_id)
+        with check ((select auth.uid()) = user_id)
     $p$;
 
     execute 'drop policy if exists "Users can delete own posts" on private.posts';
     execute $p$
       create policy "Users can delete own posts"
         on private.posts for delete to authenticated
-        using (auth.uid() = user_id)
+        using ((select auth.uid()) = user_id)
     $p$;
   end if;
 end;
@@ -120,7 +120,7 @@ create policy "Poll creators can add options"
   with check (
     exists (
       select 1 from private.posts p
-      where p.id = post_id and p.user_id = auth.uid()
+      where p.id = post_id and p.user_id = (select auth.uid())
     )
   );
 
@@ -130,7 +130,7 @@ create policy "Poll owners can delete options"
   using (
     exists (
       select 1 from private.posts p
-      where p.id = post_id and p.user_id = auth.uid()
+      where p.id = post_id and p.user_id = (select auth.uid())
     )
   );
 
@@ -140,15 +140,12 @@ create policy "Poll votes publicly readable"
   using (true);
 
 drop policy if exists "Users can read own poll votes" on public.poll_votes;
-create policy "Users can read own poll votes"
-  on public.poll_votes for select to authenticated
-  using (voter_user_id = auth.uid());
 
 drop policy if exists "Authenticated users can vote once per poll" on public.poll_votes;
 create policy "Authenticated users can vote once per poll"
   on public.poll_votes for insert to authenticated
   with check (
-    voter_user_id = auth.uid()
+    voter_user_id = (select auth.uid())
     and exists (
       select 1 from public.poll_options o
       where o.id = option_id and o.post_id = post_id
@@ -173,7 +170,7 @@ create policy "Petition signatures readable by everyone"
 drop policy if exists "Users sign petitions as themselves" on public.petition_signatures;
 create policy "Users sign petitions as themselves"
   on public.petition_signatures for insert to authenticated
-  with check (auth.uid() = supporter_user_id);
+  with check ((select auth.uid()) = supporter_user_id);
 
 -- =============================================================================
 -- post_actions (civic engagement)
@@ -194,12 +191,12 @@ create policy "Post actions publicly readable by guests"
 drop policy if exists "Users can add own post action" on public.post_actions;
 create policy "Users can add own post action"
   on public.post_actions for insert to authenticated
-  with check (auth.uid() = user_id);
+  with check ((select auth.uid()) = user_id);
 
 drop policy if exists "Users can remove own post action" on public.post_actions;
 create policy "Users can remove own post action"
   on public.post_actions for delete to authenticated
-  using (auth.uid() = user_id);
+  using ((select auth.uid()) = user_id);
 
 -- =============================================================================
 -- supports (legacy — keep read-only engagement counts for guests)
@@ -220,12 +217,12 @@ create policy "Supports are publicly readable by guests"
 drop policy if exists "Users can add support" on public.supports;
 create policy "Users can add support"
   on public.supports for insert to authenticated
-  with check (auth.uid() = user_id);
+  with check ((select auth.uid()) = user_id);
 
 drop policy if exists "Users can remove own support" on public.supports;
 create policy "Users can remove own support"
   on public.supports for delete to authenticated
-  using (auth.uid() = user_id);
+  using ((select auth.uid()) = user_id);
 
 -- =============================================================================
 -- movement_attachments
@@ -244,7 +241,7 @@ create policy "Users insert attachments for own movements"
   with check (
     exists (
       select 1 from private.posts p
-      where p.id = movement_id and p.user_id = auth.uid()
+      where p.id = movement_id and p.user_id = (select auth.uid())
     )
   );
 
@@ -254,7 +251,7 @@ create policy "Users delete own attachments"
   using (
     exists (
       select 1 from private.posts p
-      where p.id = movement_id and p.user_id = auth.uid()
+      where p.id = movement_id and p.user_id = (select auth.uid())
     )
   );
 
@@ -267,17 +264,17 @@ alter table if exists public.content_reports enable row level security;
 drop policy if exists "Users insert own content reports" on public.content_reports;
 create policy "Users insert own content reports"
   on public.content_reports for insert to authenticated
-  with check (auth.uid() = reporter_user_id);
+  with check ((select auth.uid()) = reporter_user_id);
 
 drop policy if exists "Users read own content reports" on public.content_reports;
-create policy "Users read own content reports"
-  on public.content_reports for select to authenticated
-  using (auth.uid() = reporter_user_id);
-
 drop policy if exists "Admins read all content reports" on public.content_reports;
-create policy "Admins read all content reports"
+drop policy if exists "Users and admins read content reports" on public.content_reports;
+create policy "Users and admins read content reports"
   on public.content_reports for select to authenticated
-  using (public.is_platform_admin());
+  using (
+    (select auth.uid()) = reporter_user_id
+    or public.is_platform_admin()
+  );
 
 drop policy if exists "Admins update content reports" on public.content_reports;
 create policy "Admins update content reports"
