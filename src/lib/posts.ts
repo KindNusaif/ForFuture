@@ -180,6 +180,33 @@ function mapPostRow(
   return sanitizePostForPublic(base, options)
 }
 
+/** Harden a post before render (feed cache, cards, detail shells). */
+export function normalizePostForDisplay(post: Post): Post {
+  const movementType = coerceMovementType(post.movement_type)
+  return {
+    ...post,
+    id: typeof post.id === 'string' && post.id ? post.id : '',
+    title: safeText(post.title, 'Untitled movement'),
+    description: safeText(post.description),
+    category: coerceCategory(post.category),
+    movement_type: movementType,
+    author_name:
+      typeof post.author_name === 'string' && post.author_name.trim()
+        ? post.author_name
+        : 'Anonymous',
+    support_count: Number.isFinite(Number(post.support_count))
+      ? Math.max(0, Number(post.support_count))
+      : 0,
+    follower_count: Number.isFinite(Number(post.follower_count))
+      ? Math.max(0, Number(post.follower_count))
+      : 0,
+    attachments: safeArray<MovementAttachment>(post.attachments),
+    poll: isPollMovement(movementType)
+      ? normalizePollVoteState(post.poll) ?? undefined
+      : undefined,
+  }
+}
+
 export function sanitizePostForPublic(
   post: PostRowBase,
   options?: { viewerUserId?: string },
@@ -285,7 +312,7 @@ async function fetchPublicFeedRows(params: FetchPostsPageParams): Promise<{
       const hasMore = raw.length > pageSize
       const slice = raw.slice(0, pageSize)
       const rows = slice
-        .map((row) => mapPostRow(row, { viewerUserId }))
+        .map((row) => normalizePostForDisplay(mapPostRow(row, { viewerUserId }) as Post))
         .filter((row) => Boolean(row.id))
       return {
         rows,
@@ -457,11 +484,11 @@ export async function enrichPosts(
             supported_by_me: petitionOverlay.supported_by_me,
           }
         : p
-    return {
+    return normalizePostForDisplay({
       ...merged,
       poll: normalizePollVoteState(pollById.get(p.id) ?? merged.poll) ?? undefined,
       attachments: safeArray<MovementAttachment>(attachById.get(p.id) ?? merged.attachments),
-    }
+    })
   })
 }
 

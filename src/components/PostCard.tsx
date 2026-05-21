@@ -48,7 +48,7 @@ const categoryColors: Record<string, string> = {
   Other: 'chip-muted',
 }
 
-interface PostCardProps {
+export interface PostCardProps {
   post: Post
   onSupport?: (postId: string) => void
   onPetitionSign?: (postId: string) => void

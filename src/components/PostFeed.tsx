@@ -6,7 +6,7 @@ import CreateMovementCta from './create/CreateMovementCta'
 import EmptyState from './EmptyState'
 import FeedDiscoveryBar from './FeedDiscoveryBar'
 import FeedTabs, { type FeedTab } from './FeedTabs'
-import PostCard from './PostCard'
+import SafePostCard from './SafePostCard'
 import { FeedPostListSkeleton } from './Skeleton'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
 import { useToast } from '../hooks/useToast'
@@ -22,7 +22,12 @@ import { signPetition } from '../lib/petitionSignatures'
 import { castPollVote } from '../lib/polls'
 import AsyncLoadHint from './AsyncLoadHint'
 import { useLoadingProgress } from '../hooks/useLoadingProgress'
-import { DEFAULT_FEED_PAGE_SIZE, enrichPosts, fetchFeedRowsPage } from '../lib/posts'
+import {
+  DEFAULT_FEED_PAGE_SIZE,
+  enrichPosts,
+  fetchFeedRowsPage,
+  normalizePostForDisplay,
+} from '../lib/posts'
 import { withAutoRetry } from '../lib/supabaseRequest'
 import { isRequestAborted } from '../lib/supabaseRequest'
 import { getActionSuccessMessage } from '../lib/movements'
@@ -242,7 +247,8 @@ function PostFeedContent({
         const withFollow = isGuest
           ? enriched
           : applyFollowStateToPosts(enriched, follows.followedIds, follows.followerCounts)
-        setPosts((prev) => (append ? [...prev, ...withFollow] : withFollow))
+        const normalized = withFollow.map(normalizePostForDisplay)
+        setPosts((prev) => (append ? [...prev, ...normalized] : normalized))
         setHasMore(more)
         setNextOffset(next)
         setError(null)
@@ -325,7 +331,7 @@ function PostFeedContent({
 
     const cached = feedCacheKey ? getFeedCache(feedCacheKey) : null
     if (cached) {
-      setPosts(cached.posts)
+      setPosts(cached.posts.map(normalizePostForDisplay))
       setHasMore(cached.hasMore)
       setNextOffset(cached.nextOffset)
       setLoading(false)
@@ -682,7 +688,7 @@ function PostFeedContent({
 
       {showFeedLoading ? (
         <FeedPostListSkeleton />
-      ) : filtered.length === 0 && !error && !showFeedLoading ? (
+      ) : error ? null : filtered.length === 0 ? (
         <div className="mt-8">
           <EmptyState
             icon={Inbox}
@@ -733,7 +739,7 @@ function PostFeedContent({
           <ul className="mt-4 min-w-0 space-y-4 sm:space-y-5">
             {filtered.map((post) => (
               <li key={post.id} className="min-w-0">
-                <PostCard
+                <SafePostCard
                   post={post}
                   detailPath={
                     reliefHub

@@ -10,6 +10,7 @@ interface Props {
 interface State {
   hasError: boolean
   errorMessage?: string
+  componentStack?: string
   resetKey?: string
 }
 
@@ -29,16 +30,25 @@ export default class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error('[ForFuture] UI error boundary', error.message, info.componentStack)
-    if (import.meta.env.PROD) {
-      console.error('[ForFuture] If this persists after refresh, report the route and steps to support.')
+    if (typeof window !== 'undefined') {
+      ;(window as Window & { __forfutureLastError?: unknown }).__forfutureLastError = {
+        message: error.message,
+        stack: error.stack,
+        componentStack: info.componentStack,
+        path: window.location.pathname,
+      }
     }
-    this.setState({ errorMessage: error.message })
+    this.setState({
+      errorMessage: error.message,
+      componentStack: info.componentStack ?? undefined,
+    })
   }
 
   render() {
     if (this.state.hasError) {
       const showDevDetail =
-        import.meta.env.DEV && this.state.errorMessage && this.state.errorMessage.length < 240
+        import.meta.env.DEV &&
+        Boolean(this.state.errorMessage || this.state.componentStack)
 
       return (
         <main className="flex min-h-screen flex-col items-center justify-center px-4 py-16">
@@ -54,9 +64,10 @@ export default class ErrorBoundary extends Component<Props, State> {
               We hit an unexpected error. Refresh the page or return home and try again.
             </p>
             {showDevDetail && (
-              <p className="mt-3 rounded-lg bg-muted px-3 py-2 text-left font-mono text-xs text-secondary">
+              <pre className="mt-3 max-h-40 overflow-auto rounded-lg bg-muted px-3 py-2 text-left font-mono text-xs text-secondary whitespace-pre-wrap">
                 {this.state.errorMessage}
-              </p>
+                {this.state.componentStack ? `\n\n${this.state.componentStack}` : ''}
+              </pre>
             )}
             <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
               <button
