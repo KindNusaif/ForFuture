@@ -1,12 +1,8 @@
 import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react'
 import { Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import { isPublicMarketingRoute } from './lib/publicRoutes'
-import { AuthProvider } from './context/AuthContext'
-import { ThemeProvider } from './context/ThemeContext'
-import { JoinMovementProvider } from './context/JoinMovementContext'
-import { CreatePollProvider } from './context/CreatePollContext'
-import { ReportContentProvider } from './context/ReportContentContext'
 import AdminRoute from './components/AdminRoute'
+import JoinMovementModalHost from './components/JoinMovementModalHost'
 import Layout from './components/Layout'
 import ExploreLayout from './components/ExploreLayout'
 import ImpactMapLayout from './components/ImpactMapLayout'
@@ -76,15 +72,12 @@ function AppFrame({ children }: { children: ReactNode }) {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <ThemeProvider>
-          <SessionExpiryHandler />
-          <JoinMovementProvider>
-            <CreatePollProvider>
-            <ReportContentProvider>
-              <AppFrame>
-              <DeployConfigBanner />
-              <Routes>
+    <>
+      <SessionExpiryHandler />
+      <JoinMovementModalHost />
+      <AppFrame>
+        <DeployConfigBanner />
+        <Routes>
               <Route path="post/:id" element={<PublicShareRedirect />} />
               <Route path="petition/:id" element={<PublicShareRedirect />} />
               <Route path="poll/:id" element={<PublicShareRedirect />} />
@@ -406,12 +399,8 @@ export default function App() {
                 </Route>
               </Route>
 
-              </Routes>
-              </AppFrame>
-            </ReportContentProvider>
-            </CreatePollProvider>
-          </JoinMovementProvider>
-      </ThemeProvider>
-    </AuthProvider>
+        </Routes>
+      </AppFrame>
+    </>
   )
 }

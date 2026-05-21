@@ -4,8 +4,8 @@ import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import './i18n'
 import App from './App'
+import AppProviders from './AppProviders'
 import ErrorBoundaryReset from './components/ErrorBoundaryReset'
-import { ToastProvider } from './context/ToastProvider'
 
 if (typeof window !== 'undefined') {
   window.addEventListener('error', (event) => {
@@ -24,12 +24,12 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ToastProvider>
+    <AppProviders>
       <BrowserRouter>
         <ErrorBoundaryReset>
           <App />
         </ErrorBoundaryReset>
       </BrowserRouter>
-    </ToastProvider>
+    </AppProviders>
   </StrictMode>,
 )

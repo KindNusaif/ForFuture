@@ -84,14 +84,47 @@ export default defineConfig({
         manualChunks(id) {
           if (id.includes('node_modules/leaflet')) return 'leaflet'
           if (id.includes('node_modules/@googlemaps')) return 'google-maps'
-          // Keep toast context in one chunk so lazy routes (Feed, PostFeed) share the same
-          // React context instance as ToastProvider — avoids "useToast must be used within ToastProvider".
+          // Isolate context + provider modules (not whole dependency trees) so lazy routes
+          // share one React context instance — avoid duplicating toast-context in route chunks.
           if (
             id.includes('/context/toast-context') ||
             id.includes('/context/ToastProvider') ||
             id.includes('/hooks/useToast')
           ) {
             return 'toast'
+          }
+          if (
+            id.includes('/context/join-movement-context') ||
+            id.includes('/context/join-movement-modal-context') ||
+            id.includes('/context/JoinMovementContext') ||
+            id.includes('/hooks/useJoinMovement')
+          ) {
+            return 'join-movement'
+          }
+          if (
+            id.includes('/context/create-poll-context') ||
+            id.includes('/hooks/useCreatePoll')
+          ) {
+            return 'create-poll'
+          }
+          if (
+            id.includes('/context/report-content-context') ||
+            id.includes('/hooks/useReportContent')
+          ) {
+            return 'report-content'
+          }
+          if (
+            id.includes('/context/auth-context') ||
+            id.includes('/hooks/useAuth') ||
+            id.includes('/hooks/useAuthUser')
+          ) {
+            return 'auth'
+          }
+          if (
+            id.includes('/context/theme-context') ||
+            id.includes('/hooks/useTheme')
+          ) {
+            return 'theme'
           }
         },
       },
