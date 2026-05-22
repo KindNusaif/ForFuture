@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { ArrowRight, BadgeCheck, HeartHandshake, Search } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import GuestModeBanner from '../components/guidance/GuestModeBanner'
 import PostFeed from '../components/PostFeed'
 import ReliefTrustStrip from '../components/relief/ReliefTrustStrip'
 import { useAuth } from '../hooks/useAuth'
@@ -54,6 +55,11 @@ export default function ReliefHub({ mode = 'member' }: ReliefHubProps) {
 
   return (
     <div className="relief-hub-page">
+      {isGuest ? (
+        <div className="mx-auto max-w-6xl px-4 pt-6 sm:px-6">
+          <GuestModeBanner />
+        </div>
+      ) : null}
       <section className="relief-hub-hero mx-auto max-w-6xl px-4 pt-8 sm:px-6 sm:pt-10">
         <p className="relief-hub-eyebrow">{t('reliefHub.heroEyebrow')}</p>
         <h1 className="relief-hub-title font-display">{t('relief.title')}</h1>

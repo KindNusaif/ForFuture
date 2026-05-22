@@ -12,6 +12,7 @@
 @import './styles/launch-polish.css';
 @import './styles/community-polls.css';
 @import './styles/admin-dashboard.css';
+@import './styles/guidance.css';
 
 /* ─── Brand palette (unchanged) ─── */
 @theme {

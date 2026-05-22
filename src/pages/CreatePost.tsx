@@ -53,6 +53,7 @@ import {
   type ActionPathSuggestion,
 } from '../lib/actionPathAi'
 import { useTranslation } from 'react-i18next'
+import GuidanceHint from '../components/guidance/GuidanceHint'
 import type { Category, MovementType, PostingIdentity } from '../types'
 
 function CharCount({ current, max }: { current: number; max: number }) {
@@ -615,15 +616,31 @@ export default function CreatePost() {
         <p className="mt-2 text-secondary">
           {isPoll ? t('create.pollPageSubtitle') : t('create.subtitle')}
         </p>
+        {!isPoll ? (
+          <GuidanceHint className="mt-3">
+            {t('guidance.microcopy.create', {
+              defaultValue:
+                'Start with an issue, idea, petition, volunteer drive, or relief need.',
+            })}
+          </GuidanceHint>
+        ) : null}
       </header>
 
       {!isPoll && (
+        <>
+        <GuidanceHint className="mb-3">
+          {t('guidance.microcopy.actionpath', {
+            defaultValue:
+              'Not sure how to explain your concern? Let ActionPath AI help structure it.',
+          })}
+        </GuidanceHint>
         <ActionPathAI
           currentMovementType={movementType}
           onApplyDraft={(s) => applyActionPathSuggestion(s, 'draft')}
           onApplyFields={(s) => applyActionPathSuggestion(s, 'fields')}
           formDisabled={loading}
         />
+        </>
       )}
 
       <form

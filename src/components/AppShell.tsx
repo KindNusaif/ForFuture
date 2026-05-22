@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   Home,
   PlusCircle,
@@ -19,6 +19,7 @@ import ThemeQuickToggle from './appearance/ThemeQuickToggle'
 import LanguageSwitcher from './LanguageSwitcher'
 import Logo from './Logo'
 import NotificationCenter from './notifications/NotificationCenter'
+import HelpTooltip from './guidance/HelpTooltip'
 import SkipLink from './SkipLink'
 import { useAuth } from '../hooks/useAuth'
 import { useToast } from '../hooks/useToast'
@@ -159,14 +160,24 @@ export default function AppShell({ children }: { children?: ReactNode }) {
                   >
                     {profile.youth_voice_id ?? '—'}
                   </p>
-                  <p className="mt-2.5 text-[11px] leading-relaxed text-secondary">
-                    {t('voice.youthVoiceHint')}
+                  <p className="mt-2.5 flex items-start gap-1.5 text-[11px] leading-relaxed text-secondary">
+                    <span className="flex-1">{t('voice.youthVoiceHint')}</span>
+                    <HelpTooltip
+                      label={t('guidance.features.youthVoiceId.title', { defaultValue: 'Youth Voice ID' })}
+                      text={t('guidance.tooltips.youthVoice')}
+                    />
                   </p>
                 </div>
               )}
             </div>
 
             <footer className="app-sidebar-footer">
+              <Link
+                to="/how-it-works"
+                className="nav-link mb-2 w-full text-sm text-secondary hover:text-accent-600 dark:hover:text-accent-400"
+              >
+                {t('guidance.nav.howItWorks', { defaultValue: 'How ForFuture works' })}
+              </Link>
               <button
                 type="button"
                 onClick={() => void handleLogout()}

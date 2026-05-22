@@ -118,9 +118,14 @@ export default function MyContributionsSection({
           <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-accent-100 text-accent-700 dark:bg-accent-950/50 dark:text-accent-300">
             <FileText className="h-6 w-6" aria-hidden />
           </span>
-          <h4 className="mt-4 text-lg font-bold text-primary">{t('profile.emptyMovementsTitle')}</h4>
+          <h4 className="mt-4 text-lg font-bold text-primary">
+            {t('guidance.empty.contributionsTitle', { defaultValue: 'No contributions yet' })}
+          </h4>
           <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-secondary">
-            {t('profile.emptyMovementsDesc')}
+            {t('guidance.empty.contributionsDescription', {
+              defaultValue:
+                'Your posts, petitions, polls, volunteer drives, and movements will appear here after you create them.',
+            })}
           </p>
           <CreateMovementCta className="mt-6" />
         </div>

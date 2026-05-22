@@ -52,6 +52,7 @@ const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'))
 const TermsOfUse = lazy(() => import('./pages/TermsOfUse'))
 const CommunityGuidelines = lazy(() => import('./pages/CommunityGuidelines'))
 const Contact = lazy(() => import('./pages/Contact'))
+const HowItWorks = lazy(() => import('./pages/HowItWorks'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 
 function LazyPage({ children }: { children: ReactNode }) {
@@ -157,6 +158,14 @@ export default function App() {
                   element={
                     <LazyPage>
                       <Contact />
+                    </LazyPage>
+                  }
+                />
+                <Route
+                  path="how-it-works"
+                  element={
+                    <LazyPage>
+                      <HowItWorks />
                     </LazyPage>
                   }
                 />

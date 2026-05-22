@@ -28,9 +28,9 @@ export default function PublicFooter() {
         <section className="max-w-sm">
           <Logo showTagline />
           <p className="mt-4 text-sm leading-relaxed text-secondary">
-            {t('landing.footerTagline', {
+            {t('guidance.footer.tagline', {
               defaultValue:
-                'A youth-centered civic platform to launch movements, polls, petitions, and volunteer drives.',
+                'ForFuture helps youth move from concern to action — safely, visibly, and together.',
             })}
           </p>
         </section>
@@ -51,12 +51,12 @@ export default function PublicFooter() {
               </li>
             ))}
             <li>
-              <a
-                href="/#how-it-works"
+              <Link
+                to="/how-it-works"
                 className="text-sm font-medium text-secondary transition hover:text-accent-600 dark:hover:text-accent-300"
               >
                 {t('landing.footerHow', { defaultValue: 'How it works' })}
-              </a>
+              </Link>
             </li>
           </ul>
         </nav>

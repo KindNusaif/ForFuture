@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { List, Map } from 'lucide-react'
+import GuestModeBanner from '../components/guidance/GuestModeBanner'
+import GuidanceHint from '../components/guidance/GuidanceHint'
 import ImpactMapCanvas from '../components/impact-map/ImpactMapCanvas'
 import ImpactMapDetail from '../components/impact-map/ImpactMapDetail'
 import ImpactMapFilters from '../components/impact-map/ImpactMapFilters'
@@ -20,6 +23,7 @@ import type { ImpactMapEntry } from '../lib/impactMap'
 type MobilePanel = 'map' | 'list'
 
 export default function ImpactMapPage() {
+  const { t } = useTranslation()
   const { isMember } = useAuth()
   const geo = useGeolocation({ tryInitialOnMount: false })
   const {
@@ -129,6 +133,7 @@ export default function ImpactMapPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:py-8">
+      {!isMember ? <GuestModeBanner className="mb-6" /> : null}
       <header className="mb-6">
         <p className="eyebrow flex items-center gap-2">
           <Map className="h-4 w-4" aria-hidden />
@@ -139,6 +144,11 @@ export default function ImpactMapPage() {
           Discover volunteer opportunities, civic actions, and community issues happening across
           the country.
         </p>
+        <GuidanceHint className="mt-2 max-w-2xl">
+          {t('guidance.microcopy.map', {
+            defaultValue: 'Use location to discover nearby issues and volunteer opportunities.',
+          })}
+        </GuidanceHint>
       </header>
 
       {!loading && !error && (
@@ -198,8 +208,14 @@ export default function ImpactMapPage() {
         <div className="mt-8">
           <EmptyState
             icon={Map}
-            title="No results on the map"
-            description="Try changing filters, widening your near-me radius, or create a movement with a location."
+            title={t('guidance.empty.mapTitle', { defaultValue: 'No map activity yet' })}
+            description={t('guidance.empty.mapDescription', {
+              defaultValue: 'Movements with location details will appear on the Impact Map.',
+            })}
+            action={{
+              label: t('guidance.empty.mapCta', { defaultValue: 'Browse Movements' }),
+              to: isMember ? '/discover' : '/explore',
+            }}
           />
           {isMember && (
             <p className="mt-6 text-center">

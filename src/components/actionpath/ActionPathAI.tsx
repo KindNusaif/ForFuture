@@ -8,6 +8,7 @@ import {
   X,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import HelpTooltip from '../guidance/HelpTooltip'
 import {
   ACTIONPATH_INPUT_MAX,
   ACTIONPATH_INPUT_MIN,
@@ -217,7 +218,16 @@ export default function ActionPathAI({
           )}
         </div>
 
-        <p className="text-xs leading-relaxed text-muted">{t('actionPath.trustNote')}</p>
+        <p className="flex items-start gap-2 text-xs leading-relaxed text-muted">
+          <span className="flex-1">{t('actionPath.trustNote')}</span>
+          <HelpTooltip
+            label={t('guidance.tooltips.actionPathLabel', { defaultValue: 'About ActionPath AI' })}
+            text={t('guidance.tooltips.actionPath', {
+              defaultValue:
+                'AI suggestions are a starting point. You should review and edit before publishing.',
+            })}
+          />
+        </p>
         <p className="text-xs leading-relaxed text-muted">{t('actionPath.languageNote')}</p>
       </div>
 

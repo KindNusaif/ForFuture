@@ -79,6 +79,14 @@ export default function PublicNav() {
       >
         {t('nav.impactNav', { defaultValue: 'Impact' })}
       </Link>
+      <Link
+        to="/how-it-works"
+        className={mobileNavClass(location.pathname === '/how-it-works')}
+        onClick={() => setOpen(false)}
+        aria-current={location.pathname === '/how-it-works' ? 'page' : undefined}
+      >
+        {t('guidance.nav.howItWorksShort', { defaultValue: 'How it works' })}
+      </Link>
       <a
         href="/#voices"
         className={mobileNavClass(aboutActive)}
@@ -112,6 +120,13 @@ export default function PublicNav() {
         aria-current={impactNavActive ? 'page' : undefined}
       >
         {t('nav.impactNav', { defaultValue: 'Impact' })}
+      </Link>
+      <Link
+        to="/how-it-works"
+        className={marketingLinkClass(location.pathname === '/how-it-works')}
+        aria-current={location.pathname === '/how-it-works' ? 'page' : undefined}
+      >
+        {t('guidance.nav.howItWorksShort', { defaultValue: 'How it works' })}
       </Link>
       <a
         href="/#voices"

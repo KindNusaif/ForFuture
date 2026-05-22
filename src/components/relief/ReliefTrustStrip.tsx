@@ -1,5 +1,6 @@
 import { BadgeCheck, Flag, HeartHandshake, Share2, Wallet } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import HelpTooltip from '../guidance/HelpTooltip'
 
 export default function ReliefTrustStrip() {
   const { t } = useTranslation()
@@ -13,9 +14,13 @@ export default function ReliefTrustStrip() {
 
   return (
     <section className="relief-trust-strip" aria-labelledby="relief-trust-heading">
-      <p id="relief-trust-heading" className="relief-trust-strip-lead">
+      <p id="relief-trust-heading" className="relief-trust-strip-lead flex flex-wrap items-center gap-2">
         <HeartHandshake className="inline h-4 w-4 shrink-0 text-mint" aria-hidden />
-        {t('reliefHub.trustStripLead')}
+        <span className="flex-1">{t('reliefHub.trustStripLead')}</span>
+        <HelpTooltip
+          label={t('guidance.tooltips.trustedCampaignLabel')}
+          text={t('guidance.tooltips.trustedCampaign')}
+        />
       </p>
       <ul className="relief-trust-strip-grid">
         {points.map(({ icon: Icon, label }) => (

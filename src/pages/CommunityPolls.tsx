@@ -9,6 +9,8 @@ import EmptyState from '../components/EmptyState'
 import SkeletonCard from '../components/ui/SkeletonCard'
 import PageContainer from '../components/ui/PageContainer'
 import PollsSidebar from '../components/polls/PollsSidebar'
+import GuestModeBanner from '../components/guidance/GuestModeBanner'
+import GuidanceHint from '../components/guidance/GuidanceHint'
 import { useAuthUser } from '../hooks/useAuthUser'
 import { useAuthGate } from '../hooks/useAuthGate'
 import { useCreatePoll } from '../hooks/useCreatePoll'
@@ -223,6 +225,7 @@ export default function CommunityPolls({ mode = 'member' }: CommunityPollsProps)
 
   return (
     <PageContainer className="community-polls-page !py-6 lg:!py-8">
+      {isGuestMode ? <GuestModeBanner className="mb-4" /> : null}
       <div className={`community-polls-layout ${showSidebar ? 'flex gap-6 lg:gap-8' : ''}`}>
         <section className="community-polls-main min-w-0 flex-1">
           <header className="community-polls-hero-panel impact-page-hero mb-4 px-5 py-5 sm:px-6 sm:py-6">
@@ -241,9 +244,11 @@ export default function CommunityPolls({ mode = 'member' }: CommunityPollsProps)
                       'Vote on local priorities, test ideas before action, and help communities understand what matters most.',
                   })}
                 </p>
-                <p className="community-polls-hero-note mt-2 text-xs sm:text-sm">
-                  {t('polls.emptyHint', { defaultValue: 'Polls help movements listen before they act.' })}
-                </p>
+                <GuidanceHint className="community-polls-hero-note mt-2">
+                  {t('guidance.microcopy.polls', {
+                    defaultValue: 'Polls help communities listen before they act.',
+                  })}
+                </GuidanceHint>
               </div>
               <button
                 type="button"

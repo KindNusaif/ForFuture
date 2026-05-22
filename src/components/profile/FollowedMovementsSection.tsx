@@ -72,7 +72,22 @@ export default function FollowedMovementsSection({ userId }: FollowedMovementsSe
       ) : error ? (
         <p className="form-error mt-4">{error}</p>
       ) : posts.length === 0 ? (
-        <p className="mt-4 text-sm text-secondary">{t('follow.profileEmpty')}</p>
+        <div className="mt-4 rounded-xl border border-dashed border-default px-4 py-6 text-center">
+          <p className="text-sm font-medium text-primary">
+            {t('guidance.empty.followingTitle', {
+              defaultValue: "You're not following any movements yet",
+            })}
+          </p>
+          <p className="mt-2 text-sm text-secondary">
+            {t('guidance.empty.followingDescription', {
+              defaultValue:
+                'Follow movements to receive updates and track the causes you care about.',
+            })}
+          </p>
+          <Link to="/discover" className="btn-primary mt-4 inline-flex text-sm">
+            {t('guidance.empty.followingCta', { defaultValue: 'Explore Movements' })}
+          </Link>
+        </div>
       ) : (
         <ul className="mt-4 space-y-2">
           {posts.map((post) => (

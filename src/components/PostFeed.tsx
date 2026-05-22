@@ -697,8 +697,15 @@ function PostFeedContent({
           />
           {isFollowingFeed && (
             <p className="mt-6 text-center">
-              <Link to="/discover" className="btn-primary">
-                {t('feed.followingExploreCta')}
+              <Link to={isGuest ? '/explore' : '/discover'} className="btn-primary">
+                {t('guidance.empty.followingCta', { defaultValue: 'Explore Movements' })}
+              </Link>
+            </p>
+          )}
+          {reliefHub && !hasActiveFilters && (
+            <p className="mt-6 text-center">
+              <Link to={isGuest ? '/explore' : '/discover'} className="btn-primary">
+                {t('guidance.empty.reliefCta', { defaultValue: 'Explore Movements' })}
               </Link>
             </p>
           )}

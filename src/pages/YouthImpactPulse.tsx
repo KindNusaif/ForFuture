@@ -1,6 +1,7 @@
 import { Activity, RefreshCw } from 'lucide-react'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import HelpTooltip from '../components/guidance/HelpTooltip'
 import AsyncLoadHint from '../components/AsyncLoadHint'
 import ImpactPulseCta from '../components/impact-pulse/ImpactPulseCta'
 import ImpactPulseDistricts from '../components/impact-pulse/ImpactPulseDistricts'
@@ -52,8 +53,12 @@ export default function YouthImpactPulse() {
             <Activity className="h-4 w-4" aria-hidden />
             {t('impactPulse.eyebrow')}
           </p>
-          <h1 className="mt-3 text-3xl sm:text-4xl lg:text-[2.75rem] lg:leading-tight">
+          <h1 className="mt-3 flex flex-wrap items-center gap-2 text-3xl sm:text-4xl lg:text-[2.75rem] lg:leading-tight">
             {t('impactPulse.heroTitle')}
+            <HelpTooltip
+              label={t('guidance.tooltips.impactPulseLabel')}
+              text={t('guidance.tooltips.impactPulse')}
+            />
           </h1>
           <p className="mt-4 max-w-2xl text-sm leading-relaxed text-white/80 sm:text-base">
             {t('impactPulse.heroSubtitle')}

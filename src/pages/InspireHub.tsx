@@ -4,6 +4,7 @@ import { Sparkles, Plus, Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import InspireCard from '../components/inspire/InspireCard'
 import EmptyState from '../components/EmptyState'
+import GuestModeBanner from '../components/guidance/GuestModeBanner'
 import PageContainer from '../components/ui/PageContainer'
 import SkeletonCard from '../components/ui/SkeletonCard'
 import { useAuthUser } from '../hooks/useAuthUser'
@@ -123,6 +124,7 @@ export default function InspireHub() {
 
   return (
     <PageContainer className="inspire-hub-page !py-6 lg:!py-8">
+      {isGuest ? <GuestModeBanner className="mb-4" /> : null}
       <header className="inspire-hub-hero impact-page-hero relative mb-8 overflow-hidden px-6 py-8 sm:px-8 sm:py-10">
         <div className="relative flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0 flex-1">
@@ -145,6 +147,13 @@ export default function InspireHub() {
                   'Celebrate achievements, success stories, lessons, entrepreneurship journeys, innovation ideas, and book insights that help youth grow and move forward.',
               })}
             </p>
+            {!isGuest ? (
+              <p className="mt-3 max-w-2xl text-xs text-white/70 sm:text-sm">
+                {t('guidance.microcopy.inspire', {
+                  defaultValue: 'Share learning, progress, and ideas that help others grow.',
+                })}
+              </p>
+            ) : null}
           </div>
           {isGuest ? (
             <button type="button" onClick={handleCreateClick} className="btn-primary shrink-0 self-start sm:self-auto">
@@ -207,16 +216,16 @@ export default function InspireHub() {
           title={
             emptyFiltered
               ? t('inspire.emptyFilterTitle', { defaultValue: 'No stories in this category yet' })
-              : t('inspire.emptyTitle', { defaultValue: 'No stories shared yet' })
+              : t('guidance.empty.inspireTitle', { defaultValue: 'No stories shared yet' })
           }
           description={
             emptyFiltered
               ? t('inspire.emptyFilterDescription', {
                   defaultValue: 'Be the first to share something meaningful and help others grow.',
                 })
-              : t('inspire.emptyDescription', {
+              : t('guidance.empty.inspireDescription', {
                   defaultValue:
-                    'Be the first to celebrate progress, share an idea, or pass on a lesson that could inspire another young person.',
+                    'Share an achievement, success story, idea, lesson, or book insight that could inspire another young person.',
                 })
           }
           action={

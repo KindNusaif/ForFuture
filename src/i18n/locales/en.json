@@ -396,8 +396,8 @@
     "tabDiscover": "Discover",
     "tabFollowing": "Following",
     "tabsLabel": "Feed views",
-    "followingEmptyTitle": "You're not following any movements yet.",
-    "followingEmptyDescription": "Explore causes that matter to you and follow the ones you want to track.",
+    "followingEmptyTitle": "You're not following any movements yet",
+    "followingEmptyDescription": "Follow movements to receive updates and track the causes you care about.",
     "followingExploreCta": "Explore Movements",
     "greeting": "Good to see you",
     "greetingNamed": "Good to see you, {{name}}",
@@ -1319,8 +1319,8 @@
       "verified_orgs": "Verified Organizations",
       "my_campaigns": "My Campaigns"
     },
-    "emptyTitle": "No trusted support campaigns yet",
-    "emptyBody": "Verified organizations and reviewed community campaigns will appear here when they are ready for public support.",
+    "emptyTitle": "No relief campaigns yet",
+    "emptyBody": "Verified donation and relief campaigns will appear here when they are ready for public support.",
     "emptyFilterTitle": "No campaigns match this view",
     "emptyFilterBody": "Try another filter or search term.",
     "backToRelief": "Back to Donation & Relief",
@@ -1474,6 +1474,185 @@
       "explore": "Explore Youth Momentum"
     }
   },
+  "guidance": {
+    "nav": {
+      "howItWorks": "How ForFuture works",
+      "howItWorksShort": "How it works"
+    },
+    "page": {
+      "eyebrow": "How it works",
+      "title": "How ForFuture works",
+      "subtitle": "ForFuture helps young people turn concerns, ideas, and community needs into organized civic action.",
+      "exploreCta": "Explore Movements",
+      "joinCta": "Create an account",
+      "stepsHeading": "Four steps to get started",
+      "accountHeading": "What needs an account?",
+      "accountBody": "Anyone can browse public movements, polls, relief campaigns, the Impact Map, and Inspire Hub as a guest. Creating an account unlocks following, signing, voting, volunteering, commenting, and creating your own movements.",
+      "featuresHeading": "What you can do on ForFuture",
+      "demoHeading": "Prototype Demo Ideas",
+      "demoNote": "These examples help visitors understand how ForFuture works. They are demo examples, not live user data."
+    },
+    "steps": {
+      "discover": {
+        "title": "Discover",
+        "description": "Explore public movements, petitions, polls, volunteer drives, and relief needs shared by the community."
+      },
+      "join": {
+        "title": "Join",
+        "description": "Create an account to follow movements, sign petitions, vote in polls, volunteer, and support causes."
+      },
+      "create": {
+        "title": "Create",
+        "description": "Start a Youth Movement by raising an issue, launching a petition, organizing volunteers, posting relief needs, or creating a poll."
+      },
+      "track": {
+        "title": "Track Impact",
+        "description": "Use dashboards, the Impact Map, and Youth Impact Pulse to see how civic action grows over time."
+      }
+    },
+    "features": {
+      "movements": {
+        "title": "Youth Movements",
+        "description": "Organized civic actions created by young people to raise issues, gather support, and create change.",
+        "cta": "Explore Movements"
+      },
+      "voice": {
+        "title": "Raise Your Voice",
+        "description": "Share an issue, concern, or idea that your community needs to hear.",
+        "cta": "Create a Voice Post"
+      },
+      "petitions": {
+        "title": "Petitions",
+        "description": "Turn a public demand into a structured campaign that people can sign and share.",
+        "cta": "Launch a Petition"
+      },
+      "volunteer": {
+        "title": "Volunteer Drives",
+        "description": "Organize people for real-world community action, events, and support work.",
+        "cta": "Start a Volunteer Drive"
+      },
+      "polls": {
+        "title": "Community Polls",
+        "description": "Ask focused questions and let the community vote on priorities, ideas, and decisions.",
+        "cta": "Create a Poll"
+      },
+      "relief": {
+        "title": "Donation & Relief",
+        "description": "Support verified relief needs through funds, supplies, volunteering, or sharing.",
+        "cta": "View Relief Campaigns"
+      },
+      "map": {
+        "title": "Impact Map",
+        "description": "Discover civic issues, volunteer drives, and relief needs by location.",
+        "cta": "Open Map"
+      },
+      "actionpath": {
+        "title": "ActionPath AI",
+        "description": "Turn a rough concern into a clear action plan with suggested movement type, title, summary, and next steps.",
+        "cta": "Generate Action Path"
+      },
+      "inspire": {
+        "title": "Inspire Hub",
+        "description": "Share achievements, success stories, lessons, innovation ideas, entrepreneurship journeys, and book insights.",
+        "cta": "Explore Inspire Hub"
+      },
+      "youthVoiceId": {
+        "title": "Youth Voice ID",
+        "description": "Speak publicly while keeping your personal profile identity protected.",
+        "cta": "Learn More"
+      }
+    },
+    "demo": {
+      "label": "Demo example",
+      "types": {
+        "poll": "Community Poll",
+        "petition": "Petition",
+        "volunteer": "Volunteer Drive",
+        "relief": "Relief Campaign",
+        "inspire": "Inspire Story",
+        "book": "Book Insight"
+      },
+      "titles": {
+        "poll": "What should our town prioritize next?",
+        "petition": "Safer school roads for every student",
+        "volunteer": "Weekend neighborhood cleanup drive",
+        "relief": "Community flood relief and supply support",
+        "inspire": "How one idea became a youth movement",
+        "book": "One lesson that changed how I think about leadership"
+      },
+      "descriptions": {
+        "poll": "Shows how communities can collect opinions before taking action.",
+        "petition": "Shows how youth can turn a concern into a public campaign.",
+        "volunteer": "Shows how people can organize real-world community action.",
+        "relief": "Shows how urgent needs can be shared and supported.",
+        "inspire": "Shows how progress and success stories can inspire others.",
+        "book": "Shows how learning and ideas can support youth growth."
+      }
+    },
+    "guest": {
+      "title": "Exploring as a guest",
+      "description": "You can browse public movements freely. Create an account to follow, sign, vote, volunteer, comment, or create your own movement.",
+      "join": "Join the Movement",
+      "login": "Log in",
+      "continue": "Continue Exploring"
+    },
+    "welcome": {
+      "title": "Welcome to ForFuture",
+      "description": "Start by exploring movements, following causes you care about, or creating your first civic action.",
+      "explore": "Explore Movements",
+      "create": "Create a Movement",
+      "map": "View Impact Map",
+      "gotIt": "Got it",
+      "dismiss": "Got it"
+    },
+    "quickStart": {
+      "title": "Quick Start",
+      "item1": "Explore a movement",
+      "item2": "Follow a cause",
+      "item3": "Vote in a poll",
+      "item4": "Create your first movement",
+      "item5": "Share your progress in Inspire Hub",
+      "cta": "Start Exploring"
+    },
+    "microcopy": {
+      "create": "Start with an issue, idea, petition, volunteer drive, or relief need.",
+      "actionpath": "Not sure how to explain your concern? Let ActionPath AI help structure it.",
+      "polls": "Polls help communities listen before they act.",
+      "map": "Use location to discover nearby issues and volunteer opportunities.",
+      "youthVoice": "Use protected expression when you want privacy on public posts.",
+      "inspire": "Share learning, progress, and ideas that help others grow."
+    },
+    "tooltips": {
+      "youthVoice": "Your Youth Voice ID lets you speak publicly while keeping your personal profile identity private.",
+      "trustedCampaign": "This badge means the campaign has passed ForFuture’s trust or verification review.",
+      "impactPulse": "Youth Impact Pulse shows platform activity and civic momentum over time.",
+      "actionPath": "AI suggestions are a starting point. You should review and edit before publishing.",
+      "actionPathLabel": "About ActionPath AI",
+      "trustedCampaignLabel": "Trusted campaign",
+      "impactPulseLabel": "About Youth Impact Pulse"
+    },
+    "empty": {
+      "pollsTitle": "No community polls yet",
+      "pollsDescription": "Create the first poll and help your community share opinions on issues, priorities, and actions that matter.",
+      "pollsCta": "Create a Poll",
+      "inspireTitle": "No stories shared yet",
+      "inspireDescription": "Share an achievement, success story, idea, lesson, or book insight that could inspire another young person.",
+      "reliefTitle": "No relief campaigns yet",
+      "reliefDescription": "Verified donation and relief campaigns will appear here when they are ready for public support.",
+      "reliefCta": "Explore Movements",
+      "followingTitle": "You're not following any movements yet",
+      "followingDescription": "Follow movements to receive updates and track the causes you care about.",
+      "followingCta": "Explore Movements",
+      "mapTitle": "No map activity yet",
+      "mapDescription": "Movements with location details will appear on the Impact Map.",
+      "mapCta": "Browse Movements",
+      "contributionsTitle": "No contributions yet",
+      "contributionsDescription": "Your posts, petitions, polls, volunteer drives, and movements will appear here after you create them."
+    },
+    "footer": {
+      "tagline": "ForFuture helps youth move from concern to action — safely, visibly, and together."
+    }
+  },
   "joinModal": {
     "title": "Join the Movement",
     "titleJoin": "Create an account to take action",
@@ -1490,12 +1669,12 @@
     "titlePollCreate": "Create an account to start a community poll",
     "descDefault": "Sign petitions, vote in community polls, join volunteer drives, and help turn youth voices into real movements.",
     "descReport": "Create an account to help keep ForFuture safe and respectful.",
-    "descComment": "Create an account to join the discussion and share your perspective on this movement.",
-    "descPetition": "Create an account to sign and support this petition.",
-    "descFollow": "Join to follow causes and receive updates when this movement grows.",
-    "descVolunteer": "Join to register your interest and take part in this volunteer drive.",
-    "descCreate": "Create an account to launch your own youth movement and rally your community.",
-    "descSupport": "Create a free account to support this movement and make your voice count.",
+    "descComment": "Create an account to join the conversation.",
+    "descPetition": "Create an account to sign this petition and make your support count.",
+    "descFollow": "Join ForFuture to follow this movement and receive updates.",
+    "descVolunteer": "Join ForFuture to register your interest in this volunteer drive.",
+    "descCreate": "Create an account to start your own youth movement.",
+    "descSupport": "Create an account to support trusted community campaigns.",
     "descFollowing": "Create an account to follow movements and build your personal civic feed.",
     "descPoll": "Create an account to vote in community polls.",
     "descPollCreate": "Create an account to ask focused questions and gather community opinion.",
