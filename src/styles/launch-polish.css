@@ -149,38 +149,7 @@
   border-radius: var(--ff-radius-card);
 }
 
-/* Public marketing nav — 3-zone single row (desktop) */
-@media (min-width: 1024px) {
-  .public-nav-bar {
-    column-gap: 1rem;
-  }
-
-  .public-nav-bar__brand {
-    justify-self: start;
-  }
-
-  .public-nav-bar__center {
-    justify-self: center;
-  }
-
-  .public-nav-bar__end {
-    justify-self: end;
-    min-width: max-content;
-  }
-}
-
-.public-nav-actions,
-.public-nav-utilities {
-  flex-wrap: nowrap;
-}
-
-.public-nav-actions {
-  min-height: 2.5rem;
-}
-
-.public-nav-utilities > * {
-  flex-shrink: 0;
-}
+/* Public marketing nav — see public-nav.css for 3-zone layout */
 
 /* Stronger focus for keyboard users */
 :focus-visible {

@@ -11,19 +11,16 @@ import {
   isMarketingAboutActive,
   isMarketingDiscoverActive,
   isMarketingExploreActive,
+  isMarketingHowItWorksActive,
   isMarketingImpactActive,
 } from '../lib/marketingNav'
 import { authStateFromPath, buildAuthReturn } from '../lib/authReturn'
 
-const inactiveClass =
-  'public-nav-link inline-flex min-h-10 items-center justify-center whitespace-nowrap px-3 py-2 text-sm font-medium'
-const activeClass = `${inactiveClass} public-nav-link-active`
-
-function marketingLinkClass(active: boolean) {
-  return active ? activeClass : inactiveClass
+function navLinkClass(active: boolean): string {
+  return active ? 'public-nav-link public-nav-link--active' : 'public-nav-link'
 }
 
-function mobileNavClass(isActive: boolean) {
+function mobileNavClass(isActive: boolean): string {
   return isActive ? 'mobile-nav-link mobile-nav-link-active' : 'mobile-nav-link'
 }
 
@@ -43,6 +40,7 @@ export default function PublicNav() {
   const exploreNavActive = isMarketingExploreActive(location.pathname)
   const discoverNavActive = isMarketingDiscoverActive(location.pathname)
   const impactNavActive = isMarketingImpactActive(location.pathname)
+  const howItWorksActive = isMarketingHowItWorksActive(location.pathname)
   const aboutActive = isMarketingAboutActive(location.pathname, location.hash)
 
   const isLovableHome = location.pathname === '/'
@@ -52,6 +50,46 @@ export default function PublicNav() {
   const showMarketingCenterNav = isMarketingRoute
   const showAppQuickLinks = !isMarketingRoute && authReady && signedIn
   const showMarketingGuestActions = isMarketingRoute
+
+  const marketingNavLinks = (
+    <>
+      <Link
+        to="/explore"
+        className={navLinkClass(exploreNavActive)}
+        aria-current={exploreNavActive ? 'page' : undefined}
+      >
+        {t('nav.exploreMovements', { defaultValue: 'Explore Movements' })}
+      </Link>
+      <Link
+        to="/discover?focus=nearby"
+        className={navLinkClass(discoverNavActive)}
+        aria-current={discoverNavActive ? 'page' : undefined}
+      >
+        {t('nav.discoverNearby', { defaultValue: 'Discover Nearby' })}
+      </Link>
+      <Link
+        to="/impact"
+        className={navLinkClass(impactNavActive)}
+        aria-current={impactNavActive ? 'page' : undefined}
+      >
+        {t('nav.impactNav', { defaultValue: 'Impact' })}
+      </Link>
+      <Link
+        to="/how-it-works"
+        className={navLinkClass(howItWorksActive)}
+        aria-current={howItWorksActive ? 'page' : undefined}
+      >
+        {t('guidance.nav.howItWorksShort', { defaultValue: 'How it works' })}
+      </Link>
+      <a
+        href="/#voices"
+        className={navLinkClass(aboutActive)}
+        aria-current={aboutActive ? 'page' : undefined}
+      >
+        {t('nav.aboutUs', { defaultValue: 'About Us' })}
+      </a>
+    </>
+  )
 
   const marketingMobileLinks = (
     <>
@@ -81,9 +119,9 @@ export default function PublicNav() {
       </Link>
       <Link
         to="/how-it-works"
-        className={mobileNavClass(location.pathname === '/how-it-works')}
+        className={mobileNavClass(howItWorksActive)}
         onClick={() => setOpen(false)}
-        aria-current={location.pathname === '/how-it-works' ? 'page' : undefined}
+        aria-current={howItWorksActive ? 'page' : undefined}
       >
         {t('guidance.nav.howItWorksShort', { defaultValue: 'How it works' })}
       </Link>
@@ -98,224 +136,154 @@ export default function PublicNav() {
     </>
   )
 
-  const guestCenterLinks = (
+  const joinButtonClass = isLovableHome
+    ? 'public-nav-join lovable-nav-join'
+    : 'public-nav-join btn-primary min-h-10! px-4! py-2!'
+
+  const loginButtonClass = isLovableHome
+    ? 'public-nav-login lovable-nav-login'
+    : 'public-nav-login'
+
+  const desktopRightActions = showAppQuickLinks ? (
     <>
-      <Link
-        to="/explore"
-        className={marketingLinkClass(exploreNavActive)}
-        aria-current={exploreNavActive ? 'page' : undefined}
-      >
-        {t('nav.exploreMovements', { defaultValue: 'Explore Movements' })}
-      </Link>
-      <Link
-        to="/discover?focus=nearby"
-        className={marketingLinkClass(discoverNavActive)}
-        aria-current={discoverNavActive ? 'page' : undefined}
-      >
-        {t('nav.discoverNearby', { defaultValue: 'Discover Nearby' })}
-      </Link>
-      <Link
-        to="/impact"
-        className={marketingLinkClass(impactNavActive)}
-        aria-current={impactNavActive ? 'page' : undefined}
-      >
-        {t('nav.impactNav', { defaultValue: 'Impact' })}
-      </Link>
-      <Link
-        to="/how-it-works"
-        className={marketingLinkClass(location.pathname === '/how-it-works')}
-        aria-current={location.pathname === '/how-it-works' ? 'page' : undefined}
-      >
-        {t('guidance.nav.howItWorksShort', { defaultValue: 'How it works' })}
-      </Link>
-      <a
-        href="/#voices"
-        className={marketingLinkClass(aboutActive)}
-        aria-current={aboutActive ? 'page' : undefined}
-      >
-        {t('nav.aboutUs', { defaultValue: 'About Us' })}
-      </a>
+      <div className="public-nav-auth">
+        <Link to="/feed" className={navLinkClass(false)}>
+          {t('nav.myFeed')}
+        </Link>
+        <Link to="/impact-map" className={navLinkClass(false)}>
+          {t('nav.impactMap')}
+        </Link>
+        <Link to="/impact" className={navLinkClass(impactNavActive)}>
+          {t('nav.impactPulse')}
+        </Link>
+        <Link to="/create" className={navLinkClass(false)}>
+          {t('nav.create')}
+        </Link>
+        <Link to="/profile" className={navLinkClass(false)}>
+          {t('nav.profile')}
+        </Link>
+      </div>
+      <div className="public-nav-utilities">
+        <ThemeQuickToggle variant="compact" />
+        <LanguageSwitcher variant="default" />
+      </div>
     </>
-  )
-
-  const guestMobileLinks = (
+  ) : signedIn ? (
     <>
-      {marketingMobileLinks}
-      <Link to="/login" state={authReturnState} className="mobile-nav-link" onClick={() => setOpen(false)}>
-        {t('nav.login')}
-      </Link>
-      <Link to="/signup" state={authReturnState} className="btn-primary mt-2 w-full" onClick={() => setOpen(false)}>
-        {t('nav.joinMovement')}
-      </Link>
-    </>
-  )
-
-  const memberMarketingMobileLinks = (
-    <>
-      {marketingMobileLinks}
-      <Link to="/feed" className="btn-primary mt-2 w-full" onClick={() => setOpen(false)}>
-        {t('nav.myFeed')}
-      </Link>
-      <Link to="/profile" className="mobile-nav-link" onClick={() => setOpen(false)}>
-        {t('nav.profile')}
-      </Link>
-    </>
-  )
-
-  const barLayoutClass = showMarketingCenterNav
-    ? 'public-nav-bar lg:grid lg:grid-cols-[1fr_auto_1fr] lg:items-center lg:gap-x-4 xl:gap-x-6'
-    : ''
-
-  const marketingAuthUtilities = signedIn ? (
-    <>
-      <Link
-        to="/feed"
-        className={`shrink-0 whitespace-nowrap inline-flex min-h-10 items-center justify-center ${
-          isLovableHome ? 'lovable-nav-join' : 'btn-primary min-h-10! px-4! py-2!'
-        }`}
-      >
-        {t('nav.myFeed')}
-      </Link>
-      <div className="public-nav-utilities flex shrink-0 items-center gap-1.5 border-l border-black/15 pl-3 dark:border-white/15 sm:pl-4">
+      <div className="public-nav-auth">
+        <Link
+          to="/feed"
+          className={isLovableHome ? joinButtonClass : 'public-nav-join btn-primary min-h-10! px-4! py-2!'}
+        >
+          {t('nav.myFeed')}
+        </Link>
+      </div>
+      <div className="public-nav-utilities">
         <ThemeQuickToggle variant={isLovableHome ? 'landing' : 'compact'} />
         <LanguageSwitcher variant={isLovableHome ? 'landing' : 'default'} />
       </div>
     </>
   ) : (
     <>
-      <Link
-        to="/login"
-        state={authReturnState}
-        className={
-          isLovableHome
-            ? 'lovable-nav-login shrink-0 whitespace-nowrap inline-flex min-h-10 items-center justify-center'
-            : `${inactiveClass} shrink-0 text-secondary`
-        }
-      >
-        {t('nav.login')}
-      </Link>
-      <Link
-        to="/signup"
-        state={authReturnState}
-        className={
-          isLovableHome
-            ? 'lovable-nav-join shrink-0 whitespace-nowrap inline-flex min-h-10 items-center justify-center'
-            : 'btn-primary shrink-0 whitespace-nowrap min-h-10! px-4! py-2!'
-        }
-      >
-        {t('nav.joinMovement')}
-      </Link>
-      <div className="public-nav-utilities flex shrink-0 items-center gap-1.5 border-l border-black/15 pl-3 dark:border-white/15 sm:pl-4">
+      <div className="public-nav-auth">
+        <Link to="/login" state={authReturnState} className={loginButtonClass}>
+          {t('nav.login')}
+        </Link>
+        <Link to="/signup" state={authReturnState} className={joinButtonClass}>
+          {t('nav.joinMovement')}
+        </Link>
+      </div>
+      <div className="public-nav-utilities">
         <ThemeQuickToggle variant={isLovableHome ? 'landing' : 'compact'} />
         <LanguageSwitcher variant={isLovableHome ? 'landing' : 'default'} />
       </div>
     </>
   )
 
+  const mobileLogoTo = signedIn ? '/feed' : '/'
+
   return (
     <header className={isLovableHome ? 'nav-shell nav-shell-lovable' : 'nav-shell'}>
-      <div
-        className={`relative mx-auto flex h-16 max-w-7xl items-center gap-2 px-3 sm:gap-3 sm:px-6 lg:px-8 ${barLayoutClass}`}
-      >
-        <div
-          className={
-            showMarketingCenterNav
-              ? 'public-nav-bar__brand min-w-0 max-lg:min-w-0 max-lg:flex-1 max-lg:basis-0 max-lg:overflow-hidden max-lg:pr-1 sm:max-lg:pr-2'
-              : 'min-w-0 max-lg:min-w-0 max-lg:flex-1 max-lg:basis-0 max-lg:overflow-hidden max-lg:pr-1 sm:max-lg:pr-2 lg:justify-self-start'
-          }
-        >
+      <div className="public-nav-bar">
+        {/* Tablet / mobile */}
+        <div className="public-nav-mobile-row">
           <Logo
-            to={signedIn ? '/feed' : '/'}
-            showTagline={isMarketingRoute && !signedIn}
+            to={mobileLogoTo}
+            showTagline={false}
             variant={isLovableHome ? 'lovable' : 'default'}
+            className="public-nav-logo shrink-0"
           />
+          <div className="public-nav-mobile-controls">
+            <ThemeQuickToggle variant="compact" />
+            <LanguageSwitcher variant="compact" />
+            <button
+              type="button"
+              className="rounded-xl p-2.5 text-secondary ring-1 ring-default hover:bg-muted"
+              onClick={() => setOpen((o) => !o)}
+              aria-label={t('nav.menu')}
+              aria-expanded={open}
+            >
+              {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
         </div>
 
-        {showMarketingCenterNav && (
-          <nav
-            className={[
-              'public-nav-bar__center hidden shrink-0 flex-nowrap items-center justify-center gap-x-1 xl:gap-x-2 lg:flex',
-              isLovableHome ? 'lovable-nav-main' : '',
-            ]
-              .filter(Boolean)
-              .join(' ')}
-            aria-label={t('nav.appNav')}
-          >
-            {guestCenterLinks}
-          </nav>
-        )}
+        {/* Desktop xl+ — 3-zone grid: brand | nav | actions */}
+        <div className="public-nav-desktop">
+          <div className="public-nav-brand shrink-0">
+            <Logo
+              to={mobileLogoTo}
+              showTagline={isMarketingRoute && !signedIn}
+              variant={isLovableHome ? 'lovable' : 'default'}
+              className="public-nav-logo shrink-0"
+            />
+          </div>
 
-        <nav
-          className={
-            showMarketingCenterNav
-              ? 'public-nav-bar__end hidden shrink-0 items-center justify-end lg:flex'
-              : 'hidden max-lg:ml-auto shrink-0 items-center md:flex lg:min-w-0 lg:justify-self-end lg:justify-end'
-          }
-          aria-label={t('nav.appNav')}
-        >
-          {showAppQuickLinks ? (
-            <div className="flex flex-nowrap items-center justify-end gap-2 lg:gap-3">
-              <div className="flex flex-nowrap items-center justify-end gap-x-1 gap-y-0 xl:gap-x-2">
-                <Link to="/feed" className={`${inactiveClass} shrink-0`}>
-                  {t('nav.myFeed')}
-                </Link>
-                <Link to="/impact-map" className={`${inactiveClass} shrink-0`}>
-                  {t('nav.impactMap')}
-                </Link>
-                <Link to="/impact" className={`${inactiveClass} shrink-0`}>
-                  {t('nav.impactPulse')}
-                </Link>
-                <Link to="/create" className={`${inactiveClass} shrink-0`}>
-                  {t('nav.create')}
-                </Link>
-                <Link to="/profile" className={`${inactiveClass} shrink-0`}>
-                  {t('nav.profile')}
-                </Link>
-              </div>
-              <div className="public-nav-utilities flex shrink-0 items-center gap-1.5 border-l border-black/15 pl-3 dark:border-white/15">
-                <ThemeQuickToggle variant="compact" />
-                <LanguageSwitcher variant="default" />
-              </div>
-            </div>
-          ) : showMarketingGuestActions ? (
-            <div
-              className={`public-nav-actions flex flex-nowrap items-center justify-end gap-2 sm:gap-3 ${isLovableHome ? 'lovable-nav-actions' : ''}`}
-            >
-              {marketingAuthUtilities}
+          {showMarketingCenterNav ? (
+            <div className="public-nav-center-wrap min-w-0">
+              <nav
+                className="public-nav-center min-w-0 overflow-visible"
+                aria-label={t('nav.appNav', { defaultValue: 'Main navigation' })}
+              >
+                {marketingNavLinks}
+              </nav>
             </div>
           ) : (
-            <div className="public-nav-actions flex flex-nowrap items-center justify-end gap-2 sm:gap-3">
-              <Link to="/login" state={authReturnState} className={`${inactiveClass} shrink-0 text-secondary`}>
-                {t('nav.login')}
-              </Link>
-              <Link to="/signup" state={authReturnState} className="btn-primary shrink-0 whitespace-nowrap min-h-10! px-4! py-2!">
-                {t('nav.joinMovement')}
-              </Link>
-              <div className="public-nav-utilities flex shrink-0 items-center gap-1.5 border-l border-black/15 pl-3 dark:border-white/15 sm:pl-4">
-                <ThemeQuickToggle variant="compact" />
-                <LanguageSwitcher variant="default" />
-              </div>
-            </div>
+            <div className="public-nav-center-wrap min-w-0" aria-hidden />
           )}
-        </nav>
 
-        <div className="flex shrink-0 items-center gap-1 sm:gap-1.5 md:hidden">
-          <ThemeQuickToggle variant="compact" />
-          <LanguageSwitcher variant="compact" />
-          <button
-            type="button"
-            className="rounded-xl p-2.5 text-secondary ring-1 ring-default hover:bg-muted"
-            onClick={() => setOpen((o) => !o)}
-            aria-label={t('nav.menu')}
-            aria-expanded={open}
-          >
-            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
+          <div className="public-nav-end shrink-0">
+            {showMarketingGuestActions || showAppQuickLinks ? (
+              desktopRightActions
+            ) : (
+              <>
+                <div className="public-nav-auth">
+                  <Link to="/login" state={authReturnState} className="public-nav-login">
+                    {t('nav.login')}
+                  </Link>
+                  <Link
+                    to="/signup"
+                    state={authReturnState}
+                    className="public-nav-join btn-primary min-h-10! px-4! py-2!"
+                  >
+                    {t('nav.joinMovement')}
+                  </Link>
+                </div>
+                <div className="public-nav-utilities">
+                  <ThemeQuickToggle variant="compact" />
+                  <LanguageSwitcher variant="default" />
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
-      {open && (
-        <nav className="space-y-1 border-t border-default px-4 py-4 md:hidden" aria-label={t('nav.mobileNav')}>
+      {open ? (
+        <nav
+          className="space-y-1 border-t border-default px-4 py-4 xl:hidden"
+          aria-label={t('nav.mobileNav')}
+        >
           {showAppQuickLinks ? (
             <>
               <Link to="/feed" className="mobile-nav-link" onClick={() => setOpen(false)}>
@@ -335,12 +303,51 @@ export default function PublicNav() {
               </Link>
             </>
           ) : showMarketingGuestActions ? (
-            signedIn ? memberMarketingMobileLinks : guestMobileLinks
+            <>
+              {marketingMobileLinks}
+              {signedIn ? (
+                <Link to="/feed" className="btn-primary mt-2 w-full" onClick={() => setOpen(false)}>
+                  {t('nav.myFeed')}
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    to="/login"
+                    state={authReturnState}
+                    className="mobile-nav-link"
+                    onClick={() => setOpen(false)}
+                  >
+                    {t('nav.login')}
+                  </Link>
+                  <Link
+                    to="/signup"
+                    state={authReturnState}
+                    className="btn-primary mt-2 w-full"
+                    onClick={() => setOpen(false)}
+                  >
+                    {t('nav.joinMovement')}
+                  </Link>
+                </>
+              )}
+              {signedIn ? (
+                <Link to="/profile" className="mobile-nav-link" onClick={() => setOpen(false)}>
+                  {t('nav.profile')}
+                </Link>
+              ) : null}
+            </>
           ) : (
-            guestMobileLinks
+            <>
+              {marketingMobileLinks}
+              <Link to="/login" state={authReturnState} className="mobile-nav-link" onClick={() => setOpen(false)}>
+                {t('nav.login')}
+              </Link>
+              <Link to="/signup" state={authReturnState} className="btn-primary mt-2 w-full" onClick={() => setOpen(false)}>
+                {t('nav.joinMovement')}
+              </Link>
+            </>
           )}
         </nav>
-      )}
+      ) : null}
     </header>
   )
 }

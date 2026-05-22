@@ -1,0 +1,200 @@
+/* Public marketing navbar — 3-zone grid (brand | nav | actions) */
+
+.public-nav-bar {
+  margin-inline: auto;
+  max-width: 80rem;
+  padding-inline: clamp(1rem, 3vw, 1.5rem);
+}
+
+/* Mobile / tablet: compact header below xl (1280px) */
+.public-nav-mobile-row {
+  display: flex;
+  height: 4rem;
+  min-height: 4rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+@media (min-width: 1280px) {
+  .public-nav-mobile-row {
+    display: none;
+  }
+}
+
+/* Desktop xl+: Brand | center nav | auth + utilities */
+.public-nav-desktop {
+  display: none;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 1.5rem;
+  height: 5rem;
+  min-height: 5rem;
+  width: 100%;
+}
+
+@media (min-width: 1280px) {
+  .public-nav-desktop {
+    display: grid;
+  }
+}
+
+@media (min-width: 1536px) {
+  .public-nav-desktop {
+    column-gap: 2rem;
+  }
+}
+
+.public-nav-brand {
+  flex-shrink: 0;
+  justify-self: start;
+}
+
+.public-nav-logo {
+  align-items: center;
+}
+
+.public-nav-logo .logo-tagline-row {
+  margin-top: 0.125rem;
+  white-space: nowrap;
+}
+
+/* Center column: minmax(0,1fr) only — never clip nav labels or active pills */
+.public-nav-center-wrap {
+  min-width: 0;
+  justify-self: stretch;
+  overflow: visible;
+}
+
+.public-nav-center {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.875rem;
+  overflow: visible;
+  margin-inline: auto;
+}
+
+@media (min-width: 1536px) {
+  .public-nav-center {
+    gap: 1.5rem;
+  }
+}
+
+.public-nav-end {
+  flex-shrink: 0;
+  justify-self: end;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  white-space: nowrap;
+}
+
+.public-nav-auth {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.625rem;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.public-nav-utilities {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.375rem;
+  flex-shrink: 0;
+  padding-left: 0.75rem;
+  border-left: 1px solid var(--ff-border);
+}
+
+[data-theme='dark'] .public-nav-utilities {
+  border-left-color: rgb(255 255 255 / 0.12);
+}
+
+.public-nav-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border: 1px solid transparent;
+  border-radius: 0.75rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.25;
+  white-space: nowrap;
+  flex-shrink: 0;
+  overflow: visible;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+@media (min-width: 1536px) {
+  .public-nav-link {
+    padding: 0.375rem 0.875rem;
+    font-size: 0.875rem;
+  }
+}
+
+.public-nav-link:hover {
+  background: var(--ff-nav-hover-bg);
+  color: var(--ff-nav-active-text);
+}
+
+.public-nav-link--active {
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  color: var(--color-accent-700, #4338ca);
+  background: color-mix(in srgb, var(--color-accent-500, #6366f1) 8%, var(--ff-nav, #fff));
+  border-color: color-mix(in srgb, var(--color-accent-300, #a5b4fc) 55%, transparent);
+  box-shadow: none;
+}
+
+[data-theme='dark'] .public-nav-link--active {
+  color: var(--color-accent-200, #c7d2fe);
+  background: color-mix(in srgb, var(--color-accent-500, #6366f1) 16%, transparent);
+  border-color: color-mix(in srgb, var(--color-accent-400, #818cf8) 28%, transparent);
+}
+
+.public-nav-login {
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  padding-inline: 0.625rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+  border-radius: 0.5rem;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.public-nav-login:hover {
+  color: var(--text-primary);
+  background: var(--ff-nav-hover-bg);
+}
+
+.public-nav-join {
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.public-nav-mobile-controls {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.375rem;
+}

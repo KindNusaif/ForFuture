@@ -25,7 +25,7 @@ export default function Logo({
     <Link
       to={to}
       aria-label={iconOnly ? t('landing.brandName', { defaultValue: 'ForFuture home' }) : undefined}
-      className={`group flex min-w-0 max-w-full items-center gap-2 transition-opacity hover:opacity-90 sm:gap-2.5 ${className}`}
+      className={`group flex shrink-0 items-center gap-2 transition-opacity hover:opacity-90 sm:gap-2.5 ${className}`}
     >
       <span
         className={
@@ -37,12 +37,12 @@ export default function Logo({
         <Sparkles className={isLovable ? 'h-3.5 w-3.5 sm:h-4 sm:w-4' : 'h-4 w-4 sm:h-5 sm:w-5'} aria-hidden />
       </span>
       {!iconOnly && (
-      <span className="flex min-w-0 flex-col leading-tight">
+      <span className="flex shrink-0 flex-col leading-tight">
         <span
           className={
             isLovable
-              ? 'truncate font-display text-base text-foreground sm:text-xl'
-              : 'truncate text-base font-bold tracking-tight text-primary sm:text-lg'
+              ? 'whitespace-nowrap font-display text-base text-foreground sm:text-xl'
+              : 'whitespace-nowrap text-base font-bold tracking-tight text-primary sm:text-lg'
           }
         >
           ForFuture
@@ -51,8 +51,8 @@ export default function Logo({
           <span
             className={
               isLovable
-                ? 'logo-lovable-tagline hidden truncate text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground md:block'
-                : 'hidden truncate text-[10px] font-medium uppercase tracking-wider text-muted md:block'
+                ? 'logo-tagline-row logo-lovable-tagline hidden whitespace-nowrap text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground 2xl:block'
+                : 'logo-tagline-row hidden whitespace-nowrap text-[10px] font-medium uppercase tracking-[0.1em] text-muted 2xl:block'
             }
           >
             {t('landing.logoTagline')}

@@ -23,8 +23,11 @@ If a feature works locally with the service role but fails in production, missin
 ## Edge Functions
 
 - **`actionpath-ai`**: OpenAI key lives in Supabase secrets, not in the React app.
-- Set secrets: `supabase secrets set OPENAI_API_KEY=...`
+- Set secrets: `supabase secrets set OPENAI_API_KEY=your_key_here`
 - Deploy: `supabase functions deploy actionpath-ai`
+- Frontend calls only via `supabase.functions.invoke('actionpath-ai')` — never call OpenAI from the browser.
+- Input is validated client-side and again in the Edge Function (min 15 chars, blocks gibberish).
+- Edge Function uses structured JSON output (`strict: false` schema) and returns `{ success, data }`.
 
 ## Auth redirect URLs
 

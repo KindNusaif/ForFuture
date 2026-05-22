@@ -1,11 +1,20 @@
-import { FunctionsHttpError } from '@supabase/supabase-js'
+import { FunctionsHttpError, FunctionsRelayError } from '@supabase/supabase-js'
 import type { MovementType } from '../types'
 import type { ReliefCreateSubtype } from './reliefHub'
 import { requireSupabase } from './supabase'
-import { enhanceSupabaseError } from './supabaseErrors'
+import {
+  ACTIONPATH_INPUT_MAX,
+  validateActionPathInput,
+  type ActionPathValidationReason,
+} from './actionPathValidation'
 
-export const ACTIONPATH_INPUT_MIN = 20
-export const ACTIONPATH_INPUT_MAX = 1500
+export { ACTIONPATH_INPUT_MIN, ACTIONPATH_INPUT_MAX } from './actionPathValidation'
+export {
+  isActionPathInputValid,
+  validateActionPathInput,
+  type ActionPathValidationReason,
+} from './actionPathValidation'
+
 export const ACTIONPATH_REQUEST_TIMEOUT_MS = 45_000
 
 /** Public categories from the Edge Function (user-facing) */
@@ -74,13 +83,26 @@ export interface ActionPathApplyResult {
   }
 }
 
-export type ActionPathErrorCode = 'rate_limit' | 'timeout' | 'generic'
+export type ActionPathErrorCode =
+  | 'invalid_input'
+  | 'auth'
+  | 'rate_limit'
+  | 'timeout'
+  | 'network'
+  | 'unavailable'
+  | 'malformed'
+  | 'api'
+  | 'generic'
 
 export class ActionPathAiError extends Error {
   readonly code: ActionPathErrorCode
   readonly retryAfterSec?: number
 
-  constructor(message: string, code: ActionPathErrorCode = 'generic', retryAfterSec?: number) {
+  constructor(
+    message: string,
+    code: ActionPathErrorCode = 'generic',
+    retryAfterSec?: number,
+  ) {
     super(message)
     this.name = 'ActionPathAiError'
     this.code = code
@@ -91,6 +113,7 @@ export class ActionPathAiError extends Error {
 type EdgePayload = {
   success?: boolean
   message?: string
+  code?: string
   data?: ActionPathSuggestion
   suggestion?: ActionPathSuggestion
   error?: string
@@ -101,6 +124,58 @@ function isMovementType(value: string): value is MovementType {
   return (MOVEMENT_TYPES as readonly string[]).includes(value)
 }
 
+function mapEdgeCode(code: string | undefined, message: string): ActionPathErrorCode {
+  if (code === 'invalid_input' || code === 'auth') return code
+  if (code === 'rate_limit') return 'rate_limit'
+  if (code === 'unavailable' || code === 'config') return 'unavailable'
+  if (code === 'malformed') return 'malformed'
+  if (code === 'api') return 'api'
+
+  const lower = message.toLowerCase()
+  if (lower.includes('sign in')) return 'auth'
+  if (lower.includes('busy') || lower.includes('wait')) return 'rate_limit'
+  if (lower.includes('not available') || lower.includes('temporarily')) return 'unavailable'
+  if (lower.includes('at least') || lower.includes('characters') || lower.includes('unclear')) {
+    return 'invalid_input'
+  }
+  return 'api'
+}
+
+function userMessageForCode(code: ActionPathErrorCode, fallback: string): string {
+  switch (code) {
+    case 'invalid_input':
+      return 'Please describe a real community issue or idea before generating an Action Path.'
+    case 'auth':
+      return 'Sign in to use ActionPath AI.'
+    case 'rate_limit':
+      return 'ActionPath AI is busy at the moment. Please try again shortly.'
+    case 'timeout':
+      return 'This is taking longer than expected. Please try again.'
+    case 'network':
+    case 'unavailable':
+      return 'ActionPath AI is temporarily unavailable. Please try again shortly.'
+    case 'malformed':
+      return "We couldn't read the AI suggestion properly. Please try again."
+    case 'api':
+      return "We couldn't generate a suggestion right now. Please try again."
+    default:
+      return fallback
+  }
+}
+
+function throwFromEdgePayload(payload: EdgePayload): never {
+  const message =
+    payload.message ||
+    payload.error ||
+    "We couldn't generate a suggestion right now. Please try again."
+  const code = mapEdgeCode(payload.code, message)
+  throw new ActionPathAiError(
+    userMessageForCode(code, message),
+    code,
+    payload.retry_after_sec,
+  )
+}
+
 function normalizeSuggestion(raw: Record<string, unknown>): ActionPathSuggestion | null {
   const recommendedType = raw.recommendedType
   const suggestedTitle = raw.suggestedTitle ?? raw.improved_title
@@ -109,7 +184,10 @@ function normalizeSuggestion(raw: Record<string, unknown>): ActionPathSuggestion
   const nextStepsRaw = raw.nextSteps ?? raw.suggested_action_steps
 
   let movementType = raw.recommended_movement_type
-  if (typeof recommendedType === 'string' && RECOMMENDED_TYPES.includes(recommendedType as ActionPathRecommendedType)) {
+  if (
+    typeof recommendedType === 'string' &&
+    RECOMMENDED_TYPES.includes(recommendedType as ActionPathRecommendedType)
+  ) {
     movementType = TYPE_TO_MOVEMENT[recommendedType as ActionPathRecommendedType]
   }
 
@@ -134,7 +212,8 @@ function normalizeSuggestion(raw: Record<string, unknown>): ActionPathSuggestion
   }
 
   const publicType =
-    typeof recommendedType === 'string' && RECOMMENDED_TYPES.includes(recommendedType as ActionPathRecommendedType)
+    typeof recommendedType === 'string' &&
+    RECOMMENDED_TYPES.includes(recommendedType as ActionPathRecommendedType)
       ? (recommendedType as ActionPathRecommendedType)
       : (Object.entries(TYPE_TO_MOVEMENT).find(([, m]) => m === movementType)?.[0] as
           | ActionPathRecommendedType
@@ -170,36 +249,28 @@ function normalizeSuggestion(raw: Record<string, unknown>): ActionPathSuggestion
 function parseEdgePayload(payload: EdgePayload | null): ActionPathSuggestion {
   if (!payload) {
     throw new ActionPathAiError(
-      "We couldn't generate a suggestion right now. Please try again.",
+      "We couldn't read the AI suggestion properly. Please try again.",
+      'malformed',
     )
   }
 
   if (payload.success === false) {
-    const message =
-      payload.message ||
-      payload.error ||
-      "We couldn't generate a suggestion right now. Please try again."
-    const isBusy =
-      message.toLowerCase().includes('busy') ||
-      message.toLowerCase().includes('wait')
-    throw new ActionPathAiError(
-      message,
-      isBusy ? 'rate_limit' : 'generic',
-      payload.retry_after_sec,
-    )
+    throwFromEdgePayload(payload)
   }
 
   const candidate = payload.success === true ? payload.data : payload.suggestion
   if (!candidate || typeof candidate !== 'object') {
     throw new ActionPathAiError(
-      "We couldn't generate a suggestion right now. Please try again.",
+      "We couldn't read the AI suggestion properly. Please try again.",
+      'malformed',
     )
   }
 
   const normalized = normalizeSuggestion(candidate as unknown as Record<string, unknown>)
   if (!normalized) {
     throw new ActionPathAiError(
-      "We couldn't generate a suggestion right now. Please try again.",
+      "We couldn't read the AI suggestion properly. Please try again.",
+      'malformed',
     )
   }
 
@@ -208,19 +279,43 @@ function parseEdgePayload(payload: EdgePayload | null): ActionPathSuggestion {
 
 async function parseFunctionsHttpError(error: FunctionsHttpError): Promise<never> {
   try {
-    const body = (await error.context.json()) as EdgePayload
-    parseEdgePayload(body)
+    if (error.context && typeof (error.context as Response).json === 'function') {
+      const body = (await (error.context as Response).json()) as EdgePayload
+      throwFromEdgePayload(body)
+    }
   } catch (parseErr) {
     if (parseErr instanceof ActionPathAiError) throw parseErr
   }
   throw new ActionPathAiError(
     "We couldn't generate a suggestion right now. Please try again.",
+    'api',
   )
 }
 
+function validationErrorMessage(reason: ActionPathValidationReason): string {
+  switch (reason) {
+    case 'empty':
+    case 'too_short':
+      return 'Add a little more detail so ActionPath AI can help.'
+    case 'too_long':
+      return `Please keep your idea under ${ACTIONPATH_INPUT_MAX} characters.`
+    case 'gibberish':
+    case 'blocklisted':
+      return 'This looks too short or unclear. Try writing one sentence about the problem.'
+    case 'unclear':
+    default:
+      return 'Please describe a real issue, idea, or community concern.'
+  }
+}
+
 export async function generateActionPath(input: string): Promise<ActionPathSuggestion> {
+  const validation = validateActionPathInput(input)
+  if (!validation.valid) {
+    throw new ActionPathAiError(validationErrorMessage(validation.reason), 'invalid_input')
+  }
+
   const client = requireSupabase()
-  const trimmed = input.trim()
+  const trimmed = validation.trimmed
 
   const invokePromise = client.functions.invoke('actionpath-ai', {
     body: { input: trimmed },
@@ -230,7 +325,7 @@ export async function generateActionPath(input: string): Promise<ActionPathSugge
     setTimeout(() => {
       reject(
         new ActionPathAiError(
-          "We couldn't generate a suggestion right now. Please try again.",
+          'This is taking longer than expected. Please try again.',
           'timeout',
         ),
       )
@@ -241,17 +336,48 @@ export async function generateActionPath(input: string): Promise<ActionPathSugge
     const { data, error } = await Promise.race([invokePromise, timeoutPromise])
 
     if (error) {
+      if (data && typeof data === 'object') {
+        try {
+          return parseEdgePayload(data as EdgePayload)
+        } catch (bodyErr) {
+          if (bodyErr instanceof ActionPathAiError) throw bodyErr
+        }
+      }
       if (error instanceof FunctionsHttpError) {
         await parseFunctionsHttpError(error)
       }
-      throw enhanceSupabaseError(error)
+      if (error instanceof FunctionsRelayError) {
+        throw new ActionPathAiError(
+          'ActionPath AI is temporarily unavailable. Please try again shortly.',
+          'network',
+        )
+      }
+      const msg = error instanceof Error ? error.message : ''
+      if (/failed to fetch|network|load failed/i.test(msg)) {
+        throw new ActionPathAiError(
+          'ActionPath AI is temporarily unavailable. Please try again shortly.',
+          'network',
+        )
+      }
+      throw new ActionPathAiError(
+        "We couldn't generate a suggestion right now. Please try again.",
+        'api',
+      )
     }
 
     return parseEdgePayload(data as EdgePayload)
   } catch (err) {
     if (err instanceof ActionPathAiError) throw err
+    const msg = err instanceof Error ? err.message : ''
+    if (/failed to fetch|network|load failed/i.test(msg)) {
+      throw new ActionPathAiError(
+        'ActionPath AI is temporarily unavailable. Please try again shortly.',
+        'network',
+      )
+    }
     throw new ActionPathAiError(
       "We couldn't generate a suggestion right now. Please try again.",
+      'api',
     )
   }
 }
@@ -268,8 +394,12 @@ export function buildActionPathApplyResult(
 
   if (type === 'youth_petition') {
     if (f.petition_issue) movementFieldUpdates.petition_issue = f.petition_issue
-    if (f.petition_requested_change) movementFieldUpdates.petition_requested_change = f.petition_requested_change
-    if (f.petition_target_authority) movementFieldUpdates.petition_target_authority = f.petition_target_authority
+    if (f.petition_requested_change) {
+      movementFieldUpdates.petition_requested_change = f.petition_requested_change
+    }
+    if (f.petition_target_authority) {
+      movementFieldUpdates.petition_target_authority = f.petition_target_authority
+    }
   }
 
   if (type === 'raise_voice') {
@@ -294,7 +424,9 @@ export function buildActionPathApplyResult(
 
   if (type === 'fundraising') {
     if (f.fundraising_purpose) movementFieldUpdates.fundraising_purpose = f.fundraising_purpose
-    if (f.beneficiary_description) movementFieldUpdates.beneficiary_description = f.beneficiary_description
+    if (f.beneficiary_description) {
+      movementFieldUpdates.beneficiary_description = f.beneficiary_description
+    }
   }
 
   if (type === 'peaceful_civic_action') {

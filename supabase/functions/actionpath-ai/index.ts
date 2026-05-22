@@ -3,15 +3,15 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1'
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
-const INPUT_MIN = 20
+const INPUT_MIN = 15
 const INPUT_MAX = 1500
 const COOLDOWN_MS = 30_000
 const MAX_PER_HOUR = 15
 const HOUR_MS = 60 * 60 * 1000
 
-/** Public recommendation categories returned to the client */
 const RECOMMENDED_TYPES = [
   'petition',
   'youth_voice',
@@ -22,7 +22,6 @@ const RECOMMENDED_TYPES = [
 
 type RecommendedType = (typeof RECOMMENDED_TYPES)[number]
 
-/** Maps public type → ForFuture movement_type for create flow */
 const TYPE_TO_MOVEMENT: Record<RecommendedType, string> = {
   petition: 'youth_petition',
   youth_voice: 'raise_voice',
@@ -31,6 +30,7 @@ const TYPE_TO_MOVEMENT: Record<RecommendedType, string> = {
   relief_campaign: 'donation_relief',
 }
 
+/** Structured output schema — strict:false so optional fields stay reliable */
 const RESPONSE_SCHEMA = {
   type: 'object',
   properties: {
@@ -50,33 +50,7 @@ const RESPONSE_SCHEMA = {
     safety_note: { type: 'string' },
     suggested_fields: {
       type: 'object',
-      properties: {
-        petition_issue: { type: 'string' },
-        petition_requested_change: { type: 'string' },
-        petition_target_authority: { type: 'string' },
-        poll_question: { type: 'string' },
-        poll_option_1: { type: 'string' },
-        poll_option_2: { type: 'string' },
-        poll_option_3: { type: 'string' },
-        poll_option_4: { type: 'string' },
-        poll_option_5: { type: 'string' },
-        issue_summary: { type: 'string' },
-        desired_change: { type: 'string' },
-        proposed_solution: { type: 'string' },
-        expected_impact: { type: 'string' },
-        volunteer_purpose: { type: 'string' },
-        volunteer_tasks: { type: 'string' },
-        need_summary: { type: 'string' },
-        relief_subtype: {
-          type: 'string',
-          enum: ['blood_donation', 'item_donation', 'fundraising'],
-        },
-        fundraising_purpose: { type: 'string' },
-        beneficiary_description: { type: 'string' },
-        civic_purpose: { type: 'string' },
-      },
-      required: [],
-      additionalProperties: false,
+      additionalProperties: { type: 'string' },
     },
   },
   required: [
@@ -90,24 +64,41 @@ const RESPONSE_SCHEMA = {
   additionalProperties: false,
 } as const
 
-const SYSTEM_PROMPT = `You are ActionPath AI for ForFuture, a youth civic-action platform.
+const SYSTEM_PROMPT = `You are ActionPath AI for ForFuture — a youth civic-action platform in Sri Lanka and beyond.
 
-Help users turn rough thoughts into clear, respectful civic movements. Preserve their meaning. Use constructive, youth-friendly language.
+Your job: turn a young person's rough concern into a clear, practical civic action draft they can review and edit before publishing.
 
 Rules:
-- recommendedType must be one of: petition, youth_voice, volunteer_drive, poll, relief_campaign.
-- petition = structured petition; youth_voice = raise a community issue safely; volunteer_drive = volunteer event; poll = quick youth poll; relief_campaign = donation/relief need.
-- Never invent specific names, hospitals, money amounts, dates, authorities, or medical details unless the user provided them.
-- If authority is unclear, use a generic target like "Local authorities" or "Relevant community leaders".
-- No inflammatory, violent, scam, or illegal content.
-- Do not claim facts are verified.
-- suggestedTitle under 120 characters; refinedSummary under 600 characters.
-- nextSteps: 3-5 practical, realistic steps.
-- Fill suggested_fields only for keys relevant to recommendedType; omit unused keys.
-- For poll: balanced, non-leading poll options in poll_option_1..poll_option_5.
-- For relief_campaign: set relief_subtype when reasonable; never invent urgent medical claims.
-- Match the language of the user's input when clear (English, Tamil, or Sinhala); otherwise use English.
-- Include safety_note only when the topic needs a brief lawful, peaceful, or verification reminder; otherwise omit it.`
+- recommendedType must be exactly one of: petition, youth_voice, volunteer_drive, poll, relief_campaign.
+- petition = formal petition; youth_voice = raise a community issue safely; volunteer_drive = organize volunteers; poll = quick youth poll; relief_campaign = donation/relief need.
+- Never auto-publish. The user must review every field before posting.
+- Keep language respectful, constructive, and youth-friendly. No violence, hate, scams, or illegal tactics.
+- Do not invent specific names, hospitals, amounts, dates, or authorities unless the user provided them.
+- If a target is unclear, use a generic phrase like "Local authorities" or "Relevant community leaders".
+- suggestedTitle: concise, under 120 characters.
+- refinedSummary: clear problem + ask, under 600 characters.
+- whyItMatters: 1–3 sentences on community impact.
+- nextSteps: 3–5 realistic steps a youth group could take locally.
+- suggested_fields: only string keys relevant to recommendedType (e.g. petition_issue, poll_question, poll_option_1…).
+- For polls: balanced, non-leading options.
+- For relief_campaign: set relief_subtype when reasonable (blood_donation | item_donation | fundraising).
+- Match the user's language when clear (English, Tamil, Sinhala); otherwise English.
+- safety_note: include only when a brief lawful/peaceful reminder is needed; otherwise omit the key.
+- Even if input is brief but valid, still return a useful draft — do not refuse.`
+
+const BLOCKLIST = new Set([
+  'test',
+  'testing',
+  'hi',
+  'hello',
+  'hey',
+  'asdf',
+  'qwerty',
+  'abc',
+  'xxx',
+  'sample',
+  'demo',
+])
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -116,12 +107,149 @@ function jsonResponse(body: unknown, status = 200) {
   })
 }
 
-function fail(message: string, status = 400, extra?: Record<string, unknown>) {
-  return jsonResponse({ success: false, message, ...extra }, status)
+function fail(
+  message: string,
+  status = 400,
+  extra?: Record<string, unknown> & { code?: string },
+) {
+  const { code, ...rest } = extra ?? {}
+  return jsonResponse({ success: false, message, code, ...rest }, status)
 }
 
 function ok(data: Record<string, unknown>) {
   return jsonResponse({ success: true, data })
+}
+
+function isRepeatedCharacterSpam(text: string): boolean {
+  const compact = text.replace(/\s/g, '')
+  if (compact.length < 8) return false
+  const counts = new Map<string, number>()
+  for (const ch of compact) {
+    const key = ch.toLowerCase()
+    counts.set(key, (counts.get(key) ?? 0) + 1)
+  }
+  const maxCount = Math.max(...counts.values())
+  if (maxCount / compact.length >= 0.55) return true
+  if (/(.)\1{4,}/u.test(compact)) return true
+  if (/(.{2,4})\1{3,}/u.test(compact)) return true
+  return false
+}
+
+function hasRepeatingSubstringSpam(text: string): boolean {
+  const compact = text.replace(/\s/g, '').toLowerCase()
+  if (/([a-z])\1{4,}/.test(compact)) return true
+  if (/(.{2,6})\1{3,}/.test(compact)) return true
+  return false
+}
+
+function isUnspacedKeyboardBlob(text: string): boolean {
+  const trimmed = text.trim()
+  if (trimmed.includes(' ')) return false
+  const compactLen = trimmed.replace(/\s/g, '').length
+  if (compactLen >= 25 && /[a-zA-Z]/.test(trimmed)) return true
+  const tokens = trimmed.split(/\s+/)
+  if (tokens.length === 1 && /^[a-zA-Z0-9]{30,}$/.test(tokens[0]!)) return true
+  return false
+}
+
+function looksLikeRealWord(token: string): boolean {
+  if (token.length < 4) return false
+  const lower = token.toLowerCase()
+  const lettersOnly = lower.replace(/[^a-z]/g, '')
+  if (lettersOnly.length < 4) return false
+  const vowels = lettersOnly.replace(/[^aeiou]/g, '').length
+  const consonants = lettersOnly.length - vowels
+  if (vowels === 0 || consonants === 0) return false
+  const vowelRatio = vowels / lettersOnly.length
+  if (vowelRatio < 0.2 || vowelRatio > 0.75) return false
+  const charCounts = new Map<string, number>()
+  for (const ch of lettersOnly) {
+    charCounts.set(ch, (charCounts.get(ch) ?? 0) + 1)
+  }
+  if (Math.max(...charCounts.values()) / lettersOnly.length > 0.45) return false
+  return true
+}
+
+function hasMeaningfulWords(text: string): boolean {
+  const hasNonLatin = /[^\u0000-\u024F]/u.test(text)
+  if (hasNonLatin) {
+    const words = [...text.matchAll(/[\p{L}\p{M}]{3,}/gu)].map((m) => m[0])
+    return words.length >= 2 || (words.length === 1 && words[0]!.length >= 6)
+  }
+  const words = [...text.matchAll(/[\p{L}\p{M}]{3,}/gu)].map((m) => m[0])
+  const realWords = words.filter(looksLikeRealWord)
+  if (realWords.length >= 2) return true
+  if (realWords.length === 1 && realWords[0]!.length >= 8) return true
+  return false
+}
+
+function isKeyboardMash(text: string): boolean {
+  const letters = text.replace(/[^a-zA-Z]/g, '')
+  if (letters.length < 12) return false
+  const vowels = letters.replace(/[^aeiouAEIOU]/g, '').length
+  if (vowels === 0) return true
+  if (vowels / letters.length < 0.12) return true
+  const upper = letters.replace(/[^A-Z]/g, '').length
+  if (upper / letters.length > 0.75 && !text.includes(' ')) return true
+  return false
+}
+
+function validateUserInput(input: string): { ok: true } | { ok: false; message: string } {
+  if (input.length < INPUT_MIN) {
+    return {
+      ok: false,
+      message: 'Add a little more detail so ActionPath AI can help.',
+    }
+  }
+  if (input.length > INPUT_MAX) {
+    return {
+      ok: false,
+      message: `Please keep your idea under ${INPUT_MAX} characters.`,
+    }
+  }
+
+  const normalized = input
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, '')
+    .trim()
+  if (BLOCKLIST.has(normalized)) {
+    return {
+      ok: false,
+      message: 'Please describe a real issue, idea, or community concern.',
+    }
+  }
+  if (isRepeatedCharacterSpam(input)) {
+    return {
+      ok: false,
+      message: 'This looks too short or unclear. Try writing one sentence about the problem.',
+    }
+  }
+  if (hasRepeatingSubstringSpam(input)) {
+    return {
+      ok: false,
+      message: 'This looks too short or unclear. Try writing one sentence about the problem.',
+    }
+  }
+  if (isUnspacedKeyboardBlob(input)) {
+    return {
+      ok: false,
+      message: 'This looks too short or unclear. Try writing one sentence about the problem.',
+    }
+  }
+  if (isKeyboardMash(input)) {
+    return {
+      ok: false,
+      message: 'This looks too short or unclear. Try writing one sentence about the problem.',
+    }
+  }
+  if (!hasMeaningfulWords(input)) {
+    return {
+      ok: false,
+      message: 'Please describe a real issue, idea, or community concern.',
+    }
+  }
+
+  return { ok: true }
 }
 
 function stripSuggestedFields(
@@ -269,7 +397,7 @@ Deno.serve(async (req) => {
   }
 
   if (req.method !== 'POST') {
-    return fail('Method not allowed', 405)
+    return fail('Method not allowed', 405, { code: 'method_not_allowed' })
   }
 
   const openaiKey = Deno.env.get('OPENAI_API_KEY')
@@ -279,17 +407,21 @@ Deno.serve(async (req) => {
 
   if (!openaiKey) {
     console.error('actionpath-ai: OPENAI_API_KEY is not configured')
-    return fail('ActionPath AI is not available right now. Please try again later.', 503)
+    return fail('ActionPath AI is temporarily unavailable. Please try again shortly.', 503, {
+      code: 'config',
+    })
   }
 
   if (!supabaseUrl || !supabaseAnonKey || !serviceRoleKey) {
     console.error('actionpath-ai: missing Supabase env')
-    return fail('ActionPath AI is not available right now. Please try again later.', 500)
+    return fail('ActionPath AI is temporarily unavailable. Please try again shortly.', 500, {
+      code: 'config',
+    })
   }
 
   const authHeader = req.headers.get('Authorization')
   if (!authHeader?.startsWith('Bearer ')) {
-    return fail('Sign in to use ActionPath AI.', 401)
+    return fail('Sign in to use ActionPath AI.', 401, { code: 'auth' })
   }
 
   const userClient = createClient(supabaseUrl, supabaseAnonKey, {
@@ -302,31 +434,27 @@ Deno.serve(async (req) => {
   } = await userClient.auth.getUser()
 
   if (userError || !user) {
-    return fail('Sign in to use ActionPath AI.', 401)
+    return fail('Sign in to use ActionPath AI.', 401, { code: 'auth' })
   }
 
   let body: { input?: unknown }
   try {
     body = await req.json()
   } catch {
-    return fail('Invalid request. Please try again.', 400)
+    return fail('Invalid request. Please try again.', 400, { code: 'invalid_input' })
   }
 
   const input = typeof body.input === 'string' ? body.input.trim() : ''
-  if (input.length < INPUT_MIN) {
-    return fail(
-      `Please write at least ${INPUT_MIN} characters so ActionPath AI can understand your idea.`,
-      400,
-    )
-  }
-  if (input.length > INPUT_MAX) {
-    return fail(`Please keep your idea under ${INPUT_MAX} characters.`, 400)
+  const inputCheck = validateUserInput(input)
+  if (!inputCheck.ok) {
+    return fail(inputCheck.message, 400, { code: 'invalid_input' })
   }
 
   const admin = createClient(supabaseUrl, serviceRoleKey)
   const rate = await checkRateLimit(admin, user.id)
   if (!rate.allowed) {
     return fail('ActionPath AI is busy at the moment. Please try again shortly.', 429, {
+      code: 'rate_limit',
       retry_after_sec: rate.retryAfterSec,
     })
   }
@@ -345,14 +473,14 @@ Deno.serve(async (req) => {
           { role: 'system', content: SYSTEM_PROMPT },
           {
             role: 'user',
-            content: `Analyze this youth civic idea and return structured JSON.\n\nUser input:\n${input}`,
+            content: `Analyze this youth civic idea and return JSON matching the schema.\n\nUser input:\n${input}`,
           },
         ],
         response_format: {
           type: 'json_schema',
           json_schema: {
             name: 'action_path_suggestion',
-            strict: true,
+            strict: false,
             schema: RESPONSE_SCHEMA,
           },
         },
@@ -361,13 +489,16 @@ Deno.serve(async (req) => {
 
     if (!openaiRes.ok) {
       const errText = await openaiRes.text()
-      console.error('actionpath-ai openai error', openaiRes.status, errText.slice(0, 200))
+      console.error('actionpath-ai openai error', openaiRes.status, errText.slice(0, 300))
       if (openaiRes.status === 429) {
-        return fail('ActionPath AI is busy at the moment. Please try again shortly.', 503)
+        return fail('ActionPath AI is busy at the moment. Please try again shortly.', 503, {
+          code: 'rate_limit',
+        })
       }
       return fail(
         "We couldn't generate a suggestion right now. Please try again.",
         502,
+        { code: 'api' },
       )
     }
 
@@ -376,8 +507,9 @@ Deno.serve(async (req) => {
     if (typeof content !== 'string') {
       console.error('actionpath-ai: missing message content')
       return fail(
-        "We couldn't generate a suggestion right now. Please try again.",
+        "We couldn't read the AI suggestion properly. Please try again.",
         502,
+        { code: 'malformed' },
       )
     }
 
@@ -385,10 +517,11 @@ Deno.serve(async (req) => {
     try {
       parsed = JSON.parse(content)
     } catch {
-      console.error('actionpath-ai: JSON parse failed')
+      console.error('actionpath-ai: JSON parse failed', content.slice(0, 200))
       return fail(
-        "We couldn't generate a suggestion right now. Please try again.",
+        "We couldn't read the AI suggestion properly. Please try again.",
         502,
+        { code: 'malformed' },
       )
     }
 
@@ -396,14 +529,17 @@ Deno.serve(async (req) => {
     if (!validated.ok) {
       console.error('actionpath-ai validation', validated.error)
       return fail(
-        "We couldn't generate a suggestion right now. Please try again.",
+        "We couldn't read the AI suggestion properly. Please try again.",
         502,
+        { code: 'malformed' },
       )
     }
 
     return ok(validated.value)
   } catch (err) {
     console.error('actionpath-ai', err instanceof Error ? err.message : 'unknown')
-    return fail("We couldn't generate a suggestion right now. Please try again.", 500)
+    return fail("We couldn't generate a suggestion right now. Please try again.", 500, {
+      code: 'api',
+    })
   }
 })

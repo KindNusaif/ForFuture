@@ -13,6 +13,7 @@
 @import './styles/community-polls.css';
 @import './styles/admin-dashboard.css';
 @import './styles/guidance.css';
+@import './styles/public-nav.css';
 
 /* ─── Brand palette (unchanged) ─── */
 @theme {
@@ -765,15 +766,18 @@
   color: var(--ff-nav-active-text);
 }
 
-.public-nav-link-active {
-  background: var(--ff-nav-active-bg);
+.public-nav-link-active,
+.public-nav-link--active {
+  background: color-mix(in srgb, var(--color-accent-500, #6366f1) 9%, var(--ff-nav));
   color: var(--ff-nav-active-text);
   font-weight: 600;
-  box-shadow: inset 0 0 0 1px rgb(99 102 241 / 0.22);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-accent-500, #6366f1) 16%, transparent);
 }
 
-[data-theme='dark'] .public-nav-link-active {
-  box-shadow: inset 0 0 0 1px rgb(129 140 248 / 0.32);
+[data-theme='dark'] .public-nav-link-active,
+[data-theme='dark'] .public-nav-link--active {
+  background: color-mix(in srgb, var(--color-accent-500, #6366f1) 18%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-accent-400, #818cf8) 22%, transparent);
 }
 
 .landing-stat-icon {

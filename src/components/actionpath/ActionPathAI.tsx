@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import {
   ArrowRight,
   Loader2,
@@ -14,7 +14,9 @@ import {
   ACTIONPATH_INPUT_MIN,
   ActionPathAiError,
   generateActionPath,
+  validateActionPathInput,
   type ActionPathSuggestion,
+  type ActionPathValidationReason,
 } from '../../lib/actionPathAi'
 import { buildMovementConfig } from '../../lib/movements'
 import { useAuth } from '../../hooks/useAuth'
@@ -27,6 +29,22 @@ interface ActionPathAIProps {
   onApplyDraft: (suggestion: ActionPathSuggestion) => void
   onApplyFields: (suggestion: ActionPathSuggestion) => void
   formDisabled?: boolean
+}
+
+function validationMessageKey(reason: ActionPathValidationReason): string {
+  switch (reason) {
+    case 'empty':
+    case 'too_short':
+      return 'actionPath.validationTooShort'
+    case 'too_long':
+      return 'actionPath.validationTooLong'
+    case 'gibberish':
+    case 'blocklisted':
+      return 'actionPath.validationGibberish'
+    case 'unclear':
+    default:
+      return 'actionPath.validationUnclear'
+  }
 }
 
 export default function ActionPathAI({
@@ -45,37 +63,100 @@ export default function ActionPathAI({
   const [suggestion, setSuggestion] = useState<ActionPathSuggestion | null>(null)
   const [dismissed, setDismissed] = useState(false)
   const inFlightRef = useRef(false)
+  const lastValidInputRef = useRef<string | null>(null)
 
   const trimmed = input.trim()
+  const validation = useMemo(() => validateActionPathInput(input), [input])
+  const inputValid = validation.valid
+
+  const validationHint =
+    trimmed.length > 0 && !inputValid
+      ? t(validationMessageKey(validation.reason), {
+          defaultValue:
+            validation.reason === 'too_short'
+              ? 'Add a little more detail so ActionPath AI can help.'
+              : validation.reason === 'gibberish' || validation.reason === 'blocklisted'
+                ? 'This looks too short or unclear. Try writing one sentence about the problem.'
+                : 'Please describe a real issue, idea, or community concern.',
+          count: ACTIONPATH_INPUT_MIN,
+          max: ACTIONPATH_INPUT_MAX,
+        })
+      : null
+
   const canGenerate =
-    trimmed.length > 0 &&
-    trimmed.length >= ACTIONPATH_INPUT_MIN &&
-    trimmed.length <= ACTIONPATH_INPUT_MAX &&
+    inputValid &&
     !loading &&
-    !formDisabled
+    !formDisabled &&
+    Boolean(user)
+
+  const canRetry =
+    Boolean(lastValidInputRef.current) &&
+    !loading &&
+    !formDisabled &&
+    Boolean(user)
 
   function resolveErrorMessage(err: unknown): string {
     if (err instanceof ActionPathAiError) {
-      if (err.code === 'rate_limit') return t('actionPath.errorBusy')
-      return err.message
+      switch (err.code) {
+        case 'rate_limit':
+          return t('actionPath.errorBusy')
+        case 'timeout':
+          return t('actionPath.errorTimeout', {
+            defaultValue: 'This is taking longer than expected. Please try again.',
+          })
+        case 'network':
+        case 'unavailable':
+          return t('actionPath.errorUnavailable', {
+            defaultValue:
+              'ActionPath AI is temporarily unavailable. Please try again shortly.',
+          })
+        case 'invalid_input':
+          return t('actionPath.validationBeforeGenerate', {
+            defaultValue:
+              'Please describe a real community issue or idea before generating an Action Path.',
+          })
+        case 'malformed':
+          return t('actionPath.errorMalformed', {
+            defaultValue: "We couldn't read the AI suggestion properly. Please try again.",
+          })
+        case 'auth':
+          return t('actionPath.errorAuth', { defaultValue: 'Sign in to use ActionPath AI.' })
+        case 'api':
+        case 'generic':
+        default:
+          return err.message || t('actionPath.errorGeneric')
+      }
     }
     return t('actionPath.errorGeneric')
   }
 
-  async function runGenerate() {
+  async function runGenerate(sourceInput?: string) {
     if (!user) {
       openJoinModal('actionpath')
       return
     }
-    if (!canGenerate || inFlightRef.current) return
+
+    const text = (sourceInput ?? input).trim()
+    const check = validateActionPathInput(text)
+    if (!check.valid) {
+      setError(
+        t(validationMessageKey(check.reason), {
+          defaultValue: 'Please describe a real issue, idea, or community concern.',
+        }),
+      )
+      return
+    }
+
+    if (inFlightRef.current) return
 
     inFlightRef.current = true
     setLoading(true)
     setError(null)
     setDismissed(false)
+    lastValidInputRef.current = check.trimmed
 
     try {
-      const result = await generateActionPath(trimmed)
+      const result = await generateActionPath(check.trimmed)
       setSuggestion(result)
     } catch (err) {
       setSuggestion(null)
@@ -91,6 +172,7 @@ export default function ActionPathAI({
     setDismissed(true)
     setError(null)
     setInput('')
+    lastValidInputRef.current = null
   }
 
   function handleEditMyself() {
@@ -137,24 +219,46 @@ export default function ActionPathAI({
           <textarea
             id="actionpath-input"
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => {
+              const next = e.target.value
+              setInput(next)
+              const nextValidation = validateActionPathInput(next)
+              if (error && (!nextValidation.valid || next.trim() !== lastValidInputRef.current)) {
+                setError(null)
+              }
+            }}
             disabled={loading || formDisabled}
             rows={4}
             maxLength={ACTIONPATH_INPUT_MAX}
             placeholder={t('actionPath.placeholder')}
             className={`${inputClass} min-h-25 resize-y`}
+            aria-invalid={Boolean(validationHint)}
+            aria-describedby={
+              validationHint ? 'actionpath-validation' : 'actionpath-char-count'
+            }
           />
-          <p className="mt-1 text-right text-xs tabular-nums text-muted">
-            {trimmed.length}/{ACTIONPATH_INPUT_MAX}
-            {trimmed.length > 0 && trimmed.length < ACTIONPATH_INPUT_MIN && (
-              <span className="ml-2 text-amber-600">
-                {t('actionPath.minChars', { count: ACTIONPATH_INPUT_MIN })}
-              </span>
-            )}
-          </p>
+          <div className="mt-1 flex flex-wrap items-center justify-between gap-2 text-xs">
+            <p id="actionpath-char-count" className="tabular-nums text-muted">
+              {trimmed.length}/{ACTIONPATH_INPUT_MAX}
+              {trimmed.length > 0 && trimmed.length < ACTIONPATH_INPUT_MIN && (
+                <span className="ml-2 text-amber-600">
+                  {t('actionPath.minChars', { count: ACTIONPATH_INPUT_MIN })}
+                </span>
+              )}
+            </p>
+          </div>
+          {validationHint && (
+            <p
+              id="actionpath-validation"
+              role="status"
+              className="mt-2 rounded-lg border border-amber-200/80 bg-amber-50/90 px-3 py-2 text-sm text-amber-950 dark:border-amber-500/30 dark:bg-amber-950/30 dark:text-amber-100"
+            >
+              {validationHint}
+            </p>
+          )}
         </div>
 
-        {error && (
+        {error && inputValid && (
           <div
             role="alert"
             className="flex items-start gap-2.5 rounded-xl border border-red-200/80 bg-red-50/90 px-4 py-3 text-sm text-red-900 dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-100"
@@ -162,11 +266,18 @@ export default function ActionPathAI({
             <p className="min-w-0 flex-1 leading-relaxed">{error}</p>
             <button
               type="button"
-              onClick={() => void runGenerate()}
-              disabled={!canGenerate}
-              className="shrink-0 inline-flex items-center gap-1.5 rounded-lg border border-red-300/80 bg-white px-3 py-1.5 text-xs font-semibold text-red-900 transition hover:bg-red-50 disabled:opacity-50 dark:border-red-500/40 dark:bg-red-950/60 dark:text-red-50"
+              onClick={() => {
+                const retryText = lastValidInputRef.current
+                if (retryText) void runGenerate(retryText)
+              }}
+              disabled={!canRetry}
+              className="shrink-0 inline-flex items-center gap-1.5 rounded-lg border border-red-300/80 bg-white px-3 py-1.5 text-xs font-semibold text-red-900 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-500/40 dark:bg-red-950/60 dark:text-red-50"
             >
-              <RefreshCw className="h-3.5 w-3.5" aria-hidden />
+              {loading ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+              ) : (
+                <RefreshCw className="h-3.5 w-3.5" aria-hidden />
+              )}
               {t('actionPath.retry')}
             </button>
           </div>
@@ -208,9 +319,9 @@ export default function ActionPathAI({
           {showResult && (
             <button
               type="button"
-              onClick={() => void runGenerate()}
-              disabled={!canGenerate || loading}
-              className="btn-secondary w-full sm:w-auto"
+              onClick={() => void runGenerate(lastValidInputRef.current ?? undefined)}
+              disabled={!canRetry}
+              className="btn-secondary w-full sm:w-auto disabled:cursor-not-allowed disabled:opacity-60"
             >
               <RefreshCw className="h-4 w-4" aria-hidden />
               {t('actionPath.regenerate')}
@@ -299,7 +410,7 @@ export default function ActionPathAI({
             </div>
 
             {suggestion.safety_note && (
-              <p className="rounded-xl border border-amber-200 bg-amber-50/80 px-4 py-3 text-sm text-amber-950">
+              <p className="rounded-xl border border-amber-200 bg-amber-50/80 px-4 py-3 text-sm text-amber-950 dark:border-amber-500/30 dark:bg-amber-950/40 dark:text-amber-100">
                 <span className="font-semibold">{t('actionPath.safetyNote')}: </span>
                 {suggestion.safety_note}
               </p>
@@ -327,7 +438,7 @@ export default function ActionPathAI({
             )}
 
             {suggestion.recommended_movement_type === 'donation_relief' && (
-              <p className="rounded-xl border border-rose-100 bg-rose-50/80 px-4 py-3 text-sm text-rose-900">
+              <p className="rounded-xl border border-rose-100 bg-rose-50/80 px-4 py-3 text-sm text-rose-900 dark:border-rose-500/30 dark:bg-rose-950/40 dark:text-rose-100">
                 {t('actionPath.reliefRedirectNote')}
               </p>
             )}

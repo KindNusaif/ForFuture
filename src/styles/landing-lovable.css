@@ -32,11 +32,12 @@
   background: color-mix(in srgb, var(--lv-indigo) 7%, var(--lv-cream));
 }
 
-.layout-lovable-marketing .public-nav-link-active {
+.layout-lovable-marketing .public-nav-link-active,
+.layout-lovable-marketing .public-nav-link--active {
   color: var(--lv-ink);
   font-weight: 600;
-  background: color-mix(in srgb, var(--lv-indigo) 11%, white);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lv-indigo) 20%, transparent);
+  background: color-mix(in srgb, var(--lv-indigo) 8%, var(--lv-cream));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lv-indigo) 14%, transparent);
   border-radius: 0.5rem;
 }
 
@@ -49,10 +50,11 @@
   background: color-mix(in srgb, var(--lv-indigo) 18%, transparent);
 }
 
-[data-theme='dark'] .layout-lovable-marketing .public-nav-link-active {
+[data-theme='dark'] .layout-lovable-marketing .public-nav-link-active,
+[data-theme='dark'] .layout-lovable-marketing .public-nav-link--active {
   color: var(--lv-cream);
-  background: color-mix(in srgb, var(--lv-indigo) 28%, rgb(30 27 55 / 0.55));
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lv-indigo) 42%, transparent);
+  background: color-mix(in srgb, var(--lv-indigo) 16%, rgb(30 27 55 / 0.45));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lv-indigo) 24%, transparent);
 }
 
 .layout-lovable-marketing .lovable-nav-join {
@@ -684,10 +686,8 @@ html[data-reduce-motion='true'] .landing-lovable .landing-hero-cta-placeholder {
   -webkit-backdrop-filter: blur(16px);
 }
 
-.layout-lovable-marketing .nav-shell-lovable > div:first-child {
-  height: 4rem;
+.layout-lovable-marketing .nav-shell-lovable .public-nav-bar {
   max-width: 80rem;
-  padding-inline: clamp(0.75rem, 3vw, 1.5rem);
 }
 
 .layout-lovable-marketing .lovable-nav-main {
