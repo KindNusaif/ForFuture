@@ -33,6 +33,11 @@ const CreatePostRoute = lazy(() =>
 const Profile = lazy(() => import('./pages/Profile'))
 const Onboarding = lazy(() => import('./pages/Onboarding'))
 const MovementDetail = lazy(() => import('./pages/MovementDetail'))
+const AdminLayout = lazy(() => import('./components/admin/AdminLayout'))
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
+const AdminUsers = lazy(() => import('./pages/admin/AdminUsers'))
+const AdminContent = lazy(() => import('./pages/admin/AdminContent'))
+const AdminReports = lazy(() => import('./pages/admin/AdminReports'))
 const AdminModeration = lazy(() => import('./pages/AdminModeration'))
 const AdminTrustReview = lazy(() => import('./pages/AdminTrustReview'))
 const ReliefHub = lazy(() => import('./pages/ReliefHub'))
@@ -303,6 +308,65 @@ export default function App() {
                     </LazyPage>
                   }
                 />
+                <Route
+                  path="admin"
+                  element={
+                    <AdminRoute>
+                      <LazyPage>
+                        <AdminLayout />
+                      </LazyPage>
+                    </AdminRoute>
+                  }
+                >
+                  <Route
+                    index
+                    element={
+                      <LazyPage>
+                        <AdminDashboard />
+                      </LazyPage>
+                    }
+                  />
+                  <Route
+                    path="users"
+                    element={
+                      <LazyPage>
+                        <AdminUsers />
+                      </LazyPage>
+                    }
+                  />
+                  <Route
+                    path="content"
+                    element={
+                      <LazyPage>
+                        <AdminContent />
+                      </LazyPage>
+                    }
+                  />
+                  <Route
+                    path="reports"
+                    element={
+                      <LazyPage>
+                        <AdminReports />
+                      </LazyPage>
+                    }
+                  />
+                  <Route
+                    path="moderation"
+                    element={
+                      <LazyPage>
+                        <AdminModeration />
+                      </LazyPage>
+                    }
+                  />
+                  <Route
+                    path="trust-review"
+                    element={
+                      <LazyPage>
+                        <AdminTrustReview />
+                      </LazyPage>
+                    }
+                  />
+                </Route>
                 <Route element={<AppLayout />}>
                 <Route
                   path="feed"
@@ -374,26 +438,6 @@ export default function App() {
                     <LazyPage>
                       <Profile />
                     </LazyPage>
-                  }
-                />
-                <Route
-                  path="admin/moderation"
-                  element={
-                    <AdminRoute>
-                      <LazyPage>
-                        <AdminModeration />
-                      </LazyPage>
-                    </AdminRoute>
-                  }
-                />
-                <Route
-                  path="admin/trust-review"
-                  element={
-                    <AdminRoute>
-                      <LazyPage>
-                        <AdminTrustReview />
-                      </LazyPage>
-                    </AdminRoute>
                   }
                 />
                 </Route>

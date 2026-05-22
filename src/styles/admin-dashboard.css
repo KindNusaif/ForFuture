@@ -1,0 +1,192 @@
+/* ForFuture Admin Dashboard — isolated from member app chrome */
+
+.admin-shell {
+  --admin-sidebar-w: 15.5rem;
+  min-height: 100vh;
+  display: flex;
+  background: var(--surface-page, var(--color-surface-50));
+}
+
+.admin-sidebar {
+  width: var(--admin-sidebar-w);
+  flex-shrink: 0;
+  border-right: 1px solid var(--border-subtle, rgb(15 23 42 / 0.08));
+  background: var(--surface-elevated, #fff);
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 0.75rem;
+  gap: 0.25rem;
+}
+
+[data-theme='dark'] .admin-sidebar {
+  background: oklch(0.18 0.04 265);
+  border-color: rgb(255 255 255 / 0.08);
+}
+
+.admin-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--border-subtle, rgb(15 23 42 / 0.08));
+  background: var(--surface-elevated, #fff);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+[data-theme='dark'] .admin-topbar {
+  background: oklch(0.2 0.04 265);
+}
+
+.admin-content {
+  flex: 1;
+  padding: 1.25rem;
+  max-width: 90rem;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.admin-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: var(--ff-radius-control, 0.875rem);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-muted, #64748b);
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.admin-nav-link:hover {
+  background: color-mix(in oklab, var(--color-accent-500) 8%, transparent);
+  color: var(--text-primary, #0f172a);
+}
+
+.admin-nav-link [aria-current='page'],
+.admin-nav-link[aria-current='page'] {
+  font-weight: 600;
+}
+
+.admin-nav-link:has([aria-current='page']),
+.admin-nav-link[aria-current='page'] {
+  background: color-mix(in oklab, var(--color-accent-500) 14%, transparent);
+  color: var(--color-accent-700);
+}
+
+[data-theme='dark'] .admin-nav-link:has([aria-current='page']),
+[data-theme='dark'] .admin-nav-link[aria-current='page'] {
+  color: var(--color-accent-300);
+}
+
+.admin-stat-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr));
+}
+
+.admin-card {
+  border-radius: var(--ff-radius-card, 1.25rem);
+  border: 1px solid var(--border-subtle, rgb(15 23 42 / 0.08));
+  background: var(--surface-elevated, #fff);
+  box-shadow: var(--ff-shadow-card);
+  padding: 1rem 1.125rem;
+}
+
+[data-theme='dark'] .admin-card {
+  background: oklch(0.22 0.04 265);
+}
+
+.admin-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--ff-radius-card, 1.25rem);
+  border: 1px solid var(--border-subtle, rgb(15 23 42 / 0.08));
+  background: var(--surface-elevated, #fff);
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.admin-table th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-subtle, rgb(15 23 42 / 0.08));
+  white-space: nowrap;
+}
+
+.admin-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgb(15 23 42 / 0.04);
+  vertical-align: top;
+}
+
+.admin-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.admin-skeleton {
+  animation: admin-pulse 1.4s ease-in-out infinite;
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--text-muted) 12%, transparent) 25%,
+    color-mix(in oklab, var(--text-muted) 20%, transparent) 50%,
+    color-mix(in oklab, var(--text-muted) 12%, transparent) 75%
+  );
+  background-size: 200% 100%;
+  border-radius: 0.5rem;
+}
+
+@keyframes admin-pulse {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.admin-mobile-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgb(15 23 42 / 0.45);
+  z-index: 40;
+}
+
+.admin-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(var(--admin-sidebar-w), 85vw);
+  z-index: 50;
+  box-shadow: 0 8px 32px rgb(15 23 42 / 0.2);
+}
+
+@media (max-width: 768px) {
+  .admin-sidebar--desktop {
+    display: none;
+  }
+}
+
+@media (min-width: 769px) {
+  .admin-drawer,
+  .admin-mobile-overlay {
+    display: none !important;
+  }
+}

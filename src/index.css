@@ -11,6 +11,7 @@
 @import './styles/relief-hub.css';
 @import './styles/launch-polish.css';
 @import './styles/community-polls.css';
+@import './styles/admin-dashboard.css';
 
 /* ─── Brand palette (unchanged) ─── */
 @theme {

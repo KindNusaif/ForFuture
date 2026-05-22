@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
+import AdminAccessDenied from './admin/AdminAccessDenied'
 import { useAuth } from '../hooks/useAuth'
 import { useIsAdmin } from '../hooks/useIsAdmin'
 
@@ -21,7 +22,7 @@ export default function AdminRoute({ children }: { children: React.ReactNode }) 
   }
 
   if (!isAdmin) {
-    return <Navigate to="/feed" replace />
+    return <AdminAccessDenied />
   }
 
   return <>{children}</>

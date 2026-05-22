@@ -9,7 +9,6 @@ import {
   LogOut,
   Map,
   Shield,
-  BadgeCheck,
   HeartHandshake,
   Activity,
   Sparkles,
@@ -139,16 +138,10 @@ export default function AppShell({ children }: { children?: ReactNode }) {
                   {t('nav.myProfile')}
                 </NavLink>
                 {isAdmin && (
-                  <>
-                    <NavLink to="/admin/moderation" className={navLinkClass}>
-                      <Shield className="h-5 w-5 shrink-0" aria-hidden />
-                      {t('nav.moderation')}
-                    </NavLink>
-                    <NavLink to="/admin/trust-review" className={navLinkClass}>
-                      <BadgeCheck className="h-5 w-5 shrink-0" aria-hidden />
-                      Trust review
-                    </NavLink>
-                  </>
+                  <NavLink to="/admin" className={navLinkClass}>
+                    <Shield className="h-5 w-5 shrink-0" aria-hidden />
+                    {t('nav.admin', { defaultValue: 'Admin' })}
+                  </NavLink>
                 )}
               </nav>
 

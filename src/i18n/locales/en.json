@@ -25,6 +25,7 @@
     "profile": "Profile",
     "myProfile": "My Profile",
     "moderation": "Moderation",
+    "admin": "Admin",
     "explore": "Explore Youth Momentum",
     "exploreShort": "Explore",
     "exploreMovements": "Explore Movements",
@@ -886,6 +887,111 @@
     "issue": "Issue",
     "closingDate": "Closing Date",
     "impactNote": "Impact Note"
+  },
+  "admin": {
+    "accessDenied": {
+      "title": "Access denied",
+      "message": "You don't have permission to view the admin dashboard.",
+      "backToFeed": "Back to Feed"
+    },
+    "brand": "ForFuture Admin",
+    "backToApp": "Back to app",
+    "openMenu": "Open admin menu",
+    "closeMenu": "Close menu",
+    "nav": {
+      "label": "Admin navigation",
+      "overview": "Overview",
+      "users": "Users",
+      "content": "Content",
+      "reports": "Reports",
+      "fullModeration": "Full moderation",
+      "trustReview": "Trust review"
+    },
+    "titles": {
+      "overview": "Overview",
+      "users": "Users",
+      "content": "Content",
+      "reports": "Reports",
+      "moderation": "Moderation",
+      "trustReview": "Trust review"
+    },
+    "filters": {
+      "all": "All"
+    },
+    "overview": {
+      "subtitle": "Monitor platform health. Read-only for launch.",
+      "rpcHint": "Run supabase/admin_dashboard_rpcs.sql in Supabase for full user and post counts.",
+      "statsHeading": "Platform statistics",
+      "recentActivity": "Recent activity",
+      "noActivityTitle": "No recent activity",
+      "noActivityMessage": "Activity will appear after the admin RPC is enabled or as users join.",
+      "quickLinks": "Quick links"
+    },
+    "stats": {
+      "users": "Total users",
+      "posts": "Total posts",
+      "petitions": "Petitions",
+      "polls": "Polls",
+      "volunteer": "Volunteer drives",
+      "reports": "Pending reports",
+      "limited": "Limited without RPC"
+    },
+    "users": {
+      "readOnlyNote": "Read-only user list. Email is not exposed from the browser.",
+      "search": "Search users",
+      "searchPlaceholder": "Name or Youth Voice ID",
+      "filterRole": "Role",
+      "name": "Name",
+      "role": "Role",
+      "status": "Status",
+      "created": "Joined",
+      "emptyTitle": "No users found",
+      "emptyMessage": "Try a different search or run admin_dashboard_rpcs.sql for full listing.",
+      "tableCaption": "Platform users"
+    },
+    "content": {
+      "readOnlyNote": "Read-only content browser. Status updates are not enabled in this release.",
+      "search": "Search content",
+      "filterType": "Content type",
+      "title": "Title",
+      "type": "Type",
+      "status": "Status",
+      "created": "Created",
+      "emptyTitle": "No content found",
+      "emptyMessage": "Adjust filters or search to find movements and posts.",
+      "tableCaption": "Platform content"
+    },
+    "reports": {
+      "readOnlyNote": "Read-only report list. Use Full moderation to update report status when needed.",
+      "filterStatus": "Status",
+      "type": "Type",
+      "preview": "Preview",
+      "reason": "Reason",
+      "status": "Status",
+      "date": "Reported",
+      "emptyTitle": "No reports yet",
+      "emptyMessage": "When users report content, it will appear here for review.",
+      "tableCaption": "Content and comment reports"
+    },
+    "dashboard": {
+      "backToFeed": "Back to feed",
+      "eyebrow": "Platform admin",
+      "title": "Admin dashboard",
+      "subtitle": "Review reports, trust decisions, and verification requests. Access is limited to profiles with is_admin set in Supabase.",
+      "totalPending": "{{count}} items need attention across queues",
+      "refresh": "Refresh",
+      "loading": "Loading admin queues…",
+      "partialLoad": "Some queue counts could not be loaded: {{sections}}.",
+      "moderationTitle": "Content moderation",
+      "moderationDesc": "Review reported movements, polls, and related content.",
+      "commentsTitle": "Comment reports",
+      "commentsDesc": "Handled on the moderation page with content reports.",
+      "trustTitle": "Trust & campaigns",
+      "trustDesc": "Verify organizers and review fundraising and civic campaigns.",
+      "orgTitle": "Organization verification",
+      "orgDesc": "Review NGO and organization applications on the trust page.",
+      "footer": "Granting admin access is done only in Supabase SQL (profiles.is_admin). Reports do not automatically remove content."
+    }
   },
   "moderation": {
     "reportContent": "Report Content",
