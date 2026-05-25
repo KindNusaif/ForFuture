@@ -1,4 +1,4 @@
-/* Public marketing navbar — 3-column grid: brand | center nav | actions */
+/* Public marketing navbar — 3-column grid (brand | center nav | actions) */
 
 .nav-shell,
 .nav-shell-lovable {
@@ -12,6 +12,8 @@
   width: 100%;
   padding-inline: clamp(1rem, 2vw, 2rem);
   overflow-x: clip;
+  container-type: inline-size;
+  container-name: public-nav;
 }
 
 /* —— Mobile / tablet header (< 1280px) —— */
@@ -69,8 +71,8 @@
   display: none;
   width: 100%;
   align-items: center;
-  grid-template-columns: minmax(17.5rem, 18.75rem) minmax(0, 1fr) auto;
-  column-gap: 2.5rem;
+  grid-template-columns: 17.5rem minmax(0, 1fr) auto;
+  column-gap: 1.5rem;
   height: 5rem;
   min-height: 5rem;
 }
@@ -81,11 +83,12 @@
   }
 }
 
-/* Brand column (~300px) */
+/* Brand column (~280px) */
 .public-nav-brand {
   display: flex;
-  min-width: 0;
-  max-width: 18.75rem;
+  width: 17.5rem;
+  max-width: 17.5rem;
+  min-width: 17.5rem;
   flex-shrink: 0;
   justify-self: start;
   align-items: center;
@@ -103,25 +106,20 @@
   overflow: visible;
 }
 
-/* Center nav — only ≥ 1536px (2xl); hidden on laptop to prevent overlap */
+/* Center nav — hidden by default; shown only when the bar is wide enough (container query) */
 .public-nav-center {
   display: none;
   min-width: 0;
+  max-width: 100%;
   flex-wrap: nowrap;
   align-items: center;
   justify-content: center;
-  gap: clamp(1.25rem, 2vw, 2.5rem);
-  overflow: hidden;
+  gap: 0.625rem;
+  overflow: visible;
   justify-self: stretch;
 }
 
-@media (min-width: 1536px) {
-  .public-nav-center {
-    display: flex;
-  }
-}
-
-/* Laptop menu — 1280px–1535px only; never with full center nav */
+/* Laptop / tight desktop: Menu in the actions column */
 .public-nav-menu-btn {
   display: none;
   align-items: center;
@@ -143,6 +141,12 @@
     border-color 0.15s ease;
 }
 
+@media (min-width: 1280px) {
+  .public-nav-menu-btn--show {
+    display: inline-flex;
+  }
+}
+
 .public-nav-menu-btn:hover {
   color: var(--text-primary);
   background: var(--ff-nav-hover-bg);
@@ -153,30 +157,34 @@
   outline-offset: 2px;
 }
 
-@media (min-width: 1280px) and (max-width: 1535.98px) {
-  .public-nav-menu-btn--show {
-    display: inline-flex;
-  }
-}
-
-/* Right actions — shrink-0, never collides with center */
+/* Right actions — never shrink; sits above any bleed */
 .public-nav-end {
   display: flex;
   flex-shrink: 0;
   flex-wrap: nowrap;
   align-items: center;
   justify-content: flex-end;
-  gap: 1rem;
+  gap: 0.75rem;
   white-space: nowrap;
   justify-self: end;
-  min-width: 0;
+  min-width: max-content;
+  position: relative;
+  z-index: 2;
+}
+
+.layout-lovable-marketing .public-nav-end {
+  background: color-mix(in srgb, oklch(0.97 0.04 95) 78%, transparent);
+}
+
+[data-theme='dark'] .public-nav-end {
+  background: var(--ff-nav, var(--ff-page-1));
 }
 
 .public-nav-auth {
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.625rem;
   flex-shrink: 0;
   white-space: nowrap;
 }
@@ -187,7 +195,7 @@
   align-items: center;
   gap: 0.375rem;
   flex-shrink: 0;
-  padding-left: 0.75rem;
+  padding-left: 0.625rem;
   border-left: 1px solid var(--ff-border);
 }
 
@@ -201,9 +209,9 @@
   justify-content: center;
   box-sizing: border-box;
   border: 1px solid transparent;
-  border-radius: 0.75rem;
-  padding: 0.375rem 0.75rem;
-  font-size: 0.875rem;
+  border-radius: 0.625rem;
+  padding: 0.3125rem 0.5rem;
+  font-size: 0.8125rem;
   font-weight: 500;
   line-height: 1.25;
   white-space: nowrap;
@@ -220,7 +228,7 @@
 }
 
 .public-nav-link--active {
-  padding: 0.5rem 0.875rem;
+  padding: 0.375rem 0.625rem;
   font-weight: 600;
   color: var(--color-accent-700, #4338ca);
   background: color-mix(in srgb, var(--color-accent-500, #6366f1) 8%, var(--ff-nav, #fff));
@@ -238,7 +246,7 @@
   min-height: 2.5rem;
   align-items: center;
   justify-content: center;
-  padding-inline: 0.75rem;
+  padding-inline: 0.625rem;
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--text-secondary);
@@ -285,6 +293,46 @@
   }
 }
 
+/* —— Container queries: show center nav only when bar has room (~1360px+) —— */
+@container public-nav (min-width: 85rem) {
+  .public-nav-grid {
+    column-gap: 1.75rem;
+  }
+
+  .public-nav-center {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .public-nav-menu-btn--show {
+    display: none !important;
+  }
+
+  .public-nav-drawer {
+    display: none !important;
+  }
+}
+
+@container public-nav (min-width: 92rem) {
+  .public-nav-grid {
+    column-gap: 2.5rem;
+  }
+
+  .public-nav-center {
+    gap: 1.25rem;
+  }
+
+  .public-nav-link {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    border-radius: 0.75rem;
+  }
+
+  .public-nav-link--active {
+    padding: 0.5rem 0.875rem;
+  }
+}
+
 /* —— Dropdown / mobile menu panel —— */
 .public-nav-drawer {
   display: none;
@@ -304,12 +352,6 @@
   gap: 0.125rem;
 }
 
-@media (min-width: 1536px) {
-  .public-nav-drawer {
-    display: none !important;
-  }
-}
-
 .public-nav-drawer-divider {
   margin: 0.5rem 0;
   height: 1px;
@@ -320,4 +362,31 @@
   background: var(--ff-card-elevated, var(--ff-card));
   border-color: var(--ff-card-border);
   box-shadow: 0 12px 28px -8px var(--ff-shadow);
+}
+
+/* Fallback when container queries unsupported: never clip — use Menu below 1536px viewport */
+@supports not (container-type: inline-size) {
+  @media (min-width: 1280px) and (max-width: 1535.98px) {
+    .public-nav-center {
+      display: none !important;
+    }
+
+    .public-nav-menu-btn--show {
+      display: inline-flex !important;
+    }
+  }
+
+  @media (min-width: 1536px) {
+    .public-nav-center {
+      display: flex !important;
+    }
+
+    .public-nav-menu-btn--show {
+      display: none !important;
+    }
+
+    .public-nav-drawer {
+      display: none !important;
+    }
+  }
 }
