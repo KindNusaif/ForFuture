@@ -20,6 +20,10 @@ export const ACTIONPATH_REQUEST_TIMEOUT_MS = 45_000
 export const ACTIONPATH_GENERIC_ERROR =
   'ActionPath AI could not generate a suggestion. Please try again.'
 
+/** Shown when the edge function URL returns 404 or the browser blocks the request (CORS). */
+export const ACTIONPATH_NOT_DEPLOYED =
+  'ActionPath AI is not available yet. Deploy the actionpath-ai Edge Function to your Supabase project.'
+
 /** Internal slug used by create-form mapping */
 export type ActionPathRecommendedType =
   | 'petition'
@@ -161,32 +165,39 @@ function legacyToSuggestion(raw: Record<string, unknown>): ActionPathApiSuggesti
   const recommendedType =
     typeof raw.recommendedType === 'string'
       ? raw.recommendedType
-      : typeof raw.recommended_movement_type === 'string'
-        ? raw.recommended_movement_type
-        : ''
+      : typeof raw.movementType === 'string'
+        ? raw.movementType
+        : typeof raw.recommended_movement_type === 'string'
+          ? raw.recommended_movement_type
+          : ''
   const title =
     typeof raw.title === 'string'
       ? raw.title
-      : typeof raw.suggestedTitle === 'string'
-        ? raw.suggestedTitle
-        : typeof raw.improved_title === 'string'
-          ? raw.improved_title
-          : ''
+      : typeof raw.improvedTitle === 'string'
+        ? raw.improvedTitle
+        : typeof raw.suggestedTitle === 'string'
+          ? raw.suggestedTitle
+          : typeof raw.improved_title === 'string'
+            ? raw.improved_title
+            : ''
   const summary =
     typeof raw.summary === 'string'
       ? raw.summary
-      : typeof raw.refinedSummary === 'string'
-        ? raw.refinedSummary
-        : typeof raw.improved_description === 'string'
-          ? raw.improved_description
-          : ''
+      : typeof raw.improvedMessage === 'string'
+        ? raw.improvedMessage
+        : typeof raw.refinedSummary === 'string'
+          ? raw.refinedSummary
+          : typeof raw.improved_description === 'string'
+            ? raw.improved_description
+            : ''
   const whyItMatters =
     typeof raw.whyItMatters === 'string'
       ? raw.whyItMatters
       : typeof raw.recommendation_reason === 'string'
         ? raw.recommendation_reason
         : summary
-  const stepsRaw = raw.recommendedNextSteps ?? raw.nextSteps ?? raw.suggested_action_steps
+  const stepsRaw =
+    raw.recommendedNextSteps ?? raw.nextSteps ?? raw.next_steps ?? raw.suggested_action_steps
   if (!recommendedType || !title || !summary || !Array.isArray(stepsRaw)) return null
   const recommendedNextSteps = stepsRaw
     .filter((s): s is string => typeof s === 'string' && s.trim().length > 0)
@@ -222,6 +233,26 @@ function coalesceEdgeBody(data: unknown): ActionPathEdgeResponse | null {
       ok: false,
       error: o.error,
       code: typeof o.code === 'string' ? o.code : undefined,
+    }
+  }
+
+  if (typeof o.error === 'string' && o.ok !== true) {
+    return {
+      ok: false,
+      error: o.error,
+      code: typeof o.code === 'string' ? o.code : undefined,
+    }
+  }
+
+  if (typeof o.result === 'string' && o.result.trim()) {
+    try {
+      const parsed = JSON.parse(
+        o.result.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim(),
+      ) as Record<string, unknown>
+      const suggestion = legacyToSuggestion(parsed)
+      if (suggestion) return { ok: true, suggestion }
+    } catch {
+      /* fall through */
     }
   }
 
@@ -266,11 +297,16 @@ function isUserFacingMessage(message: string): boolean {
   return (
     lower.includes('sign in') ||
     lower.includes('busy') ||
+    lower.includes('please wait') ||
+    lower.includes('many times this hour') ||
+    lower.includes('try again in about') ||
     lower.includes('describe') ||
     lower.includes('characters') ||
     lower.includes('real issue') ||
     lower.includes('unclear') ||
-    lower.includes('invalid request')
+    lower.includes('invalid request') ||
+    lower.includes('openai rate limit') ||
+    lower.includes('rate limit reached')
   )
 }
 
@@ -278,12 +314,20 @@ function mapErrorCode(message: string, code?: string): ActionPathErrorCode {
   if (code === 'auth') return 'auth'
   if (code === 'config') return 'config'
   if (code === 'rate_limit') return 'rate_limit'
+  if (code === 'openai_rate_limit') return 'api'
   if (code === 'invalid_input') return 'invalid_input'
   if (code === 'api' || code === 'malformed') return 'api'
 
   const lower = message.toLowerCase()
   if (lower.includes('sign in')) return 'auth'
-  if (lower.includes('busy')) return 'rate_limit'
+  if (lower.includes('openai rate limit') || lower.includes('rate limit reached')) return 'api'
+  if (
+    lower.includes('busy') ||
+    lower.includes('please wait') ||
+    lower.includes('many times this hour')
+  ) {
+    return 'rate_limit'
+  }
   if (lower.includes('describe') || lower.includes('characters')) return 'invalid_input'
   if (lower.includes('real issue') || lower.includes('unclear')) return 'invalid_input'
   return 'api'
@@ -295,8 +339,39 @@ function throwFromEdgeBody(body: ActionPathEdgeResponse): never {
   }
   const raw = body.error?.trim() ?? ''
   const message =
-    raw && (isUserFacingMessage(raw) || body.code === 'config') ? raw : ACTIONPATH_GENERIC_ERROR
+    raw &&
+    (isUserFacingMessage(raw) ||
+      body.code === 'config' ||
+      body.code === 'rate_limit' ||
+      body.code === 'openai_rate_limit')
+      ? raw
+      : ACTIONPATH_GENERIC_ERROR
   throw new ActionPathAiError(message, mapErrorCode(raw || message, body.code))
+}
+
+function resolveInvokePayload(data: unknown, error: unknown): ActionPathSuggestion {
+  const body = coalesceEdgeBody(data)
+  if (body?.ok === true && body.suggestion) {
+    return mapApiSuggestion(body.suggestion)
+  }
+  if (body?.ok === false) {
+    throwFromEdgeBody(body)
+  }
+
+  if (error) {
+    const errMsg = error instanceof Error ? error.message : String(error)
+    devLog('invoke-error', { message: errMsg, data })
+    if (isLikelyNotDeployed(error)) throwNotDeployed()
+    if (/failed to fetch|network|load failed/i.test(errMsg)) {
+      throw new ActionPathAiError(
+        'ActionPath AI is temporarily unavailable. Please try again shortly.',
+        'network',
+      )
+    }
+    throw new ActionPathAiError(errMsg || ACTIONPATH_GENERIC_ERROR, 'api')
+  }
+
+  return parseEdgeResponse(data)
 }
 
 function mapApiSuggestion(api: ActionPathApiSuggestion): ActionPathSuggestion {
@@ -349,6 +424,22 @@ function parseEdgeResponse(data: unknown): ActionPathSuggestion {
   return mapApiSuggestion(body.suggestion)
 }
 
+function throwNotDeployed(): never {
+  throw new ActionPathAiError(ACTIONPATH_NOT_DEPLOYED, 'config')
+}
+
+/** Missing function: OPTIONS 404 → browser CORS error on POST; invoke often surfaces as fetch/relay errors. */
+function isLikelyNotDeployed(error: unknown, status?: number): boolean {
+  if (status === 404) return true
+  if (error instanceof FunctionsRelayError) return true
+  const msg = error instanceof Error ? error.message : String(error ?? '')
+  const lower = msg.toLowerCase()
+  return (
+    /failed to fetch|load failed|networkerror/i.test(msg) ||
+    /failed to send a request|edge function|non-2xx|404|not found/i.test(lower)
+  )
+}
+
 async function parseFunctionsHttpError(error: FunctionsHttpError): Promise<never> {
   let status = (error as { status?: number }).status ?? 500
   let body: unknown = null
@@ -368,12 +459,7 @@ async function parseFunctionsHttpError(error: FunctionsHttpError): Promise<never
   const parsed = coalesceEdgeBody(body)
   if (parsed) throwFromEdgeBody(parsed)
 
-  if (status === 404) {
-    throw new ActionPathAiError(
-      'ActionPath AI is not fully set up on the server yet. Please try again later.',
-      'config',
-    )
-  }
+  if (isLikelyNotDeployed(error, status)) throwNotDeployed()
 
   throw new ActionPathAiError(ACTIONPATH_GENERIC_ERROR, 'api')
 }
@@ -423,9 +509,9 @@ export async function generateActionPath(input: string): Promise<ActionPathSugge
 
     devLog(error ? 'invoke-error' : 200, data)
 
-    if (error) {
+    if (error instanceof FunctionsHttpError) {
       let body = coalesceEdgeBody(data)
-      if (!body && error instanceof FunctionsHttpError) {
+      if (!body) {
         try {
           if (error.context && typeof (error.context as Response).json === 'function') {
             body = coalesceEdgeBody(await (error.context as Response).json())
@@ -435,33 +521,16 @@ export async function generateActionPath(input: string): Promise<ActionPathSugge
           /* fall through */
         }
       }
-      if (body) {
-        try {
-          return parseEdgeResponse(body)
-        } catch (bodyErr) {
-          if (bodyErr instanceof ActionPathAiError) throw bodyErr
-        }
+      if (body?.ok === true && body.suggestion) {
+        return mapApiSuggestion(body.suggestion)
       }
-      if (error instanceof FunctionsHttpError) {
-        await parseFunctionsHttpError(error)
+      if (body?.ok === false) {
+        throwFromEdgeBody(body)
       }
-      if (error instanceof FunctionsRelayError) {
-        throw new ActionPathAiError(
-          'ActionPath AI is temporarily unavailable. Please try again shortly.',
-          'network',
-        )
-      }
-      const msg = error instanceof Error ? error.message : ''
-      if (/failed to fetch|network|load failed/i.test(msg)) {
-        throw new ActionPathAiError(
-          'ActionPath AI is temporarily unavailable. Please try again shortly.',
-          'network',
-        )
-      }
-      throw new ActionPathAiError(ACTIONPATH_GENERIC_ERROR, 'api')
+      await parseFunctionsHttpError(error)
     }
 
-    return parseEdgeResponse(data)
+    return resolveInvokePayload(data, error)
   } catch (err) {
     if (err instanceof ActionPathAiError) throw err
     if (err instanceof Error && err.name === 'AbortError') {
@@ -470,6 +539,7 @@ export async function generateActionPath(input: string): Promise<ActionPathSugge
         'timeout',
       )
     }
+    if (isLikelyNotDeployed(err)) throwNotDeployed()
     const msg = err instanceof Error ? err.message : ''
     if (/failed to fetch|network|load failed/i.test(msg)) {
       throw new ActionPathAiError(

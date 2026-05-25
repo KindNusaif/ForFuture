@@ -85,7 +85,7 @@ function jsonResponse(body: unknown, status = 200) {
   })
 }
 
-type ErrorCode = 'invalid_input' | 'auth' | 'config' | 'rate_limit' | 'api'
+type ErrorCode = 'invalid_input' | 'auth' | 'config' | 'rate_limit' | 'api' | 'openai_rate_limit'
 
 function fail(message: string, status = 400, code?: ErrorCode) {
   // Return 200 for app errors so Supabase JS client always delivers JSON in `data`.
@@ -109,6 +109,7 @@ function normalizeDisplayType(raw: unknown): DisplayType | null {
     youth_voice: 'Raise Your Voice',
     raise_voice: 'Raise Your Voice',
     voice: 'Raise Your Voice',
+    'relief appeal': 'Donation & Relief Need',
     petition: 'Petition',
     'youth petition': 'Petition',
     youth_petition: 'Petition',
@@ -279,21 +280,31 @@ function validateAiSuggestion(data: unknown): { ok: true; value: ApiSuggestion }
   if (!data || typeof data !== 'object') return { ok: false }
 
   const o = data as Record<string, unknown>
-  const recommendedType = normalizeDisplayType(o.recommendedType)
+  const recommendedType = normalizeDisplayType(
+    o.recommendedType ?? o.movementType ?? o.movement_type,
+  )
   if (!recommendedType) return { ok: false }
 
   const title =
     typeof o.title === 'string'
       ? o.title.trim()
-      : typeof o.suggestedTitle === 'string'
-        ? o.suggestedTitle.trim()
-        : ''
+      : typeof o.improvedTitle === 'string'
+        ? o.improvedTitle.trim()
+        : typeof o.suggestedTitle === 'string'
+          ? o.suggestedTitle.trim()
+          : typeof o.improved_title === 'string'
+            ? o.improved_title.trim()
+            : ''
   const summary =
     typeof o.summary === 'string'
       ? o.summary.trim()
-      : typeof o.refinedSummary === 'string'
-        ? o.refinedSummary.trim()
-        : ''
+      : typeof o.improvedMessage === 'string'
+        ? o.improvedMessage.trim()
+        : typeof o.refinedSummary === 'string'
+          ? o.refinedSummary.trim()
+          : typeof o.improved_description === 'string'
+            ? o.improved_description.trim()
+            : ''
   let whyItMatters =
     typeof o.whyItMatters === 'string'
       ? o.whyItMatters.trim()
@@ -303,7 +314,8 @@ function validateAiSuggestion(data: unknown): { ok: true; value: ApiSuggestion }
           ? o.recommendation_reason.trim()
           : ''
 
-  const stepsRaw = o.recommendedNextSteps ?? o.nextSteps ?? o.suggested_action_steps
+  const stepsRaw =
+    o.recommendedNextSteps ?? o.nextSteps ?? o.next_steps ?? o.suggested_action_steps
   if (!title || !summary) return { ok: false }
   if (!whyItMatters) whyItMatters = summary.slice(0, 500)
   if (!Array.isArray(stepsRaw)) return { ok: false }
@@ -326,10 +338,14 @@ function validateAiSuggestion(data: unknown): { ok: true; value: ApiSuggestion }
   }
 }
 
+/** Cooldown uses last_request_at, which is updated only after a successful AI response. */
 async function checkRateLimit(
   admin: ReturnType<typeof createClient>,
   userId: string,
-): Promise<{ allowed: true } | { allowed: false; retryAfterSec: number }> {
+): Promise<
+  | { allowed: true }
+  | { allowed: false; retryAfterSec: number; reason: 'cooldown' | 'hourly'; message: string }
+> {
   try {
     const now = new Date()
     const { data: row, error: selectError } = await admin
@@ -346,9 +362,12 @@ async function checkRateLimit(
     if (row?.last_request_at) {
       const last = new Date(row.last_request_at).getTime()
       if (now.getTime() - last < COOLDOWN_MS) {
+        const retryAfterSec = Math.ceil((COOLDOWN_MS - (now.getTime() - last)) / 1000)
         return {
           allowed: false,
-          retryAfterSec: Math.ceil((COOLDOWN_MS - (now.getTime() - last)) / 1000),
+          retryAfterSec,
+          reason: 'cooldown' as const,
+          message: `Please wait ${retryAfterSec} seconds before generating again.`,
         }
       }
     }
@@ -363,21 +382,14 @@ async function checkRateLimit(
 
     if (count >= MAX_PER_HOUR) {
       const resetAt = windowStart.getTime() + HOUR_MS
+      const retryAfterSec = Math.max(60, Math.ceil((resetAt - now.getTime()) / 1000))
+      const mins = Math.max(1, Math.ceil(retryAfterSec / 60))
       return {
         allowed: false,
-        retryAfterSec: Math.max(60, Math.ceil((resetAt - now.getTime()) / 1000)),
+        retryAfterSec,
+        reason: 'hourly' as const,
+        message: `You've used ActionPath AI many times this hour. Try again in about ${mins} minutes.`,
       }
-    }
-
-    const { error: upsertError } = await admin.from('actionpath_ai_usage').upsert({
-      user_id: userId,
-      window_start: windowStart.toISOString(),
-      request_count: count + 1,
-      last_request_at: now.toISOString(),
-    })
-
-    if (upsertError) {
-      console.error('actionpath-ai rate limit upsert', upsertError.message)
     }
 
     return { allowed: true }
@@ -387,7 +399,54 @@ async function checkRateLimit(
   }
 }
 
+/** Only successful generations count toward hourly limits and cooldown. */
+async function recordRateLimitSuccess(
+  admin: ReturnType<typeof createClient>,
+  userId: string,
+): Promise<void> {
+  try {
+    const now = new Date()
+    const { data: row } = await admin
+      .from('actionpath_ai_usage')
+      .select('window_start, request_count')
+      .eq('user_id', userId)
+      .maybeSingle()
+
+    let windowStart = row?.window_start ? new Date(row.window_start) : now
+    let count = row?.request_count ?? 0
+    if (now.getTime() - windowStart.getTime() > HOUR_MS) {
+      windowStart = now
+      count = 0
+    }
+
+    const { error: upsertError } = await admin.from('actionpath_ai_usage').upsert({
+      user_id: userId,
+      window_start: windowStart.toISOString(),
+      request_count: count + 1,
+      last_request_at: now.toISOString(),
+    })
+    if (upsertError) {
+      console.error('actionpath-ai rate limit success', upsertError.message)
+    }
+  } catch (err) {
+    console.error('actionpath-ai rate limit success', err instanceof Error ? err.message : 'unknown')
+  }
+}
+
 Deno.serve(async (req) => {
+  try {
+    return await handleActionPathRequest(req)
+  } catch (err) {
+    console.error(
+      'actionpath-ai unhandled',
+      err instanceof Error ? err.message : String(err),
+      err instanceof Error ? err.stack : '',
+    )
+    return fail(FRIENDLY_ERROR, 500, 'api')
+  }
+})
+
+async function handleActionPathRequest(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -429,14 +488,20 @@ Deno.serve(async (req) => {
     return fail('Sign in to use ActionPath AI.', 401, 'auth')
   }
 
-  let body: { input?: unknown }
+  let body: { input?: unknown; prompt?: unknown }
   try {
     body = await req.json()
   } catch {
     return fail('Invalid request. Please try again.', 400, 'invalid_input')
   }
 
-  const input = typeof body.input === 'string' ? body.input.trim() : ''
+  const raw =
+    typeof body.input === 'string'
+      ? body.input
+      : typeof body.prompt === 'string'
+        ? body.prompt
+        : ''
+  const input = raw.trim()
   const inputCheck = validateUserInput(input)
   if (!inputCheck.ok) {
     return fail(inputCheck.message, 400, 'invalid_input')
@@ -445,7 +510,7 @@ Deno.serve(async (req) => {
   const admin = createClient(supabaseUrl, serviceRoleKey)
   const rate = await checkRateLimit(admin, user.id)
   if (!rate.allowed) {
-    return fail('ActionPath AI is busy at the moment. Please try again shortly.', 429, 'rate_limit')
+    return fail(rate.message, 429, 'rate_limit')
   }
 
   try {
@@ -458,6 +523,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         temperature: 0.4,
+        max_tokens: 1024,
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
           {
@@ -469,17 +535,43 @@ Deno.serve(async (req) => {
       }),
     })
 
-    if (!openaiRes.ok) {
-      const errText = await openaiRes.text()
-      console.error('actionpath-ai openai error', openaiRes.status, errText.slice(0, 300))
-      if (openaiRes.status === 429) {
-        return fail('ActionPath AI is busy at the moment. Please try again shortly.', 503, 'rate_limit')
-      }
-      return fail(FRIENDLY_ERROR, 502, 'api')
+    const openaiRaw = await openaiRes.text()
+    let openaiData: Record<string, unknown> | null = null
+    try {
+      openaiData = openaiRaw ? (JSON.parse(openaiRaw) as Record<string, unknown>) : null
+    } catch {
+      console.error('actionpath-ai openai non-json body', openaiRes.status, openaiRaw.slice(0, 500))
     }
 
-    const completion = await openaiRes.json()
-    const content = completion?.choices?.[0]?.message?.content
+    console.log('OpenAI status:', openaiRes.status)
+    console.log('OpenAI response:', JSON.stringify(openaiData ?? { raw: openaiRaw.slice(0, 500) }))
+
+    if (!openaiRes.ok) {
+      const oaiErr = openaiData?.error as { message?: string } | undefined
+      const oaiMsg =
+        typeof oaiErr?.message === 'string'
+          ? oaiErr.message
+          : openaiRaw.slice(0, 200) || 'OpenAI request failed'
+      if (openaiRes.status === 429) {
+        return fail(
+          'OpenAI rate limit reached. Please wait a moment and try again.',
+          503,
+          'openai_rate_limit',
+        )
+      }
+      console.error('actionpath-ai openai error', openaiRes.status, oaiMsg)
+      return fail(
+        openaiRes.status >= 500
+          ? 'ActionPath AI is temporarily unavailable. Please try again shortly.'
+          : FRIENDLY_ERROR,
+        502,
+        'api',
+      )
+    }
+
+    const completion = openaiData
+    const content = (completion?.choices as Array<{ message?: { content?: string } }> | undefined)?.[0]
+      ?.message?.content
     if (typeof content !== 'string' || !content.trim()) {
       console.error('actionpath-ai: missing message content', JSON.stringify(completion).slice(0, 400))
       return fail(FRIENDLY_ERROR, 502, 'api')
@@ -499,9 +591,10 @@ Deno.serve(async (req) => {
       return fail(FRIENDLY_ERROR, 502, 'api')
     }
 
+    await recordRateLimitSuccess(admin, user.id)
     return success(validated.value)
   } catch (err) {
     console.error('actionpath-ai', err instanceof Error ? err.message : 'unknown')
     return fail(FRIENDLY_ERROR, 500, 'api')
   }
-})
+}

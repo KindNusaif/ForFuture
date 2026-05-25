@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react'
-import { Outlet, Route, Routes, useLocation } from 'react-router-dom'
+import { Outlet, Route, Routes, useLocation, useSearchParams } from 'react-router-dom'
 import { isPublicMarketingRoute } from './lib/publicRoutes'
 import AdminRoute from './components/AdminRoute'
 import JoinMovementModalHost from './components/JoinMovementModalHost'
@@ -27,9 +27,7 @@ const Movements = lazy(() => import('./pages/Movements'))
 const Discover = lazy(() => import('./pages/Discover'))
 const ImpactMap = lazy(() => import('./pages/ImpactMap'))
 const Feed = lazy(() => import('./pages/Feed'))
-const CreatePostRoute = lazy(() =>
-  import('./pages/CreatePost').then((m) => ({ default: m.CreatePostRoute })),
-)
+const CreatePost = lazy(() => import('./pages/CreatePost'))
 const Profile = lazy(() => import('./pages/Profile'))
 const Onboarding = lazy(() => import('./pages/Onboarding'))
 const MovementDetail = lazy(() => import('./pages/MovementDetail'))
@@ -57,6 +55,17 @@ const NotFound = lazy(() => import('./pages/NotFound'))
 
 function LazyPage({ children }: { children: ReactNode }) {
   return <Suspense fallback={<PageLoader />}>{children}</Suspense>
+}
+
+/** Remount create form when sidebar switches movement vs poll links (runs in App bundle, not lazy chunk). */
+function CreatePostRoute() {
+  const [searchParams] = useSearchParams()
+  const modeKey = searchParams.get('type') ?? 'movement'
+  return (
+    <Suspense fallback={<PageLoader />}>
+      <CreatePost key={modeKey} />
+    </Suspense>
+  )
 }
 
 function AppFrame({ children }: { children: ReactNode }) {
@@ -425,14 +434,7 @@ export default function App() {
                     </LazyPage>
                   }
                 />
-                <Route
-                  path="create"
-                  element={
-                    <LazyPage>
-                      <CreatePostRoute />
-                    </LazyPage>
-                  }
-                />
+                <Route path="create" element={<CreatePostRoute />} />
                 <Route
                   path="polls"
                   element={

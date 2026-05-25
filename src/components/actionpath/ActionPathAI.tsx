@@ -102,7 +102,11 @@ export default function ActionPathAI({
     if (err instanceof ActionPathAiError) {
       switch (err.code) {
         case 'rate_limit':
-          return t('actionPath.errorBusy')
+          return err.message?.trim() || t('actionPath.errorBusy')
+        case 'api':
+          return err.message?.trim() || t('actionPath.errorGeneric', {
+            defaultValue: ACTIONPATH_GENERIC_ERROR,
+          })
         case 'timeout':
           return t('actionPath.errorTimeout', {
             defaultValue: 'This is taking longer than expected. Please try again.',
@@ -119,7 +123,6 @@ export default function ActionPathAI({
               'Please describe a real community issue or idea before generating an Action Path.',
           })
         case 'malformed':
-        case 'api':
           return t('actionPath.errorGeneric', {
             defaultValue: ACTIONPATH_GENERIC_ERROR,
           })
@@ -297,7 +300,7 @@ export default function ActionPathAI({
                 const retryText = lastValidInputRef.current
                 if (retryText) void runGenerate(retryText)
               }}
-              disabled={!canRetry}
+              disabled={!canRetry || loading}
               className="shrink-0 inline-flex items-center gap-1.5 rounded-lg border border-red-300/80 bg-white px-3 py-1.5 text-xs font-semibold text-red-900 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-500/40 dark:bg-red-950/60 dark:text-red-50"
             >
               {loading ? (

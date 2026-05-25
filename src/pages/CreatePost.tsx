@@ -888,10 +888,3 @@ export default function CreatePost() {
     </section>
   )
 }
-
-/** Remount form when sidebar switches between movement vs poll create links. */
-export function CreatePostRoute() {
-  const [searchParams] = useSearchParams()
-  const modeKey = searchParams.get('type') ?? 'movement'
-  return <CreatePost key={modeKey} />
-}

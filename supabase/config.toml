@@ -1,0 +1,5 @@
+# Supabase CLI — https://supabase.com/docs/guides/cli
+# Link project: supabase link --project-ref YOUR_REF
+
+[functions.actionpath-ai]
+verify_jwt = true

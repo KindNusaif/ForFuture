@@ -65,7 +65,7 @@ function buildStampPlugin() {
 export default defineConfig({
   plugins: [react(), tailwindcss(), buildStampPlugin(), bootLoaderPlugin()],
   resolve: {
-    dedupe: ['react', 'react-dom'],
+    dedupe: ['react', 'react-dom', 'react-router', 'react-router-dom'],
   },
   define: {
     __FORFUTURE_BUILD_ID__: JSON.stringify(buildId),
@@ -82,6 +82,12 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
+          if (
+            id.includes('node_modules/react-router') ||
+            id.includes('node_modules/@remix-run/router')
+          ) {
+            return 'router'
+          }
           if (id.includes('node_modules/leaflet')) return 'leaflet'
           if (id.includes('node_modules/@googlemaps')) return 'google-maps'
           // Isolate context + provider modules (not whole dependency trees) so lazy routes
