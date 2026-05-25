@@ -254,17 +254,6 @@ export default function PublicNav() {
           )}
 
           <div className="public-nav-end shrink-0">
-            {showMarketingCenterNav ? (
-              <button
-                type="button"
-                className="public-nav-tablet-menu"
-                onClick={() => setOpen((o) => !o)}
-                aria-label={t('nav.menu')}
-                aria-expanded={open}
-              >
-                {t('nav.menu')}
-              </button>
-            ) : null}
             {showMarketingGuestActions || showAppQuickLinks ? (
               desktopRightActions
             ) : (

@@ -1,3 +1,4 @@
+/** App entry — production build id: injected at compile time. */
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'

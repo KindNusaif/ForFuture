@@ -2,7 +2,13 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
-const buildId = new Date().toISOString()
+/** Unique per Netlify deploy so HTML/asset query strings change and browsers refetch. */
+const commitRef =
+  process.env.COMMIT_REF ?? process.env.NETLIFY_COMMIT_REF ?? process.env.VERCEL_GIT_COMMIT_SHA ?? ''
+const deployId = process.env.DEPLOY_ID ?? process.env.NETLIFY_DEPLOY_ID ?? ''
+const buildId = commitRef
+  ? `${commitRef.slice(0, 8)}${deployId ? `-${String(deployId).slice(0, 8)}` : ''}`
+  : new Date().toISOString()
 
 function stampBuildMeta(html: string) {
   return html.replace(

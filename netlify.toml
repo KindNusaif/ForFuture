@@ -1,5 +1,6 @@
 [build]
-  command = "npm run build"
+  # Clean dist so Netlify never publishes a stale bundle from cache
+  command = "rm -rf dist && npm run build"
   publish = "dist"
 
 [functions]
@@ -9,11 +10,11 @@
 [build.environment]
   NODE_VERSION = "20"
 [context.production]
-  command = "npm run build"
+  command = "rm -rf dist && npm run build"
   publish = "dist"
 
 [context.deploy-preview]
-  command = "npm run build"
+  command = "rm -rf dist && npm run build"
   publish = "dist"
 
 # SPA fallback: public/_redirects → /* /index.html 200

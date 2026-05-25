@@ -29,7 +29,7 @@
   }
 }
 
-/* Desktop xl+: brand | center (2xl+) | actions */
+/* Desktop xl+: brand | center nav | actions */
 .public-nav-desktop {
   display: none;
   width: 100%;
@@ -81,7 +81,7 @@
   display: none;
 }
 
-@media (min-width: 1536px) {
+@media (min-width: 1280px) {
   .public-nav-center-wrap {
     display: block;
     overflow: visible;
@@ -119,33 +119,6 @@
 @media (min-width: 1536px) {
   .public-nav-end {
     gap: 0.75rem;
-  }
-}
-
-/* Laptop (xl–2xl): menu opens same panel as mobile */
-.public-nav-tablet-menu {
-  display: none;
-  align-items: center;
-  justify-content: center;
-  min-height: 2.5rem;
-  padding-inline: 0.75rem;
-  border-radius: 0.75rem;
-  border: 1px solid var(--ff-border);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  background: var(--surface-elevated);
-  white-space: nowrap;
-}
-
-.public-nav-tablet-menu:hover {
-  background: var(--ff-nav-hover-bg);
-  color: var(--text-primary);
-}
-
-@media (min-width: 1280px) and (max-width: 1535px) {
-  .public-nav-tablet-menu {
-    display: inline-flex;
   }
 }
 
@@ -297,7 +270,7 @@
   gap: 0.375rem;
 }
 
-/* Collapsible nav panel: mobile + laptop (below 2xl) */
+/* Collapsible nav panel: mobile / tablet only (below xl) */
 .public-nav-drawer {
   display: none;
   border-top: 1px solid var(--ff-border);
@@ -308,7 +281,7 @@
   display: block;
 }
 
-@media (min-width: 1536px) {
+@media (min-width: 1280px) {
   .public-nav-drawer {
     display: none !important;
   }

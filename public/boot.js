@@ -7,7 +7,7 @@
   var BUILD_META = 'forfuture-build'
   var ENTRY_META = 'forfuture-entry'
   var STYLESHEET_META = 'forfuture-stylesheet'
-  var SESSION_KEY = 'forfuture_boot_reload_v4'
+  var SESSION_KEY = 'forfuture_boot_reload_v5'
   var MAX_RELOADS = 2
 
   function getMeta(name) {
@@ -19,12 +19,18 @@
     return url.replace(/\?.*$/, '')
   }
 
+  function cacheBustUrl(src) {
+    if (!src) return src
+    var token = '_nc=' + Date.now()
+    return src + (src.indexOf('?') >= 0 ? '&' : '?') + token
+  }
+
   function loadEntry(src) {
     if (!src || document.querySelector('script[data-forfuture-entry="true"]')) return
     var s = document.createElement('script')
     s.type = 'module'
     s.crossOrigin = 'anonymous'
-    s.src = src
+    s.src = cacheBustUrl(src)
     s.setAttribute('data-forfuture-entry', 'true')
     document.head.appendChild(s)
   }
