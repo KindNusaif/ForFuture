@@ -46,7 +46,7 @@ export default function TrendingPanel() {
   const { t } = useTranslation()
 
   return (
-    <aside className="feed-sidebar hidden w-72 shrink-0 xl:block" aria-label={t('feed.sidebarLabel', { defaultValue: 'Your action hub' })}>
+    <aside className="feed-sidebar" aria-label={t('feed.sidebarLabel', { defaultValue: 'Your action hub' })}>
       <div className="sticky top-6 space-y-4">
         <div
           className="card-surface youth-momentum-card overflow-hidden p-5"

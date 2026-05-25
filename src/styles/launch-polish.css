@@ -58,8 +58,37 @@
   display: flex;
   flex-direction: column;
   max-height: calc(100vh - 3rem);
-  padding-right: 0.375rem;
-  scrollbar-gutter: stable;
+  padding-right: 0.25rem;
+}
+
+.app-sidebar-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-right: 0.125rem;
+  scrollbar-width: none;
+}
+
+.app-sidebar-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.app-sidebar-inner:hover .app-sidebar-scroll,
+.app-sidebar-scroll:focus-within {
+  scrollbar-width: thin;
+}
+
+.app-sidebar-inner:hover .app-sidebar-scroll::-webkit-scrollbar,
+.app-sidebar-scroll:focus-within::-webkit-scrollbar {
+  width: 6px;
+}
+
+.app-sidebar-inner:hover .app-sidebar-scroll::-webkit-scrollbar-thumb,
+.app-sidebar-scroll:focus-within::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--text-muted) 35%, transparent);
 }
 
 .app-sidebar-header {
@@ -99,23 +128,6 @@
   padding: 0.5rem;
 }
 
-.app-sidebar-scroll {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  padding-right: 0.25rem;
-  scrollbar-width: thin;
-}
-
-.app-sidebar-scroll::-webkit-scrollbar {
-  width: 6px;
-}
-
-.app-sidebar-scroll::-webkit-scrollbar-thumb {
-  border-radius: 9999px;
-  background: color-mix(in srgb, var(--text-muted) 35%, transparent);
-}
 
 .app-sidebar-nav {
   padding-right: 0.125rem;
@@ -141,6 +153,70 @@
 
 .app-sidebar-logout:hover {
   color: var(--text-primary);
+}
+
+/* App shell — full-width workspace inside max 1440px frame */
+.app-shell-layout {
+  align-items: flex-start;
+}
+
+.app-shell .page-container {
+  max-width: none;
+  width: 100%;
+  padding-inline: 0;
+}
+
+.app-shell .feed-page-container {
+  padding-inline: 0;
+}
+
+/* Feed dashboard — main column + action hub rail (laptop+) */
+.feed-page-layout {
+  display: grid;
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.feed-page-main {
+  min-width: 0;
+  width: 100%;
+}
+
+.feed-sidebar {
+  display: none;
+  min-width: 0;
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .feed-page-layout {
+    grid-template-columns: minmax(0, 1fr) 15.5rem;
+    gap: 1.5rem;
+  }
+
+  .feed-sidebar {
+    display: block;
+  }
+}
+
+@media (min-width: 1280px) {
+  .feed-page-layout {
+    grid-template-columns: minmax(0, 1fr) 17rem;
+    gap: 2rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  .feed-page-layout {
+    grid-template-columns: minmax(0, 1fr) 18rem;
+    gap: 2rem;
+  }
+}
+
+.feed-sidebar .sticky {
+  top: 1.5rem;
 }
 
 /* Action hub / right rail cards */

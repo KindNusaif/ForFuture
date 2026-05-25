@@ -63,8 +63,8 @@ export default function AppShell({ children }: { children?: ReactNode }) {
   return (
     <div className="app-shell min-h-screen pb-20 lg:pb-0">
       <SkipLink />
-      <div className="mx-auto flex max-w-7xl gap-0 lg:gap-8 lg:px-6 lg:py-6">
-        <aside className="app-sidebar hidden w-56 shrink-0 lg:block">
+      <div className="app-shell-layout mx-auto flex w-full max-w-[90rem] gap-5 px-4 py-4 lg:gap-8 lg:px-8 lg:py-6">
+        <aside className="app-sidebar hidden w-56 shrink-0 lg:block xl:w-60">
           <div className="app-sidebar-inner">
             <header className="app-sidebar-header">
               <Logo to="/feed" iconOnly className="app-sidebar-brand shrink-0" />
@@ -198,7 +198,7 @@ export default function AppShell({ children }: { children?: ReactNode }) {
           </div>
         </aside>
 
-        <main id="main-content" className="min-w-0 flex-1 page-enter">
+        <main id="main-content" className="min-w-0 w-full flex-1 page-enter">
           <header className="mb-4 flex items-center justify-between gap-2 border-b border-default px-4 py-3 lg:hidden">
             <Logo to="/feed" iconOnly className="shrink-0" />
             <div className="flex shrink-0 items-center gap-1.5">

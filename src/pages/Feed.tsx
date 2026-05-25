@@ -47,9 +47,9 @@ export default function Feed() {
   const firstName = profile?.display_name?.split(' ')[0]
 
   return (
-    <PageContainer className="!py-6 lg:!py-8">
-      <div className="flex gap-8">
-        <section className="min-w-0 flex-1">
+    <PageContainer className="feed-page-container !py-6 lg:!py-8">
+      <div className="feed-page-layout">
+        <section className="feed-page-main min-w-0">
           <FeedWelcomeHero firstName={firstName} feedTab={feedTab} userId={user?.id} />
           <QuickStartPanel />
 
