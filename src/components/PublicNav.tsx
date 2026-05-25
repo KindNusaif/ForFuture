@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { Menu, X } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useId, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ThemeQuickToggle from './appearance/ThemeQuickToggle'
 import LanguageSwitcher from './LanguageSwitcher'
@@ -28,6 +28,7 @@ export default function PublicNav() {
   const [open, setOpen] = useState(false)
   const { isMember, loading, loggingOut } = useAuth()
   const { t } = useTranslation()
+  const menuPanelId = useId()
   const location = useLocation()
   const authReturnState = useMemo(
     () =>
@@ -50,6 +51,7 @@ export default function PublicNav() {
   const showMarketingCenterNav = isMarketingRoute
   const showAppQuickLinks = !isMarketingRoute && authReady && signedIn
   const showMarketingGuestActions = isMarketingRoute
+  const showLaptopMenu = showMarketingCenterNav
 
   const marketingNavLinks = (
     <>
@@ -136,6 +138,31 @@ export default function PublicNav() {
     </>
   )
 
+  const marketingDrawerAuth = signedIn ? (
+    <Link to="/feed" className="btn-primary mt-1 w-full" onClick={() => setOpen(false)}>
+      {t('nav.myFeed')}
+    </Link>
+  ) : (
+    <>
+      <Link
+        to="/login"
+        state={authReturnState}
+        className="mobile-nav-link"
+        onClick={() => setOpen(false)}
+      >
+        {t('nav.login')}
+      </Link>
+      <Link
+        to="/signup"
+        state={authReturnState}
+        className="btn-primary mt-1 w-full"
+        onClick={() => setOpen(false)}
+      >
+        {t('nav.joinMovement')}
+      </Link>
+    </>
+  )
+
   const joinButtonClass = isLovableHome
     ? 'public-nav-join lovable-nav-join'
     : 'public-nav-join btn-primary min-h-10! px-4! py-2!'
@@ -144,118 +171,161 @@ export default function PublicNav() {
     ? 'public-nav-login lovable-nav-login'
     : 'public-nav-login'
 
-  const desktopRightActions = showAppQuickLinks ? (
-    <>
-      <div className="public-nav-auth">
-        <Link to="/feed" className={navLinkClass(false)}>
-          {t('nav.myFeed')}
-        </Link>
-        <Link to="/impact-map" className={navLinkClass(false)}>
-          {t('nav.impactMap')}
-        </Link>
-        <Link to="/impact" className={navLinkClass(impactNavActive)}>
-          {t('nav.impactPulse')}
-        </Link>
-        <Link to="/create" className={navLinkClass(false)}>
-          {t('nav.create')}
-        </Link>
-        <Link to="/profile" className={navLinkClass(false)}>
-          {t('nav.profile')}
-        </Link>
-      </div>
-      <div className="public-nav-utilities">
-        <ThemeQuickToggle variant="compact" />
-        <LanguageSwitcher variant="default" />
-      </div>
-    </>
+  const desktopAuthActions = showAppQuickLinks ? (
+    <div className="public-nav-auth">
+      <Link to="/feed" className={navLinkClass(false)}>
+        {t('nav.myFeed')}
+      </Link>
+      <Link to="/impact-map" className={navLinkClass(false)}>
+        {t('nav.impactMap')}
+      </Link>
+      <Link to="/impact" className={navLinkClass(impactNavActive)}>
+        {t('nav.impactPulse')}
+      </Link>
+      <Link to="/create" className={navLinkClass(false)}>
+        {t('nav.create')}
+      </Link>
+      <Link to="/profile" className={navLinkClass(false)}>
+        {t('nav.profile')}
+      </Link>
+    </div>
   ) : signedIn ? (
-    <>
-      <div className="public-nav-auth">
-        <Link
-          to="/feed"
-          className={isLovableHome ? joinButtonClass : 'public-nav-join btn-primary min-h-10! px-4! py-2!'}
-        >
-          {t('nav.myFeed')}
-        </Link>
-      </div>
-      <div className="public-nav-utilities">
-        <ThemeQuickToggle variant={isLovableHome ? 'landing' : 'compact'} />
-        <LanguageSwitcher variant={isLovableHome ? 'landing' : 'default'} />
-      </div>
-    </>
+    <div className="public-nav-auth">
+      <Link
+        to="/feed"
+        className={isLovableHome ? joinButtonClass : 'public-nav-join btn-primary min-h-10! px-4! py-2!'}
+      >
+        {t('nav.myFeed')}
+      </Link>
+    </div>
   ) : (
-    <>
-      <div className="public-nav-auth">
-        <Link to="/login" state={authReturnState} className={loginButtonClass}>
-          {t('nav.login')}
-        </Link>
-        <Link to="/signup" state={authReturnState} className={joinButtonClass}>
-          <span className="public-nav-join-label-long">{t('nav.joinMovement')}</span>
-          <span className="public-nav-join-label-short">{t('nav.signup')}</span>
-        </Link>
-      </div>
-      <div className="public-nav-utilities">
-        <ThemeQuickToggle variant={isLovableHome ? 'landing' : 'compact'} />
-        <LanguageSwitcher variant={isLovableHome ? 'landing' : 'default'} />
-      </div>
-    </>
+    <div className="public-nav-auth">
+      <Link to="/login" state={authReturnState} className={loginButtonClass}>
+        {t('nav.login')}
+      </Link>
+      <Link to="/signup" state={authReturnState} className={joinButtonClass}>
+        <span className="public-nav-join-label-long">{t('nav.joinMovement')}</span>
+        <span className="public-nav-join-label-short">{t('nav.signup')}</span>
+      </Link>
+    </div>
+  )
+
+  const utilities = (
+    <div className="public-nav-utilities">
+      <ThemeQuickToggle variant={isLovableHome ? 'landing' : 'compact'} />
+      <LanguageSwitcher variant={isLovableHome ? 'landing' : 'default'} />
+    </div>
   )
 
   const mobileLogoTo = signedIn ? '/feed' : '/'
 
+  const drawerContent = showAppQuickLinks ? (
+    <>
+      <Link to="/feed" className="mobile-nav-link" onClick={() => setOpen(false)}>
+        {t('nav.myFeed')}
+      </Link>
+      <Link to="/impact-map" className="mobile-nav-link" onClick={() => setOpen(false)}>
+        {t('nav.impactMap')}
+      </Link>
+      <Link to="/impact" className="mobile-nav-link" onClick={() => setOpen(false)}>
+        {t('nav.impactPulse')}
+      </Link>
+      <Link to="/create" className="mobile-nav-link" onClick={() => setOpen(false)}>
+        {t('nav.create')}
+      </Link>
+      <Link to="/profile" className="mobile-nav-link" onClick={() => setOpen(false)}>
+        {t('nav.profile')}
+      </Link>
+    </>
+  ) : showMarketingGuestActions ? (
+    <>
+      {marketingMobileLinks}
+      <div className="public-nav-drawer-divider" aria-hidden />
+      {marketingDrawerAuth}
+      {signedIn ? (
+        <Link to="/profile" className="mobile-nav-link" onClick={() => setOpen(false)}>
+          {t('nav.profile')}
+        </Link>
+      ) : null}
+    </>
+  ) : (
+    <>
+      {marketingMobileLinks}
+      <div className="public-nav-drawer-divider" aria-hidden />
+      <Link to="/login" state={authReturnState} className="mobile-nav-link" onClick={() => setOpen(false)}>
+        {t('nav.login')}
+      </Link>
+      <Link to="/signup" state={authReturnState} className="btn-primary mt-1 w-full" onClick={() => setOpen(false)}>
+        {t('nav.joinMovement')}
+      </Link>
+    </>
+  )
+
   return (
     <header className={isLovableHome ? 'nav-shell nav-shell-lovable' : 'nav-shell'}>
       <div className="public-nav-bar">
-        {/* Tablet / mobile */}
         <div className="public-nav-mobile-row">
           <Logo
             to={mobileLogoTo}
             showTagline={false}
             variant={isLovableHome ? 'lovable' : 'default'}
-            className="public-nav-logo shrink-0"
+            className="public-nav-logo min-w-0 shrink"
           />
           <div className="public-nav-mobile-controls">
             <ThemeQuickToggle variant="compact" />
             <LanguageSwitcher variant="compact" />
             <button
               type="button"
-              className="rounded-xl p-2.5 text-secondary ring-1 ring-default hover:bg-muted"
+              className="public-nav-mobile-menu"
               onClick={() => setOpen((o) => !o)}
-              aria-label={t('nav.menu')}
+              aria-label={open ? t('nav.closeMenu', { defaultValue: 'Close menu' }) : t('nav.menu')}
               aria-expanded={open}
+              aria-controls={menuPanelId}
             >
-              {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {open ? <X className="h-5 w-5" aria-hidden /> : <Menu className="h-5 w-5" aria-hidden />}
             </button>
           </div>
         </div>
 
-        {/* Desktop xl+ — 3-zone grid: brand | nav | actions */}
-        <div className="public-nav-desktop">
-          <div className="public-nav-brand shrink-0">
+        <div className="public-nav-grid">
+          <div className="public-nav-brand">
             <Logo
               to={mobileLogoTo}
               showTagline={isMarketingRoute && !signedIn}
               variant={isLovableHome ? 'lovable' : 'default'}
-              className="public-nav-logo shrink-0"
+              className="public-nav-logo"
             />
           </div>
 
           {showMarketingCenterNav ? (
-            <div className="public-nav-center-wrap min-w-0">
-              <nav
-                className="public-nav-center min-w-0 overflow-visible"
-                aria-label={t('nav.appNav', { defaultValue: 'Main navigation' })}
-              >
-                {marketingNavLinks}
-              </nav>
-            </div>
+            <nav
+              className="public-nav-center"
+              aria-label={t('nav.appNav', { defaultValue: 'Main navigation' })}
+            >
+              {marketingNavLinks}
+            </nav>
           ) : (
-            <div className="public-nav-center-wrap min-w-0" aria-hidden />
+            <div className="min-w-0" aria-hidden />
           )}
 
-          <div className="public-nav-end shrink-0">
+          <div className="public-nav-end">
+            {showLaptopMenu ? (
+              <button
+                type="button"
+                className="public-nav-menu-btn public-nav-menu-btn--show"
+                onClick={() => setOpen((o) => !o)}
+                aria-label={open ? t('nav.closeMenu', { defaultValue: 'Close menu' }) : t('nav.menu')}
+                aria-expanded={open}
+                aria-controls={menuPanelId}
+              >
+                {t('nav.menu')}
+              </button>
+            ) : null}
             {showMarketingGuestActions || showAppQuickLinks ? (
-              desktopRightActions
+              <>
+                {desktopAuthActions}
+                {utilities}
+              </>
             ) : (
               <>
                 <div className="public-nav-auth">
@@ -282,72 +352,12 @@ export default function PublicNav() {
       </div>
 
       <nav
-        className={`public-nav-drawer space-y-1 ${open ? 'public-nav-drawer--open' : ''}`}
+        id={menuPanelId}
+        className={`public-nav-drawer${open ? ' public-nav-drawer--open' : ''}`}
         aria-label={t('nav.mobileNav')}
         hidden={!open}
       >
-          {showAppQuickLinks ? (
-            <>
-              <Link to="/feed" className="mobile-nav-link" onClick={() => setOpen(false)}>
-                {t('nav.myFeed')}
-              </Link>
-              <Link to="/impact-map" className="mobile-nav-link" onClick={() => setOpen(false)}>
-                {t('nav.impactMap')}
-              </Link>
-              <Link to="/impact" className="mobile-nav-link" onClick={() => setOpen(false)}>
-                {t('nav.impactPulse')}
-              </Link>
-              <Link to="/create" className="mobile-nav-link" onClick={() => setOpen(false)}>
-                {t('nav.create')}
-              </Link>
-              <Link to="/profile" className="mobile-nav-link" onClick={() => setOpen(false)}>
-                {t('nav.profile')}
-              </Link>
-            </>
-          ) : showMarketingGuestActions ? (
-            <>
-              {marketingMobileLinks}
-              {signedIn ? (
-                <Link to="/feed" className="btn-primary mt-2 w-full" onClick={() => setOpen(false)}>
-                  {t('nav.myFeed')}
-                </Link>
-              ) : (
-                <>
-                  <Link
-                    to="/login"
-                    state={authReturnState}
-                    className="mobile-nav-link"
-                    onClick={() => setOpen(false)}
-                  >
-                    {t('nav.login')}
-                  </Link>
-                  <Link
-                    to="/signup"
-                    state={authReturnState}
-                    className="btn-primary mt-2 w-full"
-                    onClick={() => setOpen(false)}
-                  >
-                    {t('nav.joinMovement')}
-                  </Link>
-                </>
-              )}
-              {signedIn ? (
-                <Link to="/profile" className="mobile-nav-link" onClick={() => setOpen(false)}>
-                  {t('nav.profile')}
-                </Link>
-              ) : null}
-            </>
-          ) : (
-            <>
-              {marketingMobileLinks}
-              <Link to="/login" state={authReturnState} className="mobile-nav-link" onClick={() => setOpen(false)}>
-                {t('nav.login')}
-              </Link>
-              <Link to="/signup" state={authReturnState} className="btn-primary mt-2 w-full" onClick={() => setOpen(false)}>
-                {t('nav.joinMovement')}
-              </Link>
-            </>
-          )}
+        {drawerContent}
       </nav>
     </header>
   )

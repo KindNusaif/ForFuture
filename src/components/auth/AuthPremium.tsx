@@ -353,7 +353,7 @@ export function AuthShell({
             authLinkState={authLinkState}
           />
         ) : (
-          <>
+          <div className="auth-premium-form-body">
         <button
           type="button"
           onClick={onGoogle}
@@ -374,8 +374,10 @@ export function AuthShell({
           )}
         </button>
 
-        <div className="auth-premium-divider">
-          <span>{t('auth.orContinueEmail')}</span>
+        <div className="auth-premium-divider" role="separator" aria-label={t('auth.orContinueEmail')}>
+          <div className="auth-premium-divider-line" aria-hidden />
+          <span className="auth-premium-divider-label">{t('auth.orContinueEmail')}</span>
+          <div className="auth-premium-divider-line" aria-hidden />
         </div>
 
         <form
@@ -486,7 +488,7 @@ export function AuthShell({
           </button>
           {!isLogin && <p className="auth-signup-purpose">{t('auth.signupTrustLine')}</p>}
         </form>
-          </>
+          </div>
         )}
 
         {showExploreLink && isLogin && (

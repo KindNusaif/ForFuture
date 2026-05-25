@@ -51,8 +51,8 @@ export default function Logo({
           <span
             className={
               isLovable
-                ? 'logo-tagline-row logo-lovable-tagline hidden whitespace-nowrap text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground xl:block'
-                : 'logo-tagline-row hidden whitespace-nowrap text-[10px] font-medium uppercase tracking-[0.1em] text-muted xl:block'
+                ? 'logo-tagline-row logo-lovable-tagline hidden whitespace-nowrap text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground lg:block'
+                : 'logo-tagline-row hidden whitespace-nowrap text-[10px] font-medium uppercase tracking-[0.1em] text-muted lg:block'
             }
           >
             {t('landing.logoTagline')}
