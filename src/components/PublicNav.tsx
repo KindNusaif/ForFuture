@@ -190,7 +190,8 @@ export default function PublicNav() {
           {t('nav.login')}
         </Link>
         <Link to="/signup" state={authReturnState} className={joinButtonClass}>
-          {t('nav.joinMovement')}
+          <span className="public-nav-join-label-long">{t('nav.joinMovement')}</span>
+          <span className="public-nav-join-label-short">{t('nav.signup')}</span>
         </Link>
       </div>
       <div className="public-nav-utilities">
@@ -253,6 +254,17 @@ export default function PublicNav() {
           )}
 
           <div className="public-nav-end shrink-0">
+            {showMarketingCenterNav ? (
+              <button
+                type="button"
+                className="public-nav-tablet-menu"
+                onClick={() => setOpen((o) => !o)}
+                aria-label={t('nav.menu')}
+                aria-expanded={open}
+              >
+                {t('nav.menu')}
+              </button>
+            ) : null}
             {showMarketingGuestActions || showAppQuickLinks ? (
               desktopRightActions
             ) : (
@@ -266,7 +278,8 @@ export default function PublicNav() {
                     state={authReturnState}
                     className="public-nav-join btn-primary min-h-10! px-4! py-2!"
                   >
-                    {t('nav.joinMovement')}
+                    <span className="public-nav-join-label-long">{t('nav.joinMovement')}</span>
+                    <span className="public-nav-join-label-short">{t('nav.signup')}</span>
                   </Link>
                 </div>
                 <div className="public-nav-utilities">
@@ -279,11 +292,11 @@ export default function PublicNav() {
         </div>
       </div>
 
-      {open ? (
-        <nav
-          className="space-y-1 border-t border-default px-4 py-4 xl:hidden"
-          aria-label={t('nav.mobileNav')}
-        >
+      <nav
+        className={`public-nav-drawer space-y-1 ${open ? 'public-nav-drawer--open' : ''}`}
+        aria-label={t('nav.mobileNav')}
+        hidden={!open}
+      >
           {showAppQuickLinks ? (
             <>
               <Link to="/feed" className="mobile-nav-link" onClick={() => setOpen(false)}>
@@ -346,8 +359,7 @@ export default function PublicNav() {
               </Link>
             </>
           )}
-        </nav>
-      ) : null}
+      </nav>
     </header>
   )
 }
