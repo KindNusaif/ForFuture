@@ -6,85 +6,63 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
-const INPUT_MIN = 15
+const INPUT_MIN = 20
 const INPUT_MAX = 1500
 const COOLDOWN_MS = 30_000
 const MAX_PER_HOUR = 15
 const HOUR_MS = 60 * 60 * 1000
 
-const RECOMMENDED_TYPES = [
-  'petition',
-  'youth_voice',
-  'volunteer_drive',
-  'poll',
-  'relief_campaign',
+const DISPLAY_TYPES = [
+  'Raise Your Voice',
+  'Petition',
+  'Volunteer Drive',
+  'Donation & Relief Need',
+  'Fundraising Campaign',
+  'Quick Poll',
 ] as const
 
-type RecommendedType = (typeof RECOMMENDED_TYPES)[number]
+type DisplayType = (typeof DISPLAY_TYPES)[number]
 
-const TYPE_TO_MOVEMENT: Record<RecommendedType, string> = {
-  petition: 'youth_petition',
-  youth_voice: 'raise_voice',
-  volunteer_drive: 'volunteer_drive',
-  poll: 'quick_youth_poll',
-  relief_campaign: 'donation_relief',
+type ApiSuggestion = {
+  recommendedType: DisplayType
+  title: string
+  summary: string
+  whyItMatters: string
+  recommendedNextSteps: string[]
 }
-
-/** Structured output schema — strict:false so optional fields stay reliable */
-const RESPONSE_SCHEMA = {
-  type: 'object',
-  properties: {
-    recommendedType: {
-      type: 'string',
-      enum: [...RECOMMENDED_TYPES],
-    },
-    suggestedTitle: { type: 'string' },
-    refinedSummary: { type: 'string' },
-    whyItMatters: { type: 'string' },
-    nextSteps: {
-      type: 'array',
-      items: { type: 'string' },
-      minItems: 3,
-      maxItems: 5,
-    },
-    safety_note: { type: 'string' },
-    suggested_fields: {
-      type: 'object',
-      additionalProperties: { type: 'string' },
-    },
-  },
-  required: [
-    'recommendedType',
-    'suggestedTitle',
-    'refinedSummary',
-    'whyItMatters',
-    'nextSteps',
-    'suggested_fields',
-  ],
-  additionalProperties: false,
-} as const
 
 const SYSTEM_PROMPT = `You are ActionPath AI for ForFuture — a youth civic-action platform in Sri Lanka and beyond.
 
-Your job: turn a young person's rough concern into a clear, practical civic action draft they can review and edit before publishing.
+Turn the user's rough concern into a clear civic action draft they can review before publishing.
+
+Return valid JSON only. No markdown. No code fences. No text outside the JSON object.
+
+Use exactly this schema:
+{
+  "recommendedType": "<one label from the list below>",
+  "title": "<clear improved title, under 120 characters>",
+  "summary": "<clear improved summary, under 600 characters>",
+  "whyItMatters": "<1-3 sentences on why this matters to the community>",
+  "recommendedNextSteps": ["<step 1>", "<step 2>", "<step 3>"]
+}
+
+recommendedType must be exactly one of these labels (copy exactly):
+- Raise Your Voice
+- Petition
+- Volunteer Drive
+- Donation & Relief Need
+- Fundraising Campaign
+- Quick Poll
 
 Rules:
-- recommendedType must be exactly one of: petition, youth_voice, volunteer_drive, poll, relief_campaign.
-- petition = formal petition; youth_voice = raise a community issue safely; volunteer_drive = organize volunteers; poll = quick youth poll; relief_campaign = donation/relief need.
-- Never auto-publish. The user must review every field before posting.
-- Keep language respectful, constructive, and youth-friendly. No violence, hate, scams, or illegal tactics.
+- recommendedNextSteps must contain 3 to 5 practical, realistic steps.
+- Keep language respectful, constructive, and youth-friendly.
 - Do not invent specific names, hospitals, amounts, dates, or authorities unless the user provided them.
-- If a target is unclear, use a generic phrase like "Local authorities" or "Relevant community leaders".
-- suggestedTitle: concise, under 120 characters.
-- refinedSummary: clear problem + ask, under 600 characters.
-- whyItMatters: 1–3 sentences on community impact.
-- nextSteps: 3–5 realistic steps a youth group could take locally.
-- suggested_fields: only string keys relevant to recommendedType (e.g. petition_issue, poll_question, poll_option_1…).
-- For polls: balanced, non-leading options.
-- For relief_campaign: set relief_subtype when reasonable (blood_donation | item_donation | fundraising).
 - Match the user's language when clear (English, Tamil, Sinhala); otherwise English.
-- safety_note: include only when a brief lawful/peaceful reminder is needed; otherwise omit the key.
-- Even if input is brief but valid, still return a useful draft — do not refuse.`
+- Never refuse; always return a useful draft when input is valid.`
+
+const FRIENDLY_ERROR =
+  'ActionPath AI could not generate a suggestion. Please try again.'
 
 const BLOCKLIST = new Set([
   'test',
@@ -107,17 +85,41 @@ function jsonResponse(body: unknown, status = 200) {
   })
 }
 
-function fail(
-  message: string,
-  status = 400,
-  extra?: Record<string, unknown> & { code?: string },
-) {
-  const { code, ...rest } = extra ?? {}
-  return jsonResponse({ success: false, message, code, ...rest }, status)
+function fail(message: string, status = 400) {
+  return jsonResponse({ ok: false, error: message }, status)
 }
 
-function ok(data: Record<string, unknown>) {
-  return jsonResponse({ success: true, data })
+function success(suggestion: ApiSuggestion) {
+  return jsonResponse({ ok: true, suggestion })
+}
+
+function normalizeDisplayType(raw: unknown): DisplayType | null {
+  if (typeof raw !== 'string' || !raw.trim()) return null
+  const trimmed = raw.trim()
+  const exact = DISPLAY_TYPES.find((t) => t === trimmed)
+  if (exact) return exact
+
+  const lower = trimmed.toLowerCase()
+  const aliases: Record<string, DisplayType> = {
+    'raise your voice': 'Raise Your Voice',
+    youth_voice: 'Raise Your Voice',
+    raise_voice: 'Raise Your Voice',
+    petition: 'Petition',
+    youth_petition: 'Petition',
+    'volunteer drive': 'Volunteer Drive',
+    volunteer_drive: 'Volunteer Drive',
+    'donation & relief need': 'Donation & Relief Need',
+    'donation and relief need': 'Donation & Relief Need',
+    relief_campaign: 'Donation & Relief Need',
+    donation_relief: 'Donation & Relief Need',
+    'fundraising campaign': 'Fundraising Campaign',
+    fundraising: 'Fundraising Campaign',
+    'quick poll': 'Quick Poll',
+    poll: 'Quick Poll',
+    quick_youth_poll: 'Quick Poll',
+    'community poll': 'Quick Poll',
+  }
+  return aliases[lower] ?? null
 }
 
 function isRepeatedCharacterSpam(text: string): boolean {
@@ -196,10 +198,7 @@ function isKeyboardMash(text: string): boolean {
 
 function validateUserInput(input: string): { ok: true } | { ok: false; message: string } {
   if (input.length < INPUT_MIN) {
-    return {
-      ok: false,
-      message: 'Add a little more detail so ActionPath AI can help.',
-    }
+    return { ok: false, message: 'Please describe your concern in more detail.' }
   }
   if (input.length > INPUT_MAX) {
     return {
@@ -252,94 +251,58 @@ function validateUserInput(input: string): { ok: true } | { ok: false; message: 
   return { ok: true }
 }
 
-function stripSuggestedFields(
-  raw: Record<string, unknown>,
-): Record<string, string> {
-  const out: Record<string, string> = {}
-  for (const [key, value] of Object.entries(raw)) {
-    if (typeof value === 'string' && value.trim()) out[key] = value.trim()
-  }
-  return out
+function parseModelJson(content: string): unknown {
+  const clean = content
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```$/i, '')
+    .trim()
+  return JSON.parse(clean)
 }
 
-function validateSuggestion(data: unknown): {
-  ok: true
-  value: {
-    recommendedType: RecommendedType
-    suggestedTitle: string
-    refinedSummary: string
-    whyItMatters: string
-    nextSteps: string[]
-    recommended_movement_type: string
-    recommendation_reason: string
-    improved_title: string
-    improved_description: string
-    suggested_action_steps: string[]
-    suggested_fields: Record<string, string>
-    safety_note?: string
-  }
-} | { ok: false; error: string } {
-  if (!data || typeof data !== 'object') return { ok: false, error: 'Invalid AI response' }
+function validateAiSuggestion(data: unknown): { ok: true; value: ApiSuggestion } | { ok: false } {
+  if (!data || typeof data !== 'object') return { ok: false }
 
   const o = data as Record<string, unknown>
-  const recommendedType = o.recommendedType
-  if (
-    typeof recommendedType !== 'string' ||
-    !RECOMMENDED_TYPES.includes(recommendedType as RecommendedType)
-  ) {
-    return { ok: false, error: 'Invalid recommended type from AI' }
-  }
+  const recommendedType = normalizeDisplayType(o.recommendedType)
+  if (!recommendedType) return { ok: false }
 
-  if (typeof o.suggestedTitle !== 'string' || !o.suggestedTitle.trim()) {
-    return { ok: false, error: 'Missing suggested title' }
-  }
-  if (typeof o.refinedSummary !== 'string' || !o.refinedSummary.trim()) {
-    return { ok: false, error: 'Missing refined summary' }
-  }
-  if (typeof o.whyItMatters !== 'string' || !o.whyItMatters.trim()) {
-    return { ok: false, error: 'Missing why it matters' }
-  }
-  if (!Array.isArray(o.nextSteps) || o.nextSteps.length < 3) {
-    return { ok: false, error: 'Invalid next steps' }
-  }
+  const title =
+    typeof o.title === 'string'
+      ? o.title.trim()
+      : typeof o.suggestedTitle === 'string'
+        ? o.suggestedTitle.trim()
+        : ''
+  const summary =
+    typeof o.summary === 'string'
+      ? o.summary.trim()
+      : typeof o.refinedSummary === 'string'
+        ? o.refinedSummary.trim()
+        : ''
+  const whyItMatters =
+    typeof o.whyItMatters === 'string'
+      ? o.whyItMatters.trim()
+      : typeof o.why_it_matters === 'string'
+        ? o.why_it_matters.trim()
+        : ''
 
-  const nextSteps = o.nextSteps
+  const stepsRaw = o.recommendedNextSteps ?? o.nextSteps ?? o.suggested_action_steps
+  if (!title || !summary || !whyItMatters) return { ok: false }
+  if (!Array.isArray(stepsRaw)) return { ok: false }
+
+  const recommendedNextSteps = stepsRaw
     .filter((s): s is string => typeof s === 'string' && s.trim().length > 0)
     .map((s) => s.trim())
     .slice(0, 5)
-  if (nextSteps.length < 3) return { ok: false, error: 'Invalid next steps' }
-
-  const fieldsRaw =
-    o.suggested_fields && typeof o.suggested_fields === 'object'
-      ? (o.suggested_fields as Record<string, unknown>)
-      : {}
-
-  const safetyNote =
-    typeof o.safety_note === 'string' && o.safety_note.trim()
-      ? o.safety_note.trim().slice(0, 400)
-      : undefined
-
-  const type = recommendedType as RecommendedType
-  const movementType = TYPE_TO_MOVEMENT[type]
-  const suggestedTitle = o.suggestedTitle.trim().slice(0, 120)
-  const refinedSummary = o.refinedSummary.trim().slice(0, 600)
-  const whyItMatters = o.whyItMatters.trim().slice(0, 500)
+  if (recommendedNextSteps.length < 3) return { ok: false }
 
   return {
     ok: true,
     value: {
-      recommendedType: type,
-      suggestedTitle,
-      refinedSummary,
-      whyItMatters,
-      nextSteps,
-      recommended_movement_type: movementType,
-      recommendation_reason: whyItMatters,
-      improved_title: suggestedTitle,
-      improved_description: refinedSummary,
-      suggested_action_steps: nextSteps,
-      suggested_fields: stripSuggestedFields(fieldsRaw),
-      ...(safetyNote ? { safety_note: safetyNote } : {}),
+      recommendedType,
+      title: title.slice(0, 120),
+      summary: summary.slice(0, 600),
+      whyItMatters: whyItMatters.slice(0, 500),
+      recommendedNextSteps,
     },
   }
 }
@@ -348,47 +311,61 @@ async function checkRateLimit(
   admin: ReturnType<typeof createClient>,
   userId: string,
 ): Promise<{ allowed: true } | { allowed: false; retryAfterSec: number }> {
-  const now = new Date()
-  const { data: row } = await admin
-    .from('actionpath_ai_usage')
-    .select('window_start, request_count, last_request_at')
-    .eq('user_id', userId)
-    .maybeSingle()
+  try {
+    const now = new Date()
+    const { data: row, error: selectError } = await admin
+      .from('actionpath_ai_usage')
+      .select('window_start, request_count, last_request_at')
+      .eq('user_id', userId)
+      .maybeSingle()
 
-  if (row?.last_request_at) {
-    const last = new Date(row.last_request_at).getTime()
-    if (now.getTime() - last < COOLDOWN_MS) {
-      return {
-        allowed: false,
-        retryAfterSec: Math.ceil((COOLDOWN_MS - (now.getTime() - last)) / 1000),
+    if (selectError) {
+      console.error('actionpath-ai rate limit select', selectError.message)
+      return { allowed: true }
+    }
+
+    if (row?.last_request_at) {
+      const last = new Date(row.last_request_at).getTime()
+      if (now.getTime() - last < COOLDOWN_MS) {
+        return {
+          allowed: false,
+          retryAfterSec: Math.ceil((COOLDOWN_MS - (now.getTime() - last)) / 1000),
+        }
       }
     }
-  }
 
-  let windowStart = row?.window_start ? new Date(row.window_start) : now
-  let count = row?.request_count ?? 0
+    let windowStart = row?.window_start ? new Date(row.window_start) : now
+    let count = row?.request_count ?? 0
 
-  if (now.getTime() - windowStart.getTime() > HOUR_MS) {
-    windowStart = now
-    count = 0
-  }
-
-  if (count >= MAX_PER_HOUR) {
-    const resetAt = windowStart.getTime() + HOUR_MS
-    return {
-      allowed: false,
-      retryAfterSec: Math.max(60, Math.ceil((resetAt - now.getTime()) / 1000)),
+    if (now.getTime() - windowStart.getTime() > HOUR_MS) {
+      windowStart = now
+      count = 0
     }
+
+    if (count >= MAX_PER_HOUR) {
+      const resetAt = windowStart.getTime() + HOUR_MS
+      return {
+        allowed: false,
+        retryAfterSec: Math.max(60, Math.ceil((resetAt - now.getTime()) / 1000)),
+      }
+    }
+
+    const { error: upsertError } = await admin.from('actionpath_ai_usage').upsert({
+      user_id: userId,
+      window_start: windowStart.toISOString(),
+      request_count: count + 1,
+      last_request_at: now.toISOString(),
+    })
+
+    if (upsertError) {
+      console.error('actionpath-ai rate limit upsert', upsertError.message)
+    }
+
+    return { allowed: true }
+  } catch (err) {
+    console.error('actionpath-ai rate limit', err instanceof Error ? err.message : 'unknown')
+    return { allowed: true }
   }
-
-  await admin.from('actionpath_ai_usage').upsert({
-    user_id: userId,
-    window_start: windowStart.toISOString(),
-    request_count: count + 1,
-    last_request_at: now.toISOString(),
-  })
-
-  return { allowed: true }
 }
 
 Deno.serve(async (req) => {
@@ -397,7 +374,7 @@ Deno.serve(async (req) => {
   }
 
   if (req.method !== 'POST') {
-    return fail('Method not allowed', 405, { code: 'method_not_allowed' })
+    return fail('Method not allowed', 405)
   }
 
   const openaiKey = Deno.env.get('OPENAI_API_KEY')
@@ -407,21 +384,17 @@ Deno.serve(async (req) => {
 
   if (!openaiKey) {
     console.error('actionpath-ai: OPENAI_API_KEY is not configured')
-    return fail('ActionPath AI is temporarily unavailable. Please try again shortly.', 503, {
-      code: 'config',
-    })
+    return fail(FRIENDLY_ERROR, 503)
   }
 
   if (!supabaseUrl || !supabaseAnonKey || !serviceRoleKey) {
     console.error('actionpath-ai: missing Supabase env')
-    return fail('ActionPath AI is temporarily unavailable. Please try again shortly.', 500, {
-      code: 'config',
-    })
+    return fail(FRIENDLY_ERROR, 500)
   }
 
   const authHeader = req.headers.get('Authorization')
   if (!authHeader?.startsWith('Bearer ')) {
-    return fail('Sign in to use ActionPath AI.', 401, { code: 'auth' })
+    return fail('Sign in to use ActionPath AI.', 401)
   }
 
   const userClient = createClient(supabaseUrl, supabaseAnonKey, {
@@ -434,29 +407,26 @@ Deno.serve(async (req) => {
   } = await userClient.auth.getUser()
 
   if (userError || !user) {
-    return fail('Sign in to use ActionPath AI.', 401, { code: 'auth' })
+    return fail('Sign in to use ActionPath AI.', 401)
   }
 
   let body: { input?: unknown }
   try {
     body = await req.json()
   } catch {
-    return fail('Invalid request. Please try again.', 400, { code: 'invalid_input' })
+    return fail('Invalid request. Please try again.', 400)
   }
 
   const input = typeof body.input === 'string' ? body.input.trim() : ''
   const inputCheck = validateUserInput(input)
   if (!inputCheck.ok) {
-    return fail(inputCheck.message, 400, { code: 'invalid_input' })
+    return fail(inputCheck.message, 400)
   }
 
   const admin = createClient(supabaseUrl, serviceRoleKey)
   const rate = await checkRateLimit(admin, user.id)
   if (!rate.allowed) {
-    return fail('ActionPath AI is busy at the moment. Please try again shortly.', 429, {
-      code: 'rate_limit',
-      retry_after_sec: rate.retryAfterSec,
-    })
+    return fail('ActionPath AI is busy at the moment. Please try again shortly.', 429)
   }
 
   try {
@@ -473,17 +443,10 @@ Deno.serve(async (req) => {
           { role: 'system', content: SYSTEM_PROMPT },
           {
             role: 'user',
-            content: `Analyze this youth civic idea and return JSON matching the schema.\n\nUser input:\n${input}`,
+            content: `User concern:\n${input}`,
           },
         ],
-        response_format: {
-          type: 'json_schema',
-          json_schema: {
-            name: 'action_path_suggestion',
-            strict: false,
-            schema: RESPONSE_SCHEMA,
-          },
-        },
+        response_format: { type: 'json_object' },
       }),
     })
 
@@ -491,55 +454,35 @@ Deno.serve(async (req) => {
       const errText = await openaiRes.text()
       console.error('actionpath-ai openai error', openaiRes.status, errText.slice(0, 300))
       if (openaiRes.status === 429) {
-        return fail('ActionPath AI is busy at the moment. Please try again shortly.', 503, {
-          code: 'rate_limit',
-        })
+        return fail('ActionPath AI is busy at the moment. Please try again shortly.', 503)
       }
-      return fail(
-        "We couldn't generate a suggestion right now. Please try again.",
-        502,
-        { code: 'api' },
-      )
+      return fail(FRIENDLY_ERROR, 502)
     }
 
     const completion = await openaiRes.json()
     const content = completion?.choices?.[0]?.message?.content
-    if (typeof content !== 'string') {
-      console.error('actionpath-ai: missing message content')
-      return fail(
-        "We couldn't read the AI suggestion properly. Please try again.",
-        502,
-        { code: 'malformed' },
-      )
+    if (typeof content !== 'string' || !content.trim()) {
+      console.error('actionpath-ai: missing message content', JSON.stringify(completion).slice(0, 400))
+      return fail(FRIENDLY_ERROR, 502)
     }
 
     let parsed: unknown
     try {
-      parsed = JSON.parse(content)
+      parsed = parseModelJson(content)
     } catch {
       console.error('actionpath-ai: JSON parse failed', content.slice(0, 200))
-      return fail(
-        "We couldn't read the AI suggestion properly. Please try again.",
-        502,
-        { code: 'malformed' },
-      )
+      return fail(FRIENDLY_ERROR, 502)
     }
 
-    const validated = validateSuggestion(parsed)
+    const validated = validateAiSuggestion(parsed)
     if (!validated.ok) {
-      console.error('actionpath-ai validation', validated.error)
-      return fail(
-        "We couldn't read the AI suggestion properly. Please try again.",
-        502,
-        { code: 'malformed' },
-      )
+      console.error('actionpath-ai validation failed', JSON.stringify(parsed).slice(0, 400))
+      return fail(FRIENDLY_ERROR, 502)
     }
 
-    return ok(validated.value)
+    return success(validated.value)
   } catch (err) {
     console.error('actionpath-ai', err instanceof Error ? err.message : 'unknown')
-    return fail("We couldn't generate a suggestion right now. Please try again.", 500, {
-      code: 'api',
-    })
+    return fail(FRIENDLY_ERROR, 500)
   }
 })

@@ -17,43 +17,33 @@ export {
 
 export const ACTIONPATH_REQUEST_TIMEOUT_MS = 45_000
 
-/** Public categories from the Edge Function (user-facing) */
+export const ACTIONPATH_GENERIC_ERROR =
+  'ActionPath AI could not generate a suggestion. Please try again.'
+
+/** Internal slug used by create-form mapping */
 export type ActionPathRecommendedType =
   | 'petition'
   | 'youth_voice'
   | 'volunteer_drive'
   | 'poll'
   | 'relief_campaign'
+  | 'fundraising'
 
-const RECOMMENDED_TYPES: readonly ActionPathRecommendedType[] = [
-  'petition',
-  'youth_voice',
-  'volunteer_drive',
-  'poll',
-  'relief_campaign',
-]
-
-const TYPE_TO_MOVEMENT: Record<ActionPathRecommendedType, MovementType> = {
-  petition: 'youth_petition',
-  youth_voice: 'raise_voice',
-  volunteer_drive: 'volunteer_drive',
-  poll: 'quick_youth_poll',
-  relief_campaign: 'donation_relief',
+export interface ActionPathApiSuggestion {
+  recommendedType: string
+  title: string
+  summary: string
+  whyItMatters: string
+  recommendedNextSteps: string[]
 }
 
-const MOVEMENT_TYPES: readonly MovementType[] = [
-  'idea_for_change',
-  'raise_voice',
-  'youth_petition',
-  'quick_youth_poll',
-  'volunteer_drive',
-  'donation_relief',
-  'fundraising',
-  'peaceful_civic_action',
-]
+export type ActionPathEdgeResponse =
+  | { ok: true; suggestion: ActionPathApiSuggestion }
+  | { ok: false; error: string }
 
 export interface ActionPathSuggestion {
   recommendedType: ActionPathRecommendedType
+  recommendedTypeLabel: string
   suggestedTitle: string
   refinedSummary: string
   whyItMatters: string
@@ -90,6 +80,7 @@ export type ActionPathErrorCode =
   | 'timeout'
   | 'network'
   | 'unavailable'
+  | 'config'
   | 'malformed'
   | 'api'
   | 'generic'
@@ -110,128 +101,135 @@ export class ActionPathAiError extends Error {
   }
 }
 
-type EdgePayload = {
-  success?: boolean
-  message?: string
-  code?: string
-  data?: ActionPathSuggestion
-  suggestion?: ActionPathSuggestion
-  error?: string
-  retry_after_sec?: number
+const DISPLAY_TYPE_TO_INTERNAL: Record<string, ActionPathRecommendedType> = {
+  'raise your voice': 'youth_voice',
+  petition: 'petition',
+  'youth petition': 'petition',
+  'volunteer drive': 'volunteer_drive',
+  'donation & relief need': 'relief_campaign',
+  'donation and relief need': 'relief_campaign',
+  'fundraising campaign': 'fundraising',
+  'quick poll': 'poll',
+  'community poll': 'poll',
 }
 
-function isMovementType(value: string): value is MovementType {
-  return (MOVEMENT_TYPES as readonly string[]).includes(value)
+const TYPE_TO_MOVEMENT: Record<ActionPathRecommendedType, MovementType> = {
+  petition: 'youth_petition',
+  youth_voice: 'raise_voice',
+  volunteer_drive: 'volunteer_drive',
+  poll: 'quick_youth_poll',
+  relief_campaign: 'donation_relief',
+  fundraising: 'fundraising',
 }
 
-function mapEdgeCode(code: string | undefined, message: string): ActionPathErrorCode {
-  if (code === 'invalid_input' || code === 'auth') return code
-  if (code === 'rate_limit') return 'rate_limit'
-  if (code === 'unavailable' || code === 'config') return 'unavailable'
-  if (code === 'malformed') return 'malformed'
-  if (code === 'api') return 'api'
+function devLog(status: number | string, body: unknown): void {
+  if (!import.meta.env.DEV) return
+  console.log('[ActionPath]', status, JSON.stringify(sanitizeDebugBody(body)))
+}
 
+function sanitizeDebugBody(body: unknown): unknown {
+  if (body == null) return body
+  if (typeof body === 'string') {
+    try {
+      return sanitizeDebugBody(JSON.parse(body))
+    } catch {
+      return { raw: body.slice(0, 200) }
+    }
+  }
+  if (typeof body !== 'object') return body
+
+  const o = body as Record<string, unknown>
+  if (o.ok === true && o.suggestion && typeof o.suggestion === 'object') {
+    const s = o.suggestion as Record<string, unknown>
+    return {
+      ok: true,
+      suggestion: {
+        recommendedType: s.recommendedType,
+        titleLength: typeof s.title === 'string' ? s.title.length : 0,
+        summaryLength: typeof s.summary === 'string' ? s.summary.length : 0,
+        stepsCount: Array.isArray(s.recommendedNextSteps) ? s.recommendedNextSteps.length : 0,
+      },
+    }
+  }
+  if (o.ok === false) {
+    return { ok: false, error: o.error }
+  }
+  return { ok: o.ok, keys: Object.keys(o) }
+}
+
+function coalesceEdgeBody(data: unknown): ActionPathEdgeResponse | null {
+  if (data == null) return null
+  if (typeof data === 'string') {
+    try {
+      return JSON.parse(data) as ActionPathEdgeResponse
+    } catch {
+      return null
+    }
+  }
+  if (typeof data === 'object') return data as ActionPathEdgeResponse
+  return null
+}
+
+function normalizeInternalType(displayType: string): ActionPathRecommendedType | null {
+  const key = displayType.trim().toLowerCase()
+  if (DISPLAY_TYPE_TO_INTERNAL[key]) return DISPLAY_TYPE_TO_INTERNAL[key]
+  const slug = key.replace(/\s+/g, '_') as ActionPathRecommendedType
+  if (slug in TYPE_TO_MOVEMENT) return slug
+  return null
+}
+
+function isUserFacingMessage(message: string): boolean {
   const lower = message.toLowerCase()
-  if (lower.includes('sign in')) return 'auth'
-  if (lower.includes('busy') || lower.includes('wait')) return 'rate_limit'
-  if (lower.includes('not available') || lower.includes('temporarily')) return 'unavailable'
-  if (lower.includes('at least') || lower.includes('characters') || lower.includes('unclear')) {
-    return 'invalid_input'
-  }
-  return 'api'
-}
-
-function userMessageForCode(code: ActionPathErrorCode, fallback: string): string {
-  switch (code) {
-    case 'invalid_input':
-      return 'Please describe a real community issue or idea before generating an Action Path.'
-    case 'auth':
-      return 'Sign in to use ActionPath AI.'
-    case 'rate_limit':
-      return 'ActionPath AI is busy at the moment. Please try again shortly.'
-    case 'timeout':
-      return 'This is taking longer than expected. Please try again.'
-    case 'network':
-    case 'unavailable':
-      return 'ActionPath AI is temporarily unavailable. Please try again shortly.'
-    case 'malformed':
-      return "We couldn't read the AI suggestion properly. Please try again."
-    case 'api':
-      return "We couldn't generate a suggestion right now. Please try again."
-    default:
-      return fallback
-  }
-}
-
-function throwFromEdgePayload(payload: EdgePayload): never {
-  const message =
-    payload.message ||
-    payload.error ||
-    "We couldn't generate a suggestion right now. Please try again."
-  const code = mapEdgeCode(payload.code, message)
-  throw new ActionPathAiError(
-    userMessageForCode(code, message),
-    code,
-    payload.retry_after_sec,
+  return (
+    lower.includes('sign in') ||
+    lower.includes('busy') ||
+    lower.includes('describe') ||
+    lower.includes('characters') ||
+    lower.includes('real issue') ||
+    lower.includes('unclear') ||
+    lower.includes('invalid request')
   )
 }
 
-function normalizeSuggestion(raw: Record<string, unknown>): ActionPathSuggestion | null {
-  const recommendedType = raw.recommendedType
-  const suggestedTitle = raw.suggestedTitle ?? raw.improved_title
-  const refinedSummary = raw.refinedSummary ?? raw.improved_description
-  const whyItMatters = raw.whyItMatters ?? raw.recommendation_reason
-  const nextStepsRaw = raw.nextSteps ?? raw.suggested_action_steps
+function mapErrorCode(message: string): ActionPathErrorCode {
+  const lower = message.toLowerCase()
+  if (lower.includes('sign in')) return 'auth'
+  if (lower.includes('busy')) return 'rate_limit'
+  if (lower.includes('describe') || lower.includes('characters')) return 'invalid_input'
+  if (lower.includes('real issue') || lower.includes('unclear')) return 'invalid_input'
+  return 'api'
+}
 
-  let movementType = raw.recommended_movement_type
-  if (
-    typeof recommendedType === 'string' &&
-    RECOMMENDED_TYPES.includes(recommendedType as ActionPathRecommendedType)
-  ) {
-    movementType = TYPE_TO_MOVEMENT[recommendedType as ActionPathRecommendedType]
+function throwFromEdgeBody(body: ActionPathEdgeResponse): never {
+  const raw = body.ok === false ? body.error?.trim() : ''
+  const message =
+    raw && isUserFacingMessage(raw) ? raw : ACTIONPATH_GENERIC_ERROR
+  throw new ActionPathAiError(message, mapErrorCode(raw || message))
+}
+
+function mapApiSuggestion(api: ActionPathApiSuggestion): ActionPathSuggestion {
+  const internalType = normalizeInternalType(api.recommendedType)
+  if (!internalType) {
+    throw new ActionPathAiError(ACTIONPATH_GENERIC_ERROR, 'malformed')
   }
 
-  if (typeof movementType !== 'string' || !isMovementType(movementType)) return null
-  if (typeof suggestedTitle !== 'string' || !suggestedTitle.trim()) return null
-  if (typeof refinedSummary !== 'string' || !refinedSummary.trim()) return null
-  if (typeof whyItMatters !== 'string' || !whyItMatters.trim()) return null
-  if (!Array.isArray(nextStepsRaw) || nextStepsRaw.length < 3) return null
-
-  const nextSteps = nextStepsRaw
+  const title = api.title?.trim().slice(0, 120) ?? ''
+  const summary = api.summary?.trim().slice(0, 600) ?? ''
+  const why = api.whyItMatters?.trim().slice(0, 500) ?? ''
+  const nextSteps = (api.recommendedNextSteps ?? [])
     .filter((s): s is string => typeof s === 'string' && s.trim().length > 0)
     .map((s) => s.trim())
     .slice(0, 5)
-  if (nextSteps.length < 3) return null
 
-  const fieldsRaw = raw.suggested_fields
-  const suggested_fields: Record<string, string> = {}
-  if (fieldsRaw && typeof fieldsRaw === 'object') {
-    for (const [key, value] of Object.entries(fieldsRaw as Record<string, unknown>)) {
-      if (typeof value === 'string' && value.trim()) suggested_fields[key] = value.trim()
-    }
+  if (!title || !summary || !why || nextSteps.length < 3) {
+    throw new ActionPathAiError(ACTIONPATH_GENERIC_ERROR, 'malformed')
   }
 
-  const publicType =
-    typeof recommendedType === 'string' &&
-    RECOMMENDED_TYPES.includes(recommendedType as ActionPathRecommendedType)
-      ? (recommendedType as ActionPathRecommendedType)
-      : (Object.entries(TYPE_TO_MOVEMENT).find(([, m]) => m === movementType)?.[0] as
-          | ActionPathRecommendedType
-          | undefined)
-
-  if (!publicType) return null
-
-  const safety_note =
-    typeof raw.safety_note === 'string' && raw.safety_note.trim()
-      ? raw.safety_note.trim().slice(0, 400)
-      : undefined
-
-  const title = suggestedTitle.trim().slice(0, 120)
-  const summary = refinedSummary.trim().slice(0, 600)
-  const why = whyItMatters.trim().slice(0, 500)
+  const movementType = TYPE_TO_MOVEMENT[internalType]
 
   return {
-    recommendedType: publicType,
+    recommendedType: internalType,
+    recommendedTypeLabel: api.recommendedType.trim(),
     suggestedTitle: title,
     refinedSummary: summary,
     whyItMatters: why,
@@ -241,62 +239,58 @@ function normalizeSuggestion(raw: Record<string, unknown>): ActionPathSuggestion
     improved_title: title,
     improved_description: summary,
     suggested_action_steps: nextSteps,
-    suggested_fields,
-    ...(safety_note ? { safety_note } : {}),
+    suggested_fields: {},
   }
 }
 
-function parseEdgePayload(payload: EdgePayload | null): ActionPathSuggestion {
-  if (!payload) {
-    throw new ActionPathAiError(
-      "We couldn't read the AI suggestion properly. Please try again.",
-      'malformed',
-    )
+function parseEdgeResponse(data: unknown): ActionPathSuggestion {
+  const body = coalesceEdgeBody(data)
+  if (!body) {
+    throw new ActionPathAiError(ACTIONPATH_GENERIC_ERROR, 'malformed')
   }
-
-  if (payload.success === false) {
-    throwFromEdgePayload(payload)
+  if (body.ok === false) {
+    throwFromEdgeBody(body)
   }
-
-  const candidate = payload.success === true ? payload.data : payload.suggestion
-  if (!candidate || typeof candidate !== 'object') {
-    throw new ActionPathAiError(
-      "We couldn't read the AI suggestion properly. Please try again.",
-      'malformed',
-    )
+  if (body.ok !== true || !body.suggestion) {
+    throw new ActionPathAiError(ACTIONPATH_GENERIC_ERROR, 'malformed')
   }
-
-  const normalized = normalizeSuggestion(candidate as unknown as Record<string, unknown>)
-  if (!normalized) {
-    throw new ActionPathAiError(
-      "We couldn't read the AI suggestion properly. Please try again.",
-      'malformed',
-    )
-  }
-
-  return normalized
+  return mapApiSuggestion(body.suggestion)
 }
 
 async function parseFunctionsHttpError(error: FunctionsHttpError): Promise<never> {
+  let status = (error as { status?: number }).status ?? 500
+  let body: unknown = null
+
   try {
     if (error.context && typeof (error.context as Response).json === 'function') {
-      const body = (await (error.context as Response).json()) as EdgePayload
-      throwFromEdgePayload(body)
+      const res = error.context as Response
+      status = res.status
+      body = await res.json()
     }
-  } catch (parseErr) {
-    if (parseErr instanceof ActionPathAiError) throw parseErr
+  } catch {
+    /* use fallback */
   }
-  throw new ActionPathAiError(
-    "We couldn't generate a suggestion right now. Please try again.",
-    'api',
-  )
+
+  devLog(status, body)
+
+  const parsed = coalesceEdgeBody(body)
+  if (parsed) throwFromEdgeBody(parsed)
+
+  if (status === 404) {
+    throw new ActionPathAiError(
+      'ActionPath AI is not fully set up on the server yet. Please try again later.',
+      'config',
+    )
+  }
+
+  throw new ActionPathAiError(ACTIONPATH_GENERIC_ERROR, 'api')
 }
 
 function validationErrorMessage(reason: ActionPathValidationReason): string {
   switch (reason) {
     case 'empty':
     case 'too_short':
-      return 'Add a little more detail so ActionPath AI can help.'
+      return 'Please describe your concern in more detail.'
     case 'too_long':
       return `Please keep your idea under ${ACTIONPATH_INPUT_MAX} characters.`
     case 'gibberish':
@@ -335,10 +329,13 @@ export async function generateActionPath(input: string): Promise<ActionPathSugge
   try {
     const { data, error } = await Promise.race([invokePromise, timeoutPromise])
 
+    devLog(error ? 'invoke-error' : 200, data)
+
     if (error) {
-      if (data && typeof data === 'object') {
+      const body = coalesceEdgeBody(data)
+      if (body) {
         try {
-          return parseEdgePayload(data as EdgePayload)
+          return parseEdgeResponse(body)
         } catch (bodyErr) {
           if (bodyErr instanceof ActionPathAiError) throw bodyErr
         }
@@ -359,15 +356,18 @@ export async function generateActionPath(input: string): Promise<ActionPathSugge
           'network',
         )
       }
-      throw new ActionPathAiError(
-        "We couldn't generate a suggestion right now. Please try again.",
-        'api',
-      )
+      throw new ActionPathAiError(ACTIONPATH_GENERIC_ERROR, 'api')
     }
 
-    return parseEdgePayload(data as EdgePayload)
+    return parseEdgeResponse(data)
   } catch (err) {
     if (err instanceof ActionPathAiError) throw err
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new ActionPathAiError(
+        'This is taking longer than expected. Please try again.',
+        'timeout',
+      )
+    }
     const msg = err instanceof Error ? err.message : ''
     if (/failed to fetch|network|load failed/i.test(msg)) {
       throw new ActionPathAiError(
@@ -375,10 +375,7 @@ export async function generateActionPath(input: string): Promise<ActionPathSugge
         'network',
       )
     }
-    throw new ActionPathAiError(
-      "We couldn't generate a suggestion right now. Please try again.",
-      'api',
-    )
+    throw new ActionPathAiError(ACTIONPATH_GENERIC_ERROR, 'api')
   }
 }
 

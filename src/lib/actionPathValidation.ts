@@ -1,6 +1,6 @@
-/** Client-side validation before calling ActionPath AI (Edge Function mirrors these rules). */
+/** Client-side validation before calling ActionPath AI (Netlify function mirrors min length). */
 
-export const ACTIONPATH_INPUT_MIN = 15
+export const ACTIONPATH_INPUT_MIN = 20
 export const ACTIONPATH_INPUT_MAX = 1500
 
 export type ActionPathValidationReason =

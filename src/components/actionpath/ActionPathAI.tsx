@@ -10,11 +10,13 @@ import {
 import { useTranslation } from 'react-i18next'
 import HelpTooltip from '../guidance/HelpTooltip'
 import {
+  ACTIONPATH_GENERIC_ERROR,
   ACTIONPATH_INPUT_MAX,
   ACTIONPATH_INPUT_MIN,
   ActionPathAiError,
   generateActionPath,
   validateActionPathInput,
+  type ActionPathErrorCode,
   type ActionPathSuggestion,
   type ActionPathValidationReason,
 } from '../../lib/actionPathAi'
@@ -60,6 +62,7 @@ export default function ActionPathAI({
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [errorCode, setErrorCode] = useState<ActionPathErrorCode | null>(null)
   const [suggestion, setSuggestion] = useState<ActionPathSuggestion | null>(null)
   const [dismissed, setDismissed] = useState(false)
   const inFlightRef = useRef(false)
@@ -74,7 +77,7 @@ export default function ActionPathAI({
       ? t(validationMessageKey(validation.reason), {
           defaultValue:
             validation.reason === 'too_short'
-              ? 'Add a little more detail so ActionPath AI can help.'
+              ? 'Please describe your concern in more detail.'
               : validation.reason === 'gibberish' || validation.reason === 'blocklisted'
                 ? 'This looks too short or unclear. Try writing one sentence about the problem.'
                 : 'Please describe a real issue, idea, or community concern.',
@@ -116,18 +119,25 @@ export default function ActionPathAI({
               'Please describe a real community issue or idea before generating an Action Path.',
           })
         case 'malformed':
-          return t('actionPath.errorMalformed', {
-            defaultValue: "We couldn't read the AI suggestion properly. Please try again.",
+        case 'api':
+          return t('actionPath.errorGeneric', {
+            defaultValue: ACTIONPATH_GENERIC_ERROR,
           })
         case 'auth':
           return t('actionPath.errorAuth', { defaultValue: 'Sign in to use ActionPath AI.' })
-        case 'api':
+        case 'config':
+          return t('actionPath.errorConfig', {
+            defaultValue:
+              'ActionPath AI is not fully set up on the server yet. Please try again later.',
+          })
         case 'generic':
         default:
-          return err.message || t('actionPath.errorGeneric')
+          return t('actionPath.errorGeneric', {
+            defaultValue: ACTIONPATH_GENERIC_ERROR,
+          })
       }
     }
-    return t('actionPath.errorGeneric')
+    return t('actionPath.errorGeneric', { defaultValue: ACTIONPATH_GENERIC_ERROR })
   }
 
   async function runGenerate(sourceInput?: string) {
@@ -152,6 +162,7 @@ export default function ActionPathAI({
     inFlightRef.current = true
     setLoading(true)
     setError(null)
+    setErrorCode(null)
     setDismissed(false)
     lastValidInputRef.current = check.trimmed
 
@@ -160,6 +171,7 @@ export default function ActionPathAI({
       setSuggestion(result)
     } catch (err) {
       setSuggestion(null)
+      setErrorCode(err instanceof ActionPathAiError ? err.code : 'generic')
       setError(resolveErrorMessage(err))
     } finally {
       setLoading(false)
@@ -179,7 +191,11 @@ export default function ActionPathAI({
     setSuggestion(null)
     setDismissed(true)
     setError(null)
+    setErrorCode(null)
   }
+
+  const showSetupHint =
+    errorCode === 'config' || errorCode === 'unavailable' || errorCode === 'network'
 
   const showResult = suggestion && !dismissed
 
@@ -225,6 +241,7 @@ export default function ActionPathAI({
               const nextValidation = validateActionPathInput(next)
               if (error && (!nextValidation.valid || next.trim() !== lastValidInputRef.current)) {
                 setError(null)
+                setErrorCode(null)
               }
             }}
             disabled={loading || formDisabled}
@@ -263,7 +280,17 @@ export default function ActionPathAI({
             role="alert"
             className="flex items-start gap-2.5 rounded-xl border border-red-200/80 bg-red-50/90 px-4 py-3 text-sm text-red-900 dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-100"
           >
-            <p className="min-w-0 flex-1 leading-relaxed">{error}</p>
+            <div className="min-w-0 flex-1 space-y-1">
+              <p className="leading-relaxed">{error}</p>
+              {showSetupHint && (
+                <p className="text-xs leading-relaxed opacity-90">
+                  {t('actionPath.errorSetupHint', {
+                    defaultValue:
+                      'An admin must add OPENAI_API_KEY in Supabase → Edge Functions → Secrets, deploy actionpath-ai, and run actionpath_ai_rate_limit.sql.',
+                  })}
+                </p>
+              )}
+            </div>
             <button
               type="button"
               onClick={() => {
