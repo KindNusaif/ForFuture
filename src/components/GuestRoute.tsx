@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import SessionBootstrapLoader from './auth/SessionBootstrapLoader'
 import { useAuth } from '../hooks/useAuth'
 import { useLoadingProgress } from '../hooks/useLoadingProgress'
@@ -10,6 +11,7 @@ import { sanitizeErrorForDisplay } from '../lib/supabaseErrors'
 
 /** Redirect logged-in users away from login/signup */
 export default function GuestRoute({ children }: { children: ReactNode }) {
+  const { t } = useTranslation()
   const location = useLocation()
   const { user, loading, loggingOut, configured, profile, profileError, authError } = useAuth()
   const { showSlowHint, showRecovery } = useLoadingProgress(loading)
@@ -25,10 +27,9 @@ export default function GuestRoute({ children }: { children: ReactNode }) {
     return (
       <main className="flex min-h-[50vh] flex-col items-center justify-center bg-muted px-4">
         <div className="max-w-md rounded-2xl border border-red-200 bg-red-50 p-8 text-center dark:border-red-900/50 dark:bg-red-950/40">
-          <h1 className="text-lg font-semibold text-primary">Could not connect</h1>
+          <h1 className="text-lg font-semibold text-primary">{t('auth.connectionFailedTitle')}</h1>
           <p className="mt-2 text-sm text-red-800 dark:text-red-200">
-            {sanitizeErrorForDisplay(authError) ||
-              'Could not connect to ForFuture. Check your connection and try again.'}
+            {sanitizeErrorForDisplay(authError) || t('auth.connectionFailedBody')}
           </p>
           <div className="mt-4 flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
             <button
@@ -36,10 +37,10 @@ export default function GuestRoute({ children }: { children: ReactNode }) {
               onClick={() => window.location.reload()}
               className="btn-primary text-sm"
             >
-              Retry connection
+              {t('auth.retryConnection')}
             </button>
             <Link to="/" className="text-sm font-semibold text-secondary hover:text-primary">
-              Back to home
+              {t('auth.backHome')}
             </Link>
           </div>
         </div>

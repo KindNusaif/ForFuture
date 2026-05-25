@@ -37,7 +37,7 @@ export default function ForgotPassword() {
       setSubmittedEmail(address)
       setSent(true)
     } catch (err) {
-      setError(mapAuthError(err, 'passwordReset'))
+      setError(mapAuthError(err, 'passwordReset', t))
     } finally {
       setLoading(false)
     }

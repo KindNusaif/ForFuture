@@ -50,7 +50,7 @@ export default function ResetPassword() {
       await signOut()
       setSuccess(true)
     } catch (err) {
-      setError(mapAuthError(err, 'passwordReset') || t('auth.resetUpdateFailed'))
+      setError(mapAuthError(err, 'passwordReset', t) || t('auth.resetUpdateFailed'))
     } finally {
       setLoading(false)
     }

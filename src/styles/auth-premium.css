@@ -28,11 +28,27 @@
   min-height: 100dvh;
   width: 100%;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   padding: 1rem;
   padding-top: 3.25rem;
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
   overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.auth-premium-lang {
+  position: absolute;
+  top: max(0.75rem, env(safe-area-inset-top, 0px));
+  right: max(0.75rem, env(safe-area-inset-right, 0px));
+  z-index: 40;
+}
+
+@media (min-width: 1024px) {
+  .auth-premium-shell {
+    align-items: center;
+    overflow-y: hidden;
+  }
 }
 
 .auth-premium-back-home {
@@ -115,6 +131,13 @@
   border-radius: 1.75rem;
   background: var(--auth-card);
   box-shadow: 0 32px 64px -12px color-mix(in oklab, var(--auth-ink) 18%, transparent);
+  margin-block: auto;
+}
+
+@media (max-width: 1023px) {
+  .auth-premium-card {
+    overflow: visible;
+  }
 }
 
 @media (min-width: 1024px) {
@@ -313,7 +336,8 @@
   background: var(--auth-cream);
   position: relative;
   overflow-x: hidden;
-  overflow-y: visible;
+  overflow-y: auto;
+  max-height: calc(100dvh - 5rem);
 }
 
 @media (min-width: 1024px) {
@@ -321,7 +345,8 @@
     width: 41.667%;
     padding: 2.5rem 4rem;
     justify-content: center;
-    overflow-y: visible;
+    overflow-y: auto;
+    max-height: min(720px, calc(100vh - 6rem));
     min-height: min(720px, calc(100vh - 6rem));
   }
 }
@@ -452,6 +477,10 @@
   background: color-mix(in oklab, var(--auth-border) 85%, var(--auth-muted));
 }
 
+.auth-premium-google svg {
+  flex-shrink: 0;
+}
+
 .auth-premium-divider-label {
   flex-shrink: 0;
   white-space: nowrap;
@@ -461,6 +490,7 @@
   text-transform: uppercase;
   color: var(--auth-muted);
   line-height: 1.2;
+  text-align: center;
 }
 
 [data-theme='dark'] .auth-premium-divider-line {
@@ -860,6 +890,14 @@
 .auth-premium-form-inner > .auth-premium-message-slot + .auth-premium-form-body .auth-premium-google,
 .auth-premium-form-inner > .auth-premium-message-slot + .auth-premium-google {
   margin-top: 1rem;
+}
+
+@media (max-width: 639px) {
+  .auth-premium-divider-label {
+    white-space: normal;
+    max-width: 9rem;
+    letter-spacing: 0.12em;
+  }
 }
 
 @media (max-width: 374px) {

@@ -1,18 +1,20 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { AuthShell } from '../components/auth/AuthPremium'
 import { resendSignupConfirmation, signIn, signInWithGoogle } from '../lib/auth'
-import { isLoginUnconfirmedMessage, mapAuthError } from '../lib/authUserMessages'
+import { isEmailNotConfirmedError, mapAuthError } from '../lib/authUserMessages'
 import { isSupabaseConfigured } from '../lib/supabase'
 import { isValidEmail } from '../lib/validation'
 import { resolveAuthReturn } from '../lib/authReturn'
 import { useToast } from '../hooks/useToast'
+import { useAuth } from '../hooks/useAuth'
 
 export default function Login() {
   const { t } = useTranslation()
   const location = useLocation()
   const toast = useToast()
+  const { user } = useAuth()
   const from = resolveAuthReturn(location.state)
   const resetSuccess = (location.state as { resetSuccess?: boolean })?.resetSuccess
 
@@ -21,14 +23,22 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [lastError, setLastError] = useState<unknown>(null)
   const [resendLoading, setResendLoading] = useState(false)
   const [resendSent, setResendSent] = useState(false)
+
+  useEffect(() => {
+    if (user && loading) {
+      setLoading(false)
+    }
+  }, [user, loading])
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (loading) return
 
     setError(null)
+    setLastError(null)
 
     if (!isSupabaseConfigured) {
       setError(t('auth.setupRequired'))
@@ -56,7 +66,8 @@ export default function Login() {
       toast.success(t('auth.loginWelcome'))
       /* GuestRoute redirects once AuthContext receives SIGNED_IN — avoids racing ProtectedRoute. */
     } catch (err) {
-      setError(mapAuthError(err, 'login'))
+      setLastError(err)
+      setError(mapAuthError(err, 'login', t))
       setLoading(false)
     } finally {
       window.clearTimeout(loadingGuard)
@@ -72,8 +83,10 @@ export default function Login() {
       await resendSignupConfirmation(trimmed)
       setResendSent(true)
       setError(null)
+      setLastError(null)
     } catch (err) {
-      setError(mapAuthError(err, 'signup'))
+      setLastError(err)
+      setError(mapAuthError(err, 'signup', t))
     } finally {
       setResendLoading(false)
     }
@@ -86,26 +99,26 @@ export default function Login() {
       return
     }
     setError(null)
+    setLastError(null)
     setGoogleLoading(true)
     try {
       await signInWithGoogle(from)
     } catch (err) {
-      setError(mapAuthError(err, 'oauth'))
+      setLastError(err)
+      setError(mapAuthError(err, 'oauth', t))
       setGoogleLoading(false)
     }
   }
 
   const errorActions =
-    error && isLoginUnconfirmedMessage(error) ? (
+    lastError && isEmailNotConfirmedError(lastError) ? (
       <button
         type="button"
         className="auth-alert-action-link"
         disabled={resendLoading || !email.trim()}
         onClick={() => void handleResendConfirmation()}
       >
-        {resendLoading
-          ? t('auth.resendingConfirmation', { defaultValue: 'Sending…' })
-          : t('auth.resendConfirmation', { defaultValue: 'Resend confirmation email' })}
+        {resendLoading ? t('auth.resendingConfirmation') : t('auth.resendConfirmation')}
       </button>
     ) : undefined
 
@@ -124,9 +137,7 @@ export default function Login() {
       errorActions={errorActions}
       banner={
         resendSent
-          ? t('auth.confirmEmailSent', {
-              defaultValue: 'Confirmation email sent. Check your inbox.',
-            })
+          ? t('auth.confirmEmailSent')
           : resetSuccess
             ? t('auth.resetSuccessLogin')
             : null

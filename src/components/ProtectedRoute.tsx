@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import LogoutTransitionLoader from './auth/LogoutTransitionLoader'
 import SessionBootstrapLoader from './auth/SessionBootstrapLoader'
 import { useAuth } from '../hooks/useAuth'
@@ -7,6 +8,7 @@ import { useLoadingProgress } from '../hooks/useLoadingProgress'
 import { sanitizeErrorForDisplay } from '../lib/supabaseErrors'
 
 export default function ProtectedRoute({ children }: { children: ReactNode }) {
+  const { t } = useTranslation()
   const { user, loading, loggingOut, configured, authError, profileError } = useAuth()
   const location = useLocation()
   const { showSlowHint, showRecovery } = useLoadingProgress(loading && !authError)
@@ -19,17 +21,10 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center bg-muted px-4">
         <div className="alert-warning max-w-md p-8 text-center">
-          <h1 className="text-lg font-semibold text-primary">Setup required</h1>
-          <p className="mt-2 text-sm text-secondary">
-            Add <code className="rounded bg-surface px-1">VITE_SUPABASE_URL</code> and{' '}
-            <code className="rounded bg-surface px-1">VITE_SUPABASE_ANON_KEY</code> to your{' '}
-            <code className="rounded bg-surface px-1">.env</code> file, then restart the app.
-          </p>
+          <h1 className="text-lg font-semibold text-primary">{t('auth.setupRequiredTitle')}</h1>
+          <p className="mt-2 text-sm text-secondary">{t('auth.setupRequired')}</p>
           {import.meta.env.DEV && (
-            <p className="mt-3 text-xs text-muted">
-              Developers: apply migrations from <code className="rounded bg-surface px-1">supabase/</code>{' '}
-              in the Supabase SQL Editor.
-            </p>
+            <p className="mt-3 text-xs text-muted">{t('auth.setupRequiredDevHint')}</p>
           )}
         </div>
       </main>
@@ -43,19 +38,21 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
   if (authError) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center bg-muted px-4">
-        <div className="max-w-md rounded-2xl border border-red-200 bg-red-50 p-8 text-center">
-          <h1 className="text-lg font-semibold text-primary">Could not connect</h1>
-          <p className="mt-2 text-sm text-red-800">{authError}</p>
+        <div className="max-w-md rounded-2xl border border-red-200 bg-red-50 p-8 text-center dark:border-red-900/50 dark:bg-red-950/40">
+          <h1 className="text-lg font-semibold text-primary">{t('auth.connectionFailedTitle')}</h1>
+          <p className="mt-2 text-sm text-red-800 dark:text-red-200">
+            {sanitizeErrorForDisplay(authError)}
+          </p>
           <div className="mt-4 flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
             <Link to="/login" className="text-sm font-semibold text-brand-700 hover:underline">
-              Try logging in again
+              {t('auth.tryLoginAgain')}
             </Link>
             <button
               type="button"
               onClick={() => window.location.reload()}
               className="text-sm font-semibold text-secondary hover:text-primary"
             >
-              Retry connection
+              {t('auth.retryConnection')}
             </button>
           </div>
         </div>

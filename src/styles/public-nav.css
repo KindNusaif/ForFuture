@@ -103,7 +103,15 @@
 .public-nav-logo .logo-tagline-row {
   margin-top: 0.125rem;
   white-space: nowrap;
-  overflow: visible;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+@container public-nav (max-width: 92rem) {
+  .public-nav-logo .logo-tagline-row {
+    display: none;
+  }
 }
 
 /* Center nav — hidden by default; shown only when the bar is wide enough (container query) */
@@ -294,7 +302,7 @@
 }
 
 /* —— Container queries: show center nav only when bar has room (~1360px+) —— */
-@container public-nav (min-width: 85rem) {
+@container public-nav (min-width: 80rem) {
   .public-nav-grid {
     column-gap: 1.75rem;
   }
@@ -310,6 +318,21 @@
 
   .public-nav-drawer {
     display: none !important;
+  }
+}
+
+@container public-nav (min-width: 80rem) and (max-width: 91.99rem) {
+  .public-nav-end {
+    gap: 0.5rem;
+  }
+
+  .public-nav-auth {
+    gap: 0.5rem;
+  }
+
+  .public-nav-utilities {
+    gap: 0.25rem;
+    padding-left: 0.5rem;
   }
 }
 

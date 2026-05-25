@@ -2,6 +2,7 @@
  * Maps Supabase Auth / network errors to calm, user-facing copy.
  * Never expose raw provider codes or JSON in the UI.
  */
+import type { TFunction } from 'i18next'
 import { sanitizeErrorForDisplay } from './supabaseErrors'
 import { isRequestAborted, RequestTimeoutError } from './supabaseRequest'
 import { isSessionExpiredError, notifySessionExpiredIfNeeded } from './sessionErrors'
@@ -18,11 +19,26 @@ export function isSignupExistingEmailMessage(message: string): boolean {
   )
 }
 
-/** True when the mapped message is about profile bootstrap after auth signup. */
+export function isExistingEmailError(err: unknown): boolean {
+  const code = readAuthCode(err)
+  if (code === 'user_already_exists' || code === 'email_exists') return true
+  const msg = normalizeMessage(err).toLowerCase()
+  return (
+    msg.includes('user already registered') ||
+    msg.includes('already been registered') ||
+    msg.includes('user already registered')
+  )
+}
+
 /** True when login failed because the email is not confirmed yet. */
 export function isLoginUnconfirmedMessage(message: string): boolean {
   const lower = message.toLowerCase()
   return lower.includes('confirm your email') || lower.includes('confirmation link')
+}
+
+export function isEmailNotConfirmedError(err: unknown): boolean {
+  if (readAuthCode(err) === 'email_not_confirmed') return true
+  return isLoginUnconfirmedMessage(normalizeMessage(err))
 }
 
 export function isSignupProfileSetupMessage(message: string): boolean {
@@ -31,6 +47,15 @@ export function isSignupProfileSetupMessage(message: string): boolean {
     lower.includes('finish setting up your profile') ||
     lower.includes('could not finish creating') ||
     lower.includes('profile setup')
+  )
+}
+
+export function isProfileSetupError(err: unknown): boolean {
+  const msg = normalizeMessage(err)
+  return (
+    msg.includes('PROFILE_SETUP_PENDING:') ||
+    msg.includes('PROFILE_SETUP_FAILED:') ||
+    isSignupProfileSetupMessage(msg)
   )
 }
 
@@ -47,19 +72,35 @@ function readAuthCode(err: unknown): string | null {
   return null
 }
 
+function tr(
+  t: TFunction | undefined,
+  key: string,
+  fallback: string,
+): string {
+  return t ? t(`auth.errors.${key}`, { defaultValue: fallback }) : fallback
+}
+
 /**
  * Friendly message for auth flows. Prefer this over formatError() on sign-in/sign-up pages.
  */
-export function mapAuthError(err: unknown, context: AuthErrorContext = 'general'): string {
+export function mapAuthError(
+  err: unknown,
+  context: AuthErrorContext = 'general',
+  t?: TFunction,
+): string {
   if (isSessionExpiredError(err) && context !== 'passwordReset') {
     notifySessionExpiredIfNeeded(err)
-    return 'Your session has expired. Please sign in again.'
+    return tr(t, 'sessionExpired', 'Your session has expired. Please sign in again.')
   }
   if (isRequestAborted(err)) {
-    return 'The request was cancelled.'
+    return tr(t, 'requestCancelled', 'The request was cancelled.')
   }
   if (err instanceof RequestTimeoutError) {
-    return "We couldn't reach the service right now. Please check your connection and try again."
+    return tr(
+      t,
+      'networkUnreachable',
+      "We couldn't reach the service right now. Please check your connection and try again.",
+    )
   }
 
   const code = readAuthCode(err)
@@ -74,9 +115,17 @@ export function mapAuthError(err: unknown, context: AuthErrorContext = 'general'
     lower.includes('easy to guess')
   ) {
     if (context === 'signup' || context === 'passwordReset') {
-      return 'This password is still too weak. Try a longer passphrase or use our secure suggestion.'
+      return tr(
+        t,
+        'weakPasswordSignup',
+        'This password is still too weak. Try a longer passphrase or use our secure suggestion.',
+      )
     }
-    return 'This password is still too weak. Try a longer passphrase with mixed letters and numbers.'
+    return tr(
+      t,
+      'weakPassword',
+      'This password is still too weak. Try a longer passphrase with mixed letters and numbers.',
+    )
   }
   if (
     lower.includes('breach') ||
@@ -85,22 +134,38 @@ export function mapAuthError(err: unknown, context: AuthErrorContext = 'general'
     lower.includes('leaked') ||
     lower.includes('compromised password')
   ) {
-    return 'This password may have appeared in a previous data leak. Please choose a more unique one.'
+    return tr(
+      t,
+      'compromisedPassword',
+      'This password may have appeared in a previous data leak. Please choose a more unique one.',
+    )
   }
   if (code === 'user_already_exists' || code === 'email_exists') {
-    return 'An account with this email may already exist. Try logging in instead.'
+    return tr(
+      t,
+      'emailExists',
+      'An account with this email may already exist. Try logging in instead.',
+    )
   }
   if (code === 'signup_disabled') {
-    return 'Sign-ups are temporarily unavailable. Please try again later.'
+    return tr(t, 'signupDisabled', 'Sign-ups are temporarily unavailable. Please try again later.')
   }
   if (code === 'email_address_invalid') {
-    return 'Please enter a valid email address.'
+    return tr(t, 'emailInvalid', 'Please enter a valid email address.')
   }
   if (code === 'email_not_confirmed') {
-    return 'Please confirm your email before signing in. Check your inbox for the confirmation link.'
+    return tr(
+      t,
+      'emailNotConfirmed',
+      'Please confirm your email before signing in. Check your inbox for the confirmation link.',
+    )
   }
   if (code === 'unexpected_failure') {
-    return 'We could not complete that step. Please try again in a moment.'
+    return tr(
+      t,
+      'unexpectedFailure',
+      'We could not complete that step. Please try again in a moment.',
+    )
   }
   if (context === 'oauth') {
     if (
@@ -109,47 +174,88 @@ export function mapAuthError(err: unknown, context: AuthErrorContext = 'general'
       lower.includes('popup closed') ||
       lower.includes('popup_closed')
     ) {
-      return 'Google sign-in was cancelled. You can try again when you are ready.'
+      return tr(
+        t,
+        'oauthCancelled',
+        'Google sign-in was cancelled. You can try again when you are ready.',
+      )
     }
     if (lower.includes('provider') && lower.includes('not')) {
-      return 'Google sign-in is not available right now. Please try email, or try again later.'
+      return tr(
+        t,
+        'oauthUnavailable',
+        'Google sign-in is not available right now. Please try email, or try again later.',
+      )
     }
     if (lower.includes('redirect') && lower.includes('not allowed')) {
-      return 'Sign-in could not complete. An admin may need to add this site URL to Supabase Auth redirect URLs.'
+      return tr(
+        t,
+        'oauthRedirect',
+        'Sign-in could not complete. An admin may need to add this site URL to Supabase Auth redirect URLs.',
+      )
     }
-    return 'Google sign-in could not be completed. Please try again.'
+    return tr(
+      t,
+      'oauthFailed',
+      'Google sign-in could not be completed. Please try again.',
+    )
   }
 
   if (msg.includes('PROFILE_SETUP_PENDING:')) {
-    return 'Your account was created, but we could not finish setting up your profile. Please confirm your email if required, then log in.'
+    return tr(
+      t,
+      'profileSetupPending',
+      'Your account was created, but we could not finish setting up your profile. Please confirm your email if required, then log in.',
+    )
   }
   if (msg.includes('PROFILE_SETUP_FAILED:')) {
-    return 'Your account was created, but we could not finish setting up your profile. Please try logging in or refresh this page.'
+    return tr(
+      t,
+      'profileSetupFailed',
+      'Your account was created, but we could not finish setting up your profile. Please try logging in or refresh this page.',
+    )
   }
-  if (
-    msg.includes('Database error saving new user') ||
-    msg.includes('Error saving new user')
-  ) {
-    return 'We could not finish creating your account. If the problem continues, try logging in or contact support.'
+  if (msg.includes('Database error saving new user') || msg.includes('Error saving new user')) {
+    return tr(
+      t,
+      'databaseSaveFailed',
+      'We could not finish creating your account. If the problem continues, try logging in or contact support.',
+    )
   }
   if (msg.includes('Error sending confirmation email')) {
-    return 'Your account may have been created, but we could not send the confirmation email. Try logging in, or check spam for a confirmation link.'
+    return tr(
+      t,
+      'confirmationEmailFailed',
+      'Your account may have been created, but we could not send the confirmation email. Try logging in, or check spam for a confirmation link.',
+    )
   }
   if (lower.includes('signups not allowed')) {
-    return 'Sign-ups are temporarily unavailable. Please try again later.'
+    return tr(t, 'signupDisabled', 'Sign-ups are temporarily unavailable. Please try again later.')
   }
   if (msg.includes('Invalid login credentials') || code === 'invalid_credentials') {
-    return "We couldn't sign you in with those details. Please check your email and password."
+    return tr(
+      t,
+      'invalidCredentials',
+      "We couldn't sign you in with those details. Please check your email and password.",
+    )
   }
   if (
     msg.includes('User already registered') ||
     lower.includes('already been registered') ||
     lower.includes('user already registered')
   ) {
-    return 'An account with this email may already exist. Try logging in instead.'
+    return tr(
+      t,
+      'emailExists',
+      'An account with this email may already exist. Try logging in instead.',
+    )
   }
   if (code === 'over_email_send_rate_limit' || lower.includes('over_email_send_rate_limit')) {
-    return 'Too many requests. Please wait a few minutes before trying again.'
+    return tr(
+      t,
+      'rateLimited',
+      'Too many requests. Please wait a few minutes before trying again.',
+    )
   }
   if (msg.includes('Supabase is not configured')) {
     return msg
@@ -161,10 +267,18 @@ export function mapAuthError(err: unknown, context: AuthErrorContext = 'general'
       msg.includes('JWT expired') ||
       msg.includes('invalid claim')
     ) {
-      return 'This reset link is invalid or has expired. Please request a new one.'
+      return tr(
+        t,
+        'resetLinkInvalid',
+        'This reset link is invalid or has expired. Please request a new one.',
+      )
     }
     if (msg.includes('same_password')) {
-      return 'Choose a password that is different from your current one.'
+      return tr(
+        t,
+        'samePassword',
+        'Choose a password that is different from your current one.',
+      )
     }
   }
 
@@ -174,14 +288,26 @@ export function mapAuthError(err: unknown, context: AuthErrorContext = 'general'
     lower.includes('load failed') ||
     lower.includes('networkerror')
   ) {
-    return "We couldn't reach the service right now. Please check your connection and try again."
+    return tr(
+      t,
+      'networkUnreachable',
+      "We couldn't reach the service right now. Please check your connection and try again.",
+    )
   }
   if (lower.includes('timeout') || lower.includes('timed out')) {
-    return 'This is taking longer than usual. Please check your connection and try again.'
+    return tr(
+      t,
+      'timeout',
+      'This is taking longer than usual. Please check your connection and try again.',
+    )
   }
 
   if (lower.includes('invalid grant') || lower.includes('flow_state')) {
-    return 'Sign-in could not be completed. Please go back and try again.'
+    return tr(
+      t,
+      'signInIncomplete',
+      'Sign-in could not be completed. Please go back and try again.',
+    )
   }
 
   const safe = sanitizeErrorForDisplay(msg)
@@ -189,7 +315,11 @@ export function mapAuthError(err: unknown, context: AuthErrorContext = 'general'
     return safe
   }
   if (context === 'signup') {
-    return "We couldn't create your account right now. Please try again."
+    return tr(
+      t,
+      'signupFailed',
+      "We couldn't create your account right now. Please try again.",
+    )
   }
-  return 'Something went wrong. Please try again.'
+  return tr(t, 'generic', 'Something went wrong. Please try again.')
 }

@@ -4,8 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { AuthShell } from '../components/auth/AuthPremium'
 import { resendSignupConfirmation, signUp, signInWithGoogle } from '../lib/auth'
 import {
-  isSignupExistingEmailMessage,
-  isSignupProfileSetupMessage,
+  isExistingEmailError,
+  isProfileSetupError,
   mapAuthError,
 } from '../lib/authUserMessages'
 import { isSupabaseConfigured } from '../lib/supabase'
@@ -26,6 +26,7 @@ export default function Signup() {
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [lastError, setLastError] = useState<unknown>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [pendingEmail, setPendingEmail] = useState<string | null>(null)
   const [resendLoading, setResendLoading] = useState(false)
@@ -56,6 +57,7 @@ export default function Signup() {
     if (loading || pendingEmail) return
 
     setError(null)
+    setLastError(null)
     setSuccess(null)
     setResendSent(false)
 
@@ -87,7 +89,8 @@ export default function Signup() {
       setLoading(false)
       /* GuestRoute redirects when AuthContext receives the new session. */
     } catch (err) {
-      setError(mapAuthError(err, 'signup'))
+      setLastError(err)
+      setError(mapAuthError(err, 'signup', t))
       setLoading(false)
     }
   }
@@ -106,7 +109,8 @@ export default function Signup() {
       setResendSent(true)
       startResendCooldown()
     } catch (err) {
-      setError(mapAuthError(err, 'signup'))
+      setLastError(err)
+      setError(mapAuthError(err, 'signup', t))
     } finally {
       setResendLoading(false)
     }
@@ -119,17 +123,19 @@ export default function Signup() {
       return
     }
     setError(null)
+    setLastError(null)
     setGoogleLoading(true)
     try {
       await signInWithGoogle(from)
     } catch (err) {
-      setError(mapAuthError(err, 'oauth'))
+      setLastError(err)
+      setError(mapAuthError(err, 'oauth', t))
       setGoogleLoading(false)
     }
   }
 
   const errorActions =
-    error && isSignupExistingEmailMessage(error) ? (
+    lastError && isExistingEmailError(lastError) ? (
       <>
         <Link to="/login" state={location.state} className="auth-alert-action-link">
           {t('auth.goToLogin')}
@@ -138,7 +144,7 @@ export default function Signup() {
           {t('auth.forgotPassword')}
         </Link>
       </>
-    ) : error && isSignupProfileSetupMessage(error) ? (
+    ) : lastError && isProfileSetupError(lastError) ? (
       <Link to="/login" state={location.state} className="auth-alert-action-link">
         {t('auth.goToLogin')}
       </Link>

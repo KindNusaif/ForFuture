@@ -12,6 +12,7 @@ import {
   User as UserIcon,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import LanguageSwitcher from '../LanguageSwitcher'
 import AuthFormAlert from './AuthFormAlert'
 import SignupConfirmationPanel from './SignupConfirmationPanel'
 import AuthPasswordHelper from './AuthPasswordHelper'
@@ -96,6 +97,9 @@ export function AuthPremiumLayout({
   return (
     <div className="auth-premium-shell">
       <AuthBackToHome />
+      <div className="auth-premium-lang">
+        <LanguageSwitcher variant="compact" />
+      </div>
       <div className="auth-premium-card">
         <AuthBrandPanel showSocialProof={showSignupSocialProof} />
         <section className="auth-premium-form-wrap">{children}</section>
@@ -128,7 +132,7 @@ export function AuthMobileLogo() {
 
 export function GoogleIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
+    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden className="shrink-0">
       <path
         fill="#4285F4"
         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.75h3.57c2.08-1.92 3.28-4.74 3.28-8.07z"
@@ -408,7 +412,7 @@ export function AuthShell({
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="name@domain.com"
+              placeholder={t('auth.emailPlaceholder')}
               className="auth-field-input auth-field-input--icon"
               autoComplete="email"
               required
