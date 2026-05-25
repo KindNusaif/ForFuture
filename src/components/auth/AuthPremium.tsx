@@ -24,7 +24,7 @@ export function AuthBackToHome() {
   return (
     <Link to="/" className="auth-premium-back-home">
       <ArrowLeft className="auth-premium-back-home-icon" aria-hidden />
-      {t('auth.backToForFuture')}
+      {t('auth.backToForFuture', { defaultValue: 'Back to ForFuture' })}
     </Link>
   )
 }
@@ -39,14 +39,18 @@ export function AuthBrandPanel({ showSocialProof = false }: { showSocialProof?: 
       <Link
         to="/"
         className="auth-premium-brand-logo"
-        aria-label={t('auth.backToHomeAria')}
+        aria-label={t('auth.backToHomeAria', { defaultValue: 'ForFuture home' })}
       >
         <span className="auth-premium-brand-icon">
           <Sparkles className="h-5 w-5" aria-hidden />
         </span>
         <span>
           <div className="text-lg font-medium tracking-tight">ForFuture</div>
-          <div className="auth-premium-brand-tagline">{t('auth.brandTagline')}</div>
+          <div className="auth-premium-brand-tagline">
+            {t('auth.brandTagline', {
+              defaultValue: 'Youth civic action, made visible.',
+            })}
+          </div>
         </span>
       </Link>
       <div className="auth-premium-brand-copy">

@@ -42,7 +42,7 @@ export default function FeedDiscoveryBar({
   const filtersActive = hasActiveFilters || categoryActive || typeActive || searchActive
 
   return (
-    <div className="card-surface mb-5 overflow-hidden p-3 sm:p-4">
+    <div className="card-surface mb-5 min-w-0 p-3 sm:p-4">
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <div className="relative min-w-0 flex-1 basis-[12rem]">
@@ -54,9 +54,13 @@ export default function FeedDiscoveryBar({
               type="search"
               value={search}
               onChange={(e) => onSearchChange(e.target.value)}
-              placeholder="Search movements, authors, topics…"
+              placeholder={t('feed.searchPlaceholder', {
+                defaultValue: 'Search movements, authors, topics…',
+              })}
               className="search-input"
-              aria-label="Search movements"
+              aria-label={t('feed.searchPlaceholder', {
+                defaultValue: 'Search movements, authors, topics…',
+              })}
             />
           </div>
 
@@ -83,7 +87,7 @@ export default function FeedDiscoveryBar({
             }`}
             aria-expanded={moreFiltersOpen}
           >
-            More filters
+            {t('feed.moreFilters', { defaultValue: 'More filters' })}
             {categoryActive && !moreFiltersOpen && (
               <span className="rounded-full bg-accent-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
                 1

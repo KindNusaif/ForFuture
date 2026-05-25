@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { ArrowLeft } from 'lucide-react'
 import MovementDetailView from '../components/movement/MovementDetailView'
 import ShareButton from '../components/share/ShareButton'
@@ -25,7 +26,7 @@ import { supportGateVariant } from '../lib/guestGate'
 interface MovementDetailProps {
   mode: 'guest' | 'member'
   backTo: string
-  backLabel: string
+  backLabel?: string
 }
 
 function MovementDetailContent({
@@ -34,6 +35,12 @@ function MovementDetailContent({
   backTo,
   backLabel,
 }: MovementDetailProps & { id: string }) {
+  const { t } = useTranslation()
+  const resolvedBackLabel =
+    backLabel ??
+    (mode === 'guest'
+      ? t('explore.backToExplore', { defaultValue: 'Back to explore' })
+      : t('feed.backToFeed', { defaultValue: 'Back to feed' }))
   const navigate = useNavigate()
   const { user, isMember, loading: authLoading } = useAuthUser()
   const { openJoinModal } = useJoinMovement()
@@ -206,7 +213,7 @@ function MovementDetailContent({
           className="btn-ghost min-h-10! px-0!"
         >
           <ArrowLeft className="h-4 w-4" />
-          {backLabel}
+          {resolvedBackLabel}
         </button>
         {post && <ShareButton post={post} variant="secondary" showLabel />}
       </div>

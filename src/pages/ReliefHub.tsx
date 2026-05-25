@@ -1,11 +1,13 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { ArrowRight, BadgeCheck, HeartHandshake, Search } from 'lucide-react'
+import { ArrowRight, BadgeCheck, Plus, Search } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import GuestModeBanner from '../components/guidance/GuestModeBanner'
 import PostFeed from '../components/PostFeed'
+import ReliefCreateRequestCard from '../components/relief/ReliefCreateRequestCard'
 import ReliefTrustStrip from '../components/relief/ReliefTrustStrip'
 import { useAuth } from '../hooks/useAuth'
+import { useJoinMovement } from '../hooks/useJoinMovement'
 import { useToast } from '../hooks/useToast'
 import type { ReliefHubFilter } from '../lib/reliefHub'
 import type { ReliefHubTab } from '../lib/reliefCampaignPublic'
@@ -27,6 +29,7 @@ export default function ReliefHub({ mode = 'member' }: ReliefHubProps) {
   const isGuest = mode === 'guest'
   const { t } = useTranslation()
   const { profile, user } = useAuth()
+  const { openJoinModal } = useJoinMovement()
   const location = useLocation()
   const navigate = useNavigate()
   const toast = useToast()
@@ -40,6 +43,15 @@ export default function ReliefHub({ mode = 'member' }: ReliefHubProps) {
 
   const verifyPath = isGuest ? '/signup' : '/verification'
   const canFundraise = canCreateFundraisingCampaign(profile)
+  const returnAfterAuth = isGuest ? '/explore/relief' : '/relief'
+
+  const handleCreateReliefRequest = useCallback(() => {
+    if (isGuest || !user) {
+      openJoinModal('create', returnAfterAuth)
+      return
+    }
+    navigate('/relief/create')
+  }, [isGuest, user, openJoinModal, returnAfterAuth, navigate])
 
   useEffect(() => {
     const navToast = (location.state as { toast?: { type: 'success' | 'error'; message: string } })?.toast
@@ -54,12 +66,13 @@ export default function ReliefHub({ mode = 'member' }: ReliefHubProps) {
     : TABS
 
   return (
-    <div className="relief-hub-page">
+    <div className="relief-hub-page min-w-0">
       {isGuest ? (
         <div className="mx-auto max-w-6xl px-4 pt-6 sm:px-6">
           <GuestModeBanner />
         </div>
       ) : null}
+
       <section className="relief-hub-hero mx-auto max-w-6xl px-4 pt-8 sm:px-6 sm:pt-10">
         <p className="relief-hub-eyebrow">{t('reliefHub.heroEyebrow')}</p>
         <h1 className="relief-hub-title font-display">{t('relief.title')}</h1>
@@ -73,6 +86,14 @@ export default function ReliefHub({ mode = 'member' }: ReliefHubProps) {
             <BadgeCheck className="h-4 w-4" aria-hidden />
             {t('reliefHub.applyVerification')}
           </Link>
+          <button
+            type="button"
+            onClick={handleCreateReliefRequest}
+            className="relief-hub-cta-create btn-secondary inline-flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" aria-hidden />
+            {t('reliefHub.createReliefCta', { defaultValue: 'Start a Relief Request' })}
+          </button>
         </div>
         {!isGuest && !canFundraise && (
           <p className="relief-hub-verify-hint">{t('reliefHub.fundraisingVerifyHint')}</p>
@@ -80,6 +101,10 @@ export default function ReliefHub({ mode = 'member' }: ReliefHubProps) {
       </section>
 
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <ReliefCreateRequestCard
+          className="mt-8"
+          onCreate={handleCreateReliefRequest}
+        />
         <ReliefTrustStrip />
       </div>
 
@@ -98,7 +123,11 @@ export default function ReliefHub({ mode = 'member' }: ReliefHubProps) {
           </div>
         </div>
 
-        <div className="relief-hub-tabs" role="tablist" aria-label={t('relief.filterLabel')}>
+        <div
+          className="relief-hub-tabs"
+          role="tablist"
+          aria-label={t('relief.filterLabel', { defaultValue: 'Campaign filters' })}
+        >
           {memberTabs.map((tab) => (
             <button
               key={tab.id}
@@ -122,23 +151,13 @@ export default function ReliefHub({ mode = 'member' }: ReliefHubProps) {
           reliefSearchQuery={search}
           reliefDetailBase={isGuest ? '/explore/relief' : '/relief'}
           showCreateButton={false}
+          onReliefCreateRequest={handleCreateReliefRequest}
+          onReliefClearFilters={() => {
+            setActiveTab('all')
+            setSearch('')
+          }}
           className="mt-6"
         />
-
-        {!isGuest && (
-          <div className="relief-hub-create-bar card-surface mt-10 flex flex-wrap items-center justify-between gap-4 p-6">
-            <div className="flex items-start gap-3">
-              <HeartHandshake className="h-8 w-8 shrink-0 text-rose-600" aria-hidden />
-              <div>
-                <p className="font-semibold text-primary">{t('relief.createTitle')}</p>
-                <p className="mt-1 text-sm text-secondary">{t('reliefHub.createBarHint')}</p>
-              </div>
-            </div>
-            <Link to="/relief/create" className="btn-primary shrink-0">
-              {t('relief.createCta')}
-            </Link>
-          </div>
-        )}
       </section>
     </div>
   )

@@ -223,11 +223,14 @@ export default function MapPicker({
         <MapPin className="mb-1 inline h-4 w-4 text-muted" aria-hidden />
         <p className="font-medium text-primary">{t('map.notConfiguredTitle')}</p>
         <p className="mt-1 leading-relaxed">{t('map.notConfiguredBody')}</p>
-        <ol className="mt-2 list-decimal space-y-1 pl-4 text-[11px]">
-          <li>{t('map.setupStep1')}</li>
-          <li>{t('map.setupStep2')}</li>
-          <li>{t('map.setupStep3')}</li>
-        </ol>
+        <p className="mt-2 text-[11px] text-muted">{t('map.notConfiguredHint')}</p>
+        {import.meta.env.DEV ? (
+          <ol className="mt-2 list-decimal space-y-1 pl-4 text-[11px]">
+            <li>{t('map.setupStep1')}</li>
+            <li>{t('map.setupStep2')}</li>
+            <li>{t('map.setupStep3')}</li>
+          </ol>
+        ) : null}
       </div>
     )
   }

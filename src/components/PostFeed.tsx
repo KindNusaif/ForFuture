@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Inbox, Loader2 } from 'lucide-react'
+import { HeartHandshake, Inbox, Loader2 } from 'lucide-react'
 import CreateMovementCta from './create/CreateMovementCta'
 import EmptyState from './EmptyState'
 import FeedDiscoveryBar from './FeedDiscoveryBar'
@@ -71,6 +71,9 @@ interface PostFeedProps {
   reliefHubTab?: ReliefHubTab
   reliefSearchQuery?: string
   reliefDetailBase?: string
+  /** Relief hub empty state: create request (auth-gated for guests). */
+  onReliefCreateRequest?: () => void
+  onReliefClearFilters?: () => void
   /** Read/write ?category= and ?type= on /explore (guest discover links). */
   syncFiltersFromUrl?: boolean
   feedTab?: FeedTab
@@ -98,6 +101,8 @@ function PostFeedContent({
   reliefHubTab = 'all',
   reliefSearchQuery,
   reliefDetailBase = '/relief',
+  onReliefCreateRequest,
+  onReliefClearFilters,
   syncFiltersFromUrl = false,
   feedTab = 'discover',
   onFeedTabChange,
@@ -511,6 +516,10 @@ function PostFeedContent({
   const hasActiveFilters =
     search.trim().length > 0 || movementFilter !== 'All' || category !== 'All'
 
+  const reliefHasActiveFilters =
+    reliefHub &&
+    (reliefHubTab !== 'all' || Boolean((reliefSearchQuery ?? debouncedSearch).trim()))
+
   async function handlePollVote(postId: string, optionId: string) {
     if (isGuest || !optionId) {
       handleRestrictedAction('poll')
@@ -691,10 +700,23 @@ function PostFeedContent({
       ) : error ? null : filtered.length === 0 ? (
         <div className="mt-8">
           <EmptyState
-            icon={Inbox}
+            icon={reliefHub ? HeartHandshake : Inbox}
             title={emptyState.title}
             description={emptyState.description}
-          />
+          >
+            {reliefHub && onReliefCreateRequest ? (
+              <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                <button type="button" onClick={onReliefCreateRequest} className="btn-primary">
+                  {t('reliefHub.createReliefCta', { defaultValue: 'Start a Relief Request' })}
+                </button>
+                {reliefHasActiveFilters && onReliefClearFilters ? (
+                  <button type="button" onClick={onReliefClearFilters} className="btn-secondary">
+                    {t('feed.clearFilters')}
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
+          </EmptyState>
           {isFollowingFeed && (
             <p className="mt-6 text-center">
               <Link to={isGuest ? '/explore' : '/discover'} className="btn-primary">
@@ -702,16 +724,23 @@ function PostFeedContent({
               </Link>
             </p>
           )}
-          {reliefHub && !hasActiveFilters && (
+          {reliefHub && !onReliefCreateRequest && !reliefHasActiveFilters && (
             <p className="mt-6 text-center">
               <Link to={isGuest ? '/explore' : '/discover'} className="btn-primary">
-                {t('guidance.empty.reliefCta', { defaultValue: 'Explore Movements' })}
+                {t('reliefHub.exploreCampaigns', { defaultValue: 'Explore Campaigns' })}
               </Link>
             </p>
           )}
-          {hasActiveFilters && !isFollowingFeed && (
+          {hasActiveFilters && !isFollowingFeed && !reliefHub && (
             <p className="mt-4 text-center">
               <button type="button" onClick={handleClearFilters} className="btn-secondary">
+                {t('feed.clearFilters')}
+              </button>
+            </p>
+          )}
+          {reliefHub && reliefHasActiveFilters && onReliefClearFilters && !onReliefCreateRequest && (
+            <p className="mt-4 text-center">
+              <button type="button" onClick={onReliefClearFilters} className="btn-secondary">
                 {t('feed.clearFilters')}
               </button>
             </p>

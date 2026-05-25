@@ -261,5 +261,13 @@ html[data-reduce-motion='true'] .poll-result-bar {
   .relief-hub-tabs {
     margin-inline: -0.25rem;
     padding-inline: 0.25rem;
+    max-width: 100vw;
+  }
+
+  .relief-hub-hero-actions .btn-primary,
+  .relief-hub-hero-actions .btn-secondary,
+  .relief-hub-hero-actions .relief-hub-cta-create {
+    width: 100%;
+    justify-content: center;
   }
 }

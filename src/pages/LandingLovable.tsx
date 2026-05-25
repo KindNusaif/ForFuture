@@ -58,7 +58,7 @@ function Hero() {
       <div className="landing-hero-glow landing-hero-glow--mint" aria-hidden />
       <div className="landing-hero-glow landing-hero-glow--indigo" aria-hidden />
       <div className="pointer-events-none absolute inset-0 grain opacity-50" aria-hidden />
-      <div className="relative mx-auto max-w-7xl px-6 pb-24 pt-8 md:pb-32 md:pt-12 lg:pt-14">
+      <div className="relative mx-auto max-w-7xl px-4 pb-24 pt-8 sm:px-6 md:pb-32 md:pt-12 lg:pt-14">
         <div className="grid items-center gap-10 lg:grid-cols-12 lg:gap-12">
           <div className="lg:col-span-7">
             <div className="landing-hero-badge inline-flex items-center gap-2">
@@ -216,7 +216,7 @@ function Marquee() {
 
 function Problem() {
   return (
-    <section className="mx-auto max-w-7xl px-6 py-24 md:py-28">
+    <section className="mx-auto max-w-7xl px-4 sm:px-6 py-24 md:py-28">
       <div className="grid items-start gap-12 lg:grid-cols-2 lg:gap-16">
         <div>
           <div className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">The problem</div>
@@ -293,7 +293,7 @@ function Pillars() {
     },
   ]
   return (
-    <section className="mx-auto max-w-7xl px-6 py-24 md:py-28">
+    <section className="mx-auto max-w-7xl px-4 sm:px-6 py-24 md:py-28">
       <div className="max-w-2xl">
         <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">What ForFuture does</div>
         <h2 className="mt-4 font-display text-4xl md:text-5xl">Three pillars for a civic generation.</h2>
@@ -328,7 +328,7 @@ function Features() {
   ]
   return (
     <section id="features" className="scroll-mt-24 border-y border-border bg-secondary/40">
-      <div className="mx-auto max-w-7xl px-6 py-24 md:py-28">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-24 md:py-28">
         <div className="max-w-3xl">
           <div className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Movement types</div>
           <h2 className="mt-4 font-display text-4xl md:text-5xl">Six ways to turn a voice into a movement.</h2>
@@ -371,7 +371,7 @@ function HowItWorks() {
       <div className="absolute inset-0 grain opacity-30" aria-hidden />
       <div className="absolute top-1/2 -left-32 h-96 w-96 -translate-y-1/2 rounded-full bg-indigo/40 blur-3xl" aria-hidden />
       <div className="absolute top-1/4 -right-32 h-96 w-96 rounded-full bg-mint/30 blur-3xl" aria-hidden />
-      <div className="relative mx-auto max-w-7xl px-6 py-28 md:py-32">
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 py-28 md:py-32">
         <div className="max-w-3xl">
           <div className="text-xs font-semibold uppercase tracking-[0.2em] text-cream/70">How it works</div>
           <h2 className="mt-4 font-display text-4xl leading-tight tracking-tight text-cream md:text-5xl md:leading-tight">
@@ -411,7 +411,7 @@ function HowItWorks() {
 function ProtectedVoice() {
   const { t } = useTranslation()
   return (
-    <section className="mx-auto max-w-7xl px-6 py-28 md:py-32">
+    <section className="mx-auto max-w-7xl px-4 sm:px-6 py-28 md:py-32">
       <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-14">
         <div className="lg:col-span-7">
           <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium">
@@ -666,7 +666,7 @@ function TrustSafety() {
   ]
   return (
     <section id="trust" className="scroll-mt-24 border-y border-border bg-secondary/40">
-      <div className="mx-auto max-w-7xl px-6 py-24">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-24">
         <div className="max-w-2xl">
           <div className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Trust & civic safety</div>
           <h2 className="mt-4 font-display text-4xl md:text-5xl">A platform built on responsibility.</h2>
@@ -711,7 +711,7 @@ function Voices() {
   ]
   return (
     <section id="voices" className="scroll-mt-24 border-y border-border">
-      <div className="mx-auto max-w-7xl px-6 py-24">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-24">
         <div className="max-w-2xl">
           <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Voices of the movement</div>
           <h2 className="mt-4 font-display text-4xl md:text-5xl">Built by youth. Trusted by youth.</h2>
@@ -743,7 +743,7 @@ function CTA() {
   const signedIn = authReady && isMember
 
   return (
-    <section className="mx-auto max-w-7xl px-6 py-28">
+    <section className="mx-auto max-w-7xl px-4 sm:px-6 py-28">
       <div className="relative overflow-hidden rounded-[2.5rem] bg-dark p-12 text-center text-cream md:p-20">
         <div className="absolute inset-0 grain opacity-40" aria-hidden />
         <div className="absolute -top-32 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-indigo/50 blur-3xl" aria-hidden />
@@ -834,7 +834,7 @@ function LovableFooter() {
         ))}
       </div>
       <div className="border-t border-border">
-        <p className="mx-auto max-w-7xl px-6 py-8 text-center text-xs leading-relaxed text-muted-foreground">
+        <p className="mx-auto max-w-7xl px-4 sm:px-6 py-8 text-center text-xs leading-relaxed text-muted-foreground">
           © {new Date().getFullYear()} ForFuture · Built with young people, for young people.
         </p>
       </div>

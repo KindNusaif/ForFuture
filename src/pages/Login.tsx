@@ -50,6 +50,7 @@ export default function Login() {
     }
 
     setLoading(true)
+    const loadingGuard = window.setTimeout(() => setLoading(false), 20_000)
     try {
       await signIn(trimmedEmail, password)
       toast.success(t('auth.loginWelcome'))
@@ -57,6 +58,8 @@ export default function Login() {
     } catch (err) {
       setError(mapAuthError(err, 'login'))
       setLoading(false)
+    } finally {
+      window.clearTimeout(loadingGuard)
     }
   }
 

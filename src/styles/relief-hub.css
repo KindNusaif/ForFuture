@@ -38,7 +38,35 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  align-items: center;
   gap: 0.75rem;
+}
+
+.relief-hub-cta-create {
+  border-color: color-mix(in srgb, var(--color-mint, #0d9488) 35%, var(--border-default));
+  background: color-mix(in srgb, var(--color-mint, #0d9488) 8%, var(--surface-elevated));
+}
+
+.relief-hub-cta-create:hover {
+  border-color: var(--color-mint, #0d9488);
+  background: color-mix(in srgb, var(--color-mint, #0d9488) 14%, var(--surface-elevated));
+}
+
+.relief-hub-create-card {
+  border-color: color-mix(in srgb, var(--color-mint, #0d9488) 22%, var(--border-default));
+  padding: 1.25rem 1.5rem;
+  border-radius: 1rem;
+  box-shadow: var(--shadow-sm, 0 1px 3px rgb(0 0 0 / 0.06));
+}
+
+.relief-hub-create-card-icon {
+  background: color-mix(in srgb, #e11d48 10%, var(--surface-elevated));
+  color: #e11d48;
+}
+
+[data-theme='dark'] .relief-hub-create-card-icon {
+  background: color-mix(in srgb, #fb7185 18%, var(--surface-elevated));
+  color: #fda4af;
 }
 
 .relief-hub-verify-hint {
@@ -147,8 +175,17 @@
 .relief-hub-tabs {
   margin-top: 1.25rem;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0.5rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 0.25rem;
+  scrollbar-width: thin;
+}
+
+.relief-hub-tabs .relief-hub-tab {
+  flex-shrink: 0;
 }
 
 .relief-hub-tab {
@@ -177,9 +214,6 @@
   border-color: color-mix(in srgb, var(--color-mint, #0d9488) 20%, var(--border-default));
 }
 
-.relief-hub-create-bar {
-  border-color: color-mix(in srgb, #e11d48 15%, var(--border-default));
-}
 
 [data-theme='dark'] .relief-trust-strip {
   background: linear-gradient(

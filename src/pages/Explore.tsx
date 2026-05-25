@@ -13,7 +13,7 @@ export default function Explore() {
 
   useEffect(() => {
     const previous = document.title
-    document.title = `${t('explore.pageTitle')} · ForFuture`
+    document.title = `${t('explore.pageTitle', { defaultValue: 'Explore' })} · ForFuture`
     return () => {
       document.title = previous
     }
@@ -54,9 +54,14 @@ export default function Explore() {
             <Compass className="h-5 w-5" aria-hidden />
           </span>
           <div className="min-w-0">
-            <h1 className="page-title text-2xl sm:text-3xl">{t('explore.heading')}</h1>
+            <h1 className="page-title text-2xl sm:text-3xl">
+              {t('explore.heading', { defaultValue: 'Explore youth movements' })}
+            </h1>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-secondary sm:text-base">
-              {t('explore.subtitle')}
+              {t('explore.subtitle', {
+                defaultValue:
+                  'Browse public civic actions from youth across the community — no account required.',
+              })}
             </p>
           </div>
         </div>

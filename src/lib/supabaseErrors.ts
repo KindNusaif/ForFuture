@@ -78,13 +78,12 @@ export function enhanceSupabaseError(error: unknown): Error {
 
   if (import.meta.env?.DEV) {
     logDeveloperHint('Unhandled PostgREST error', error)
+    if (error.message && error.message.length < 200 && !error.message.includes('SQL')) {
+      return new Error(error.message)
+    }
   }
 
-  return new Error(
-    error.message && error.message.length < 200 && !error.message.includes('SQL')
-      ? error.message
-      : 'Something went wrong. Please try again.',
-  )
+  return new Error('Something went wrong. Please try again.')
 }
 
 /** Strip internal migration paths from any error string shown in the UI */

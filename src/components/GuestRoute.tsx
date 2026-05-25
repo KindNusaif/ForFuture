@@ -6,6 +6,7 @@ import { useLoadingProgress } from '../hooks/useLoadingProgress'
 import { isOnboardingComplete } from '../lib/onboarding'
 import { isAuthProfileReady } from '../lib/authReady'
 import { resolveAuthReturn } from '../lib/authReturn'
+import { sanitizeErrorForDisplay } from '../lib/supabaseErrors'
 
 /** Redirect logged-in users away from login/signup */
 export default function GuestRoute({ children }: { children: ReactNode }) {
@@ -25,7 +26,10 @@ export default function GuestRoute({ children }: { children: ReactNode }) {
       <main className="flex min-h-[50vh] flex-col items-center justify-center bg-muted px-4">
         <div className="max-w-md rounded-2xl border border-red-200 bg-red-50 p-8 text-center dark:border-red-900/50 dark:bg-red-950/40">
           <h1 className="text-lg font-semibold text-primary">Could not connect</h1>
-          <p className="mt-2 text-sm text-red-800 dark:text-red-200">{authError}</p>
+          <p className="mt-2 text-sm text-red-800 dark:text-red-200">
+            {sanitizeErrorForDisplay(authError) ||
+              'Could not connect to ForFuture. Check your connection and try again.'}
+          </p>
           <div className="mt-4 flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
             <button
               type="button"

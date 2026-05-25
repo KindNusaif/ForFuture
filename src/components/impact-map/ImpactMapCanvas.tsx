@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { MapPin } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { DEFAULT_MAP_ZOOM, FOCUSED_MAP_ZOOM, USER_LOCATION_ZOOM } from '../../lib/mapConfig'
 import {
   DEFAULT_MAP_CENTER as GOOGLE_DEFAULT_CENTER,
@@ -31,6 +32,7 @@ export default function ImpactMapCanvas({
   emptyOverlayMessage = 'No map pins for the current filters. Browse the list or adjust filters.',
   className = '',
 }: ImpactMapCanvasProps) {
+  const { t } = useTranslation()
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<google.maps.Map | null>(null)
   const markersRef = useRef<Map<string, google.maps.Marker>>(new Map())
@@ -41,9 +43,7 @@ export default function ImpactMapCanvas({
 
   useEffect(() => {
     if (!isGoogleMapsConfigured()) {
-      setMapError(
-        'Google Maps is not configured. Add VITE_GOOGLE_MAPS_API_KEY to enable the interactive map.',
-      )
+      setMapError('not_configured')
       return
     }
 
@@ -83,7 +83,7 @@ export default function ImpactMapCanvas({
         })
       } catch {
         if (!cancelled) {
-          setMapError('We could not load the map right now. You can still browse results in the list.')
+          setMapError('load_failed')
         }
       }
     })()
@@ -226,17 +226,48 @@ export default function ImpactMapCanvas({
   }, [flyTo, mapReady])
 
   if (mapError) {
+    const isSetup = mapError === 'not_configured'
+    const title = isSetup
+      ? t('map.notConfiguredTitle', { defaultValue: 'Map view unavailable' })
+      : t('map.mapLoadError', {
+          defaultValue: 'We could not load the map right now. You can still browse results in the list.',
+        })
+    const body = isSetup
+      ? t('map.notConfiguredBody', {
+          defaultValue:
+            'Browse volunteer drives, relief needs, and civic actions in the list — the interactive map will appear when enabled on this site.',
+        })
+      : null
+
     return (
       <div
-        className={`flex min-h-70 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-default bg-muted/50 px-6 py-10 text-center ${className}`}
+        className={`impact-map-fallback flex min-h-70 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-default bg-linear-to-br from-surface via-muted/30 to-accent-50/20 px-6 py-10 text-center dark:to-accent-950/20 ${className}`}
         role="status"
       >
-        <MapPin className="h-8 w-8 text-muted" aria-hidden />
-        <p className="max-w-sm text-sm leading-relaxed text-secondary">{mapError}</p>
-        <p className="text-xs text-muted">
-          Default view centers on Sri Lanka when location is unavailable. Results remain available in
-          the list.
+        <span
+          className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-50 text-accent-700 ring-1 ring-accent-200/80 dark:bg-accent-950/40 dark:text-accent-200 dark:ring-accent-500/30"
+          aria-hidden
+        >
+          <MapPin className="h-7 w-7" />
+        </span>
+        <p className="max-w-sm text-base font-semibold text-primary">{title}</p>
+        {body ? <p className="max-w-md text-sm leading-relaxed text-secondary">{body}</p> : null}
+        <p className="max-w-md text-xs leading-relaxed text-muted">
+          {t('map.notConfiguredHint', {
+            defaultValue:
+              'List results stay available. When the map is on, the default view centers on Sri Lanka.',
+          })}
         </p>
+        {import.meta.env.DEV && isSetup ? (
+          <details className="mt-2 max-w-md text-left text-[11px] text-muted">
+            <summary className="cursor-pointer font-medium text-secondary">Developer setup</summary>
+            <ol className="mt-2 list-decimal space-y-1 pl-4">
+              <li>{t('map.setupStep1')}</li>
+              <li>{t('map.setupStep2')}</li>
+              <li>{t('map.setupStep3')}</li>
+            </ol>
+          </details>
+        ) : null}
       </div>
     )
   }

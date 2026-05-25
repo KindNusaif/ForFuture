@@ -197,8 +197,6 @@ export default function ActionPathAI({
     setErrorCode(null)
   }
 
-  const showSetupHint = errorCode === 'config' || errorCode === 'unavailable' || errorCode === 'network'
-
   const showResult = suggestion && !dismissed
 
   const recommendedConfig = suggestion
@@ -220,8 +218,14 @@ export default function ActionPathAI({
             <Sparkles className="h-5 w-5" aria-hidden />
           </span>
           <div className="min-w-0">
-            <h2 id="actionpath-heading" className="text-lg font-extrabold tracking-tight text-primary">
+            <h2
+              id="actionpath-heading"
+              className="flex flex-wrap items-center gap-2 text-lg font-extrabold tracking-tight text-primary"
+            >
               {t('actionPath.title')}
+              <span className="rounded-full border border-accent-300/80 bg-accent-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent-800 dark:border-accent-500/40 dark:bg-accent-950/50 dark:text-accent-200">
+                {t('actionPath.betaBadge', { defaultValue: 'Beta' })}
+              </span>
             </h2>
             <p className="mt-0.5 text-sm font-semibold text-accent-700">{t('actionPath.headline')}</p>
             <p className="mt-2 text-sm leading-relaxed text-secondary">{t('actionPath.helper')}</p>
@@ -285,11 +289,10 @@ export default function ActionPathAI({
           >
             <div className="min-w-0 flex-1 space-y-1">
               <p className="leading-relaxed">{error}</p>
-              {showSetupHint && (
+              {(errorCode === 'rate_limit' || errorCode === 'timeout') && (
                 <p className="text-xs leading-relaxed opacity-90">
-                  {t('actionPath.errorSetupHint', {
-                    defaultValue:
-                      'An admin must add OPENAI_API_KEY in Supabase → Edge Functions → Secrets, deploy actionpath-ai, and run actionpath_ai_rate_limit.sql.',
+                  {t('actionPath.errorRetryHint', {
+                    defaultValue: 'Wait a moment, then try once more.',
                   })}
                 </p>
               )}

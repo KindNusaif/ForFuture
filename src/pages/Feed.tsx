@@ -3,7 +3,6 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import PostFeed, { type FeedToast, type FeedTab } from '../components/PostFeed'
 import FeedWelcomeHero from '../components/feed/FeedWelcomeHero'
 import QuickStartPanel from '../components/guidance/QuickStartPanel'
-import WelcomePanel from '../components/guidance/WelcomePanel'
 import TrendingPanel from '../components/TrendingPanel'
 import PageContainer from '../components/ui/PageContainer'
 import { useAuth } from '../hooks/useAuth'
@@ -52,7 +51,6 @@ export default function Feed() {
       <div className="flex gap-8">
         <section className="min-w-0 flex-1">
           <FeedWelcomeHero firstName={firstName} feedTab={feedTab} userId={user?.id} />
-          <WelcomePanel />
           <QuickStartPanel />
 
           <PostFeed
