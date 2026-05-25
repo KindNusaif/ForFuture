@@ -85,8 +85,12 @@ function jsonResponse(body: unknown, status = 200) {
   })
 }
 
-function fail(message: string, status = 400) {
-  return jsonResponse({ ok: false, error: message }, status)
+type ErrorCode = 'invalid_input' | 'auth' | 'config' | 'rate_limit' | 'api'
+
+function fail(message: string, status = 400, code?: ErrorCode) {
+  // Return 200 for app errors so Supabase JS client always delivers JSON in `data`.
+  const httpStatus = status === 401 ? 401 : 200
+  return jsonResponse({ ok: false, error: message, ...(code ? { code } : {}) }, httpStatus)
 }
 
 function success(suggestion: ApiSuggestion) {
@@ -104,14 +108,19 @@ function normalizeDisplayType(raw: unknown): DisplayType | null {
     'raise your voice': 'Raise Your Voice',
     youth_voice: 'Raise Your Voice',
     raise_voice: 'Raise Your Voice',
+    voice: 'Raise Your Voice',
     petition: 'Petition',
+    'youth petition': 'Petition',
     youth_petition: 'Petition',
     'volunteer drive': 'Volunteer Drive',
     volunteer_drive: 'Volunteer Drive',
+    volunteer: 'Volunteer Drive',
     'donation & relief need': 'Donation & Relief Need',
     'donation and relief need': 'Donation & Relief Need',
+    'relief appeal': 'Donation & Relief Need',
     relief_campaign: 'Donation & Relief Need',
     donation_relief: 'Donation & Relief Need',
+    relief: 'Donation & Relief Need',
     'fundraising campaign': 'Fundraising Campaign',
     fundraising: 'Fundraising Campaign',
     'quick poll': 'Quick Poll',
@@ -119,7 +128,14 @@ function normalizeDisplayType(raw: unknown): DisplayType | null {
     quick_youth_poll: 'Quick Poll',
     'community poll': 'Quick Poll',
   }
-  return aliases[lower] ?? null
+  if (aliases[lower]) return aliases[lower]
+  if (lower.includes('petition')) return 'Petition'
+  if (lower.includes('volunteer')) return 'Volunteer Drive'
+  if (lower.includes('relief') || lower.includes('donation')) return 'Donation & Relief Need'
+  if (lower.includes('fundrais')) return 'Fundraising Campaign'
+  if (lower.includes('poll')) return 'Quick Poll'
+  if (lower.includes('voice')) return 'Raise Your Voice'
+  return null
 }
 
 function isRepeatedCharacterSpam(text: string): boolean {
@@ -278,15 +294,18 @@ function validateAiSuggestion(data: unknown): { ok: true; value: ApiSuggestion }
       : typeof o.refinedSummary === 'string'
         ? o.refinedSummary.trim()
         : ''
-  const whyItMatters =
+  let whyItMatters =
     typeof o.whyItMatters === 'string'
       ? o.whyItMatters.trim()
       : typeof o.why_it_matters === 'string'
         ? o.why_it_matters.trim()
-        : ''
+        : typeof o.recommendation_reason === 'string'
+          ? o.recommendation_reason.trim()
+          : ''
 
   const stepsRaw = o.recommendedNextSteps ?? o.nextSteps ?? o.suggested_action_steps
-  if (!title || !summary || !whyItMatters) return { ok: false }
+  if (!title || !summary) return { ok: false }
+  if (!whyItMatters) whyItMatters = summary.slice(0, 500)
   if (!Array.isArray(stepsRaw)) return { ok: false }
 
   const recommendedNextSteps = stepsRaw
@@ -384,17 +403,17 @@ Deno.serve(async (req) => {
 
   if (!openaiKey) {
     console.error('actionpath-ai: OPENAI_API_KEY is not configured')
-    return fail(FRIENDLY_ERROR, 503)
+    return fail(FRIENDLY_ERROR, 503, 'config')
   }
 
   if (!supabaseUrl || !supabaseAnonKey || !serviceRoleKey) {
     console.error('actionpath-ai: missing Supabase env')
-    return fail(FRIENDLY_ERROR, 500)
+    return fail(FRIENDLY_ERROR, 500, 'config')
   }
 
   const authHeader = req.headers.get('Authorization')
   if (!authHeader?.startsWith('Bearer ')) {
-    return fail('Sign in to use ActionPath AI.', 401)
+    return fail('Sign in to use ActionPath AI.', 401, 'auth')
   }
 
   const userClient = createClient(supabaseUrl, supabaseAnonKey, {
@@ -407,26 +426,26 @@ Deno.serve(async (req) => {
   } = await userClient.auth.getUser()
 
   if (userError || !user) {
-    return fail('Sign in to use ActionPath AI.', 401)
+    return fail('Sign in to use ActionPath AI.', 401, 'auth')
   }
 
   let body: { input?: unknown }
   try {
     body = await req.json()
   } catch {
-    return fail('Invalid request. Please try again.', 400)
+    return fail('Invalid request. Please try again.', 400, 'invalid_input')
   }
 
   const input = typeof body.input === 'string' ? body.input.trim() : ''
   const inputCheck = validateUserInput(input)
   if (!inputCheck.ok) {
-    return fail(inputCheck.message, 400)
+    return fail(inputCheck.message, 400, 'invalid_input')
   }
 
   const admin = createClient(supabaseUrl, serviceRoleKey)
   const rate = await checkRateLimit(admin, user.id)
   if (!rate.allowed) {
-    return fail('ActionPath AI is busy at the moment. Please try again shortly.', 429)
+    return fail('ActionPath AI is busy at the moment. Please try again shortly.', 429, 'rate_limit')
   }
 
   try {
@@ -454,16 +473,16 @@ Deno.serve(async (req) => {
       const errText = await openaiRes.text()
       console.error('actionpath-ai openai error', openaiRes.status, errText.slice(0, 300))
       if (openaiRes.status === 429) {
-        return fail('ActionPath AI is busy at the moment. Please try again shortly.', 503)
+        return fail('ActionPath AI is busy at the moment. Please try again shortly.', 503, 'rate_limit')
       }
-      return fail(FRIENDLY_ERROR, 502)
+      return fail(FRIENDLY_ERROR, 502, 'api')
     }
 
     const completion = await openaiRes.json()
     const content = completion?.choices?.[0]?.message?.content
     if (typeof content !== 'string' || !content.trim()) {
       console.error('actionpath-ai: missing message content', JSON.stringify(completion).slice(0, 400))
-      return fail(FRIENDLY_ERROR, 502)
+      return fail(FRIENDLY_ERROR, 502, 'api')
     }
 
     let parsed: unknown
@@ -471,18 +490,18 @@ Deno.serve(async (req) => {
       parsed = parseModelJson(content)
     } catch {
       console.error('actionpath-ai: JSON parse failed', content.slice(0, 200))
-      return fail(FRIENDLY_ERROR, 502)
+      return fail(FRIENDLY_ERROR, 502, 'api')
     }
 
     const validated = validateAiSuggestion(parsed)
     if (!validated.ok) {
       console.error('actionpath-ai validation failed', JSON.stringify(parsed).slice(0, 400))
-      return fail(FRIENDLY_ERROR, 502)
+      return fail(FRIENDLY_ERROR, 502, 'api')
     }
 
     return success(validated.value)
   } catch (err) {
     console.error('actionpath-ai', err instanceof Error ? err.message : 'unknown')
-    return fail(FRIENDLY_ERROR, 500)
+    return fail(FRIENDLY_ERROR, 500, 'api')
   }
 })

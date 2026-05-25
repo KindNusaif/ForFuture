@@ -103,6 +103,8 @@ export default function MovementMediaUploader({
         </button>
         <input
           ref={inputRef}
+          id="movement-media-file-input"
+          name="movement-media-files"
           type="file"
           accept="image/jpeg,image/png,image/webp,application/pdf"
           multiple

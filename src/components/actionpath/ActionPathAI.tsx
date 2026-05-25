@@ -194,8 +194,7 @@ export default function ActionPathAI({
     setErrorCode(null)
   }
 
-  const showSetupHint =
-    errorCode === 'config' || errorCode === 'unavailable' || errorCode === 'network'
+  const showSetupHint = errorCode === 'config' || errorCode === 'unavailable' || errorCode === 'network'
 
   const showResult = suggestion && !dismissed
 
@@ -234,6 +233,7 @@ export default function ActionPathAI({
           </label>
           <textarea
             id="actionpath-input"
+            name="actionpath-input"
             value={input}
             onChange={(e) => {
               const next = e.target.value

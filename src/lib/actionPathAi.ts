@@ -39,7 +39,7 @@ export interface ActionPathApiSuggestion {
 
 export type ActionPathEdgeResponse =
   | { ok: true; suggestion: ActionPathApiSuggestion }
-  | { ok: false; error: string }
+  | { ok: false; error: string; code?: string }
 
 export interface ActionPathSuggestion {
   recommendedType: ActionPathRecommendedType
@@ -152,21 +152,98 @@ function sanitizeDebugBody(body: unknown): unknown {
     }
   }
   if (o.ok === false) {
-    return { ok: false, error: o.error }
+    return { ok: false, error: String(o.error ?? ''), code: typeof o.code === 'string' ? o.code : undefined }
   }
   return { ok: o.ok, keys: Object.keys(o) }
+}
+
+function legacyToSuggestion(raw: Record<string, unknown>): ActionPathApiSuggestion | null {
+  const recommendedType =
+    typeof raw.recommendedType === 'string'
+      ? raw.recommendedType
+      : typeof raw.recommended_movement_type === 'string'
+        ? raw.recommended_movement_type
+        : ''
+  const title =
+    typeof raw.title === 'string'
+      ? raw.title
+      : typeof raw.suggestedTitle === 'string'
+        ? raw.suggestedTitle
+        : typeof raw.improved_title === 'string'
+          ? raw.improved_title
+          : ''
+  const summary =
+    typeof raw.summary === 'string'
+      ? raw.summary
+      : typeof raw.refinedSummary === 'string'
+        ? raw.refinedSummary
+        : typeof raw.improved_description === 'string'
+          ? raw.improved_description
+          : ''
+  const whyItMatters =
+    typeof raw.whyItMatters === 'string'
+      ? raw.whyItMatters
+      : typeof raw.recommendation_reason === 'string'
+        ? raw.recommendation_reason
+        : summary
+  const stepsRaw = raw.recommendedNextSteps ?? raw.nextSteps ?? raw.suggested_action_steps
+  if (!recommendedType || !title || !summary || !Array.isArray(stepsRaw)) return null
+  const recommendedNextSteps = stepsRaw
+    .filter((s): s is string => typeof s === 'string' && s.trim().length > 0)
+    .map((s) => s.trim())
+  if (recommendedNextSteps.length < 3) return null
+  return {
+    recommendedType,
+    title: title.trim(),
+    summary: summary.trim(),
+    whyItMatters: whyItMatters.trim(),
+    recommendedNextSteps,
+  }
 }
 
 function coalesceEdgeBody(data: unknown): ActionPathEdgeResponse | null {
   if (data == null) return null
   if (typeof data === 'string') {
     try {
-      return JSON.parse(data) as ActionPathEdgeResponse
+      return coalesceEdgeBody(JSON.parse(data))
     } catch {
       return null
     }
   }
-  if (typeof data === 'object') return data as ActionPathEdgeResponse
+  if (typeof data !== 'object') return null
+
+  const o = data as Record<string, unknown>
+
+  if (o.ok === true && o.suggestion && typeof o.suggestion === 'object') {
+    return { ok: true, suggestion: o.suggestion as ActionPathApiSuggestion }
+  }
+  if (o.ok === false && typeof o.error === 'string') {
+    return {
+      ok: false,
+      error: o.error,
+      code: typeof o.code === 'string' ? o.code : undefined,
+    }
+  }
+
+  if (o.success === true && o.data && typeof o.data === 'object') {
+    const suggestion = legacyToSuggestion(o.data as Record<string, unknown>)
+    if (suggestion) return { ok: true, suggestion }
+  }
+  if (o.success === false) {
+    return {
+      ok: false,
+      error:
+        typeof o.message === 'string'
+          ? o.message
+          : typeof o.error === 'string'
+            ? o.error
+            : ACTIONPATH_GENERIC_ERROR,
+    }
+  }
+
+  const direct = legacyToSuggestion(o)
+  if (direct) return { ok: true, suggestion: direct }
+
   return null
 }
 
@@ -175,6 +252,12 @@ function normalizeInternalType(displayType: string): ActionPathRecommendedType |
   if (DISPLAY_TYPE_TO_INTERNAL[key]) return DISPLAY_TYPE_TO_INTERNAL[key]
   const slug = key.replace(/\s+/g, '_') as ActionPathRecommendedType
   if (slug in TYPE_TO_MOVEMENT) return slug
+  if (key.includes('petition')) return 'petition'
+  if (key.includes('volunteer')) return 'volunteer_drive'
+  if (key.includes('relief') || key.includes('donation')) return 'relief_campaign'
+  if (key.includes('fundrais')) return 'fundraising'
+  if (key.includes('poll')) return 'poll'
+  if (key.includes('voice')) return 'youth_voice'
   return null
 }
 
@@ -191,7 +274,13 @@ function isUserFacingMessage(message: string): boolean {
   )
 }
 
-function mapErrorCode(message: string): ActionPathErrorCode {
+function mapErrorCode(message: string, code?: string): ActionPathErrorCode {
+  if (code === 'auth') return 'auth'
+  if (code === 'config') return 'config'
+  if (code === 'rate_limit') return 'rate_limit'
+  if (code === 'invalid_input') return 'invalid_input'
+  if (code === 'api' || code === 'malformed') return 'api'
+
   const lower = message.toLowerCase()
   if (lower.includes('sign in')) return 'auth'
   if (lower.includes('busy')) return 'rate_limit'
@@ -201,10 +290,13 @@ function mapErrorCode(message: string): ActionPathErrorCode {
 }
 
 function throwFromEdgeBody(body: ActionPathEdgeResponse): never {
-  const raw = body.ok === false ? body.error?.trim() : ''
+  if (body.ok !== false) {
+    throw new ActionPathAiError(ACTIONPATH_GENERIC_ERROR, 'malformed')
+  }
+  const raw = body.error?.trim() ?? ''
   const message =
-    raw && isUserFacingMessage(raw) ? raw : ACTIONPATH_GENERIC_ERROR
-  throw new ActionPathAiError(message, mapErrorCode(raw || message))
+    raw && (isUserFacingMessage(raw) || body.code === 'config') ? raw : ACTIONPATH_GENERIC_ERROR
+  throw new ActionPathAiError(message, mapErrorCode(raw || message, body.code))
 }
 
 function mapApiSuggestion(api: ActionPathApiSuggestion): ActionPathSuggestion {
@@ -215,13 +307,13 @@ function mapApiSuggestion(api: ActionPathApiSuggestion): ActionPathSuggestion {
 
   const title = api.title?.trim().slice(0, 120) ?? ''
   const summary = api.summary?.trim().slice(0, 600) ?? ''
-  const why = api.whyItMatters?.trim().slice(0, 500) ?? ''
+  const why = (api.whyItMatters?.trim() || summary).slice(0, 500)
   const nextSteps = (api.recommendedNextSteps ?? [])
     .filter((s): s is string => typeof s === 'string' && s.trim().length > 0)
     .map((s) => s.trim())
     .slice(0, 5)
 
-  if (!title || !summary || !why || nextSteps.length < 3) {
+  if (!title || !summary || nextSteps.length < 3) {
     throw new ActionPathAiError(ACTIONPATH_GENERIC_ERROR, 'malformed')
   }
 
@@ -332,7 +424,17 @@ export async function generateActionPath(input: string): Promise<ActionPathSugge
     devLog(error ? 'invoke-error' : 200, data)
 
     if (error) {
-      const body = coalesceEdgeBody(data)
+      let body = coalesceEdgeBody(data)
+      if (!body && error instanceof FunctionsHttpError) {
+        try {
+          if (error.context && typeof (error.context as Response).json === 'function') {
+            body = coalesceEdgeBody(await (error.context as Response).json())
+            devLog((error.context as Response).status, body)
+          }
+        } catch {
+          /* fall through */
+        }
+      }
       if (body) {
         try {
           return parseEdgeResponse(body)
