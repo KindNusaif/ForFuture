@@ -1,12 +1,13 @@
 /**
- * Production boot: unregister stale workers, verify index.html entry, then load the app bundle.
+ * Production boot: unregister stale workers, verify index.html entry + stylesheet, then load the app bundle.
  */
 ;(function () {
   if (typeof window === 'undefined' || !window.location) return
 
   var BUILD_META = 'forfuture-build'
   var ENTRY_META = 'forfuture-entry'
-  var SESSION_KEY = 'forfuture_boot_reload_v3'
+  var STYLESHEET_META = 'forfuture-stylesheet'
+  var SESSION_KEY = 'forfuture_boot_reload_v4'
   var MAX_RELOADS = 2
 
   function getMeta(name) {
@@ -78,6 +79,7 @@
 
     var currentBuild = getMeta(BUILD_META)
     var currentEntry = getMeta(ENTRY_META)
+    var currentStylesheet = getMeta(STYLESHEET_META)
 
     if (!currentEntry) return
 
@@ -94,12 +96,21 @@
       .then(function (html) {
         var serverBuild = parseMeta(html, BUILD_META)
         var serverEntry = parseMeta(html, ENTRY_META)
+        var serverStylesheet = parseMeta(html, STYLESHEET_META)
 
         if (serverEntry && stripQuery(serverEntry) !== stripQuery(currentEntry)) {
           reloadOnce()
           return
         }
-        if (serverBuild && currentBuild && serverBuild > currentBuild) {
+        if (
+          serverStylesheet &&
+          currentStylesheet &&
+          stripQuery(serverStylesheet) !== stripQuery(currentStylesheet)
+        ) {
+          reloadOnce()
+          return
+        }
+        if (serverBuild && currentBuild && serverBuild !== currentBuild) {
           reloadOnce()
           return
         }

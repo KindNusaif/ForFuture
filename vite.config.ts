@@ -21,6 +21,10 @@ function bootLoaderPlugin() {
       handler(html: string) {
         const moduleMatch = html.match(/<script type="module" crossorigin src="([^"]+)"><\/script>/)
         const entry = moduleMatch?.[1]
+        const stylesheetMatch = html.match(
+          /<link rel="stylesheet" crossorigin href="(\/assets\/[^"]+\.css)(?:\?[^"]*)?"/,
+        )
+        const stylesheet = stylesheetMatch?.[1]
         if (!entry) return html
 
         const withoutModule = html.replace(/\s*<script type="module"[^>]*><\/script>\s*/g, '\n')
@@ -42,6 +46,9 @@ function bootLoaderPlugin() {
 
         const bootTags =
           `    <meta name="forfuture-entry" content="${entry}?v=${bust}" />\n` +
+          (stylesheet
+            ? `    <meta name="forfuture-stylesheet" content="${stylesheet}?v=${bust}" />\n`
+            : '') +
           `    <script src="/boot.js?v=${bust}"></script>\n`
 
         return withBustedAssets.replace('</head>', `${bootTags}  </head>`)

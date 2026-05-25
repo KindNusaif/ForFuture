@@ -15,6 +15,6 @@
 /theme-init.js
   Cache-Control: no-cache, no-store, must-revalidate
 
-# Hashed assets: short TTL so deploys cannot strand stale JS/CSS on CDN edges
+# Hashed assets: revalidate every request until browsers pick up new deploy fingerprints
 /assets/*
-  Cache-Control: public, max-age=3600, must-revalidate
+  Cache-Control: public, max-age=0, must-revalidate
