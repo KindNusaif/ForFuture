@@ -8,6 +8,20 @@
   align-items: flex-start;
 }
 
+@media (min-width: 1024px) {
+  .community-polls-layout--with-sidebar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 17rem;
+    gap: 1.5rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .community-polls-layout--with-sidebar {
+    gap: 2rem;
+  }
+}
+
 .community-polls-main {
   min-width: 0;
 }
@@ -117,12 +131,19 @@
 }
 
 .polls-sidebar {
-  width: 17.5rem;
+  width: 17rem;
+  max-width: 100%;
 }
 
 @media (min-width: 1024px) {
   .polls-sidebar {
     display: block;
+  }
+
+  .polls-sidebar .sticky {
+    top: 1.5rem;
+    max-height: calc(100vh - 3rem);
+    overflow-y: auto;
   }
 }
 

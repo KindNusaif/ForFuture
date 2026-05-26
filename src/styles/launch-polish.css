@@ -190,10 +190,11 @@
   width: 100%;
 }
 
-@media (min-width: 1280px) {
+/* Laptop: show action hub with narrower rail */
+@media (min-width: 1024px) {
   .feed-page-layout {
-    grid-template-columns: minmax(0, 1fr) 17rem;
-    gap: 2rem;
+    grid-template-columns: minmax(0, 1fr) 15rem;
+    gap: 1.5rem;
   }
 
   .feed-sidebar {
@@ -201,20 +202,17 @@
   }
 }
 
-@media (min-width: 1024px) and (max-width: 1279px) {
+@media (min-width: 1280px) {
   .feed-page-layout {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 1.5rem;
-  }
-
-  .feed-sidebar {
-    display: none;
+    grid-template-columns: minmax(0, 1fr) 16.5rem;
+    gap: 1.75rem;
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 85.375rem) {
   .feed-page-layout {
-    gap: 1.5rem;
+    grid-template-columns: minmax(0, 1fr) 17rem;
+    gap: 2rem;
   }
 }
 
@@ -227,6 +225,11 @@
 
 .feed-sidebar .sticky {
   top: 1.5rem;
+  max-height: calc(100vh - 3rem);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 0.125rem;
+  scrollbar-width: thin;
 }
 
 /* Action hub / right rail cards */

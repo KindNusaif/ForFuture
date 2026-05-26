@@ -54,15 +54,15 @@ function Hero() {
   const hasSplitHeadline = Boolean(t('landing.heroTitleThrough') || t('landing.heroTitleAccent'))
 
   return (
-    <section className="landing-hero relative overflow-hidden bg-hero">
-      <div className="landing-hero-glow landing-hero-glow--mint" aria-hidden />
-      <div className="landing-hero-glow landing-hero-glow--indigo" aria-hidden />
+    <section className="landing-hero landing-section-reveal landing-section-reveal--hero relative overflow-hidden bg-hero">
+      <div className="landing-hero-glow landing-hero-glow--mint landing-motion-deco landing-hero-glow-drift" aria-hidden />
+      <div className="landing-hero-glow landing-hero-glow--indigo landing-motion-deco landing-hero-glow-drift landing-hero-glow-drift--delay" aria-hidden />
       <div className="pointer-events-none absolute inset-0 grain opacity-50" aria-hidden />
-      <div className="relative mx-auto max-w-7xl px-4 pb-24 pt-8 sm:px-6 md:pb-32 md:pt-12 lg:pt-14">
-        <div className="grid items-center gap-10 lg:grid-cols-12 lg:gap-12">
+      <div className="relative mx-auto w-full max-w-7xl px-4 pb-20 pt-8 sm:px-6 md:pb-28 md:pt-12 lg:max-w-[90rem] lg:px-8 lg:pb-32 lg:pt-14">
+        <div className="grid items-center gap-10 lg:grid-cols-12 lg:gap-12 xl:gap-14">
           <div className="lg:col-span-7">
             <div className="landing-hero-badge inline-flex items-center gap-2">
-              <span className="landing-hero-badge-dot" aria-hidden />
+              <span className="landing-hero-badge-dot landing-motion-deco" aria-hidden />
               <span>{t('landing.eyebrow')}</span>
             </div>
             <h1 className="landing-hero-headline mt-6 md:mt-7">
@@ -157,8 +157,8 @@ function PreviewCard() {
 
   return (
     <div className="landing-hero-preview-wrap relative" role="img" aria-label={t('landing.heroPreviewDecorative')}>
-      <div className="landing-hero-preview-halo" aria-hidden />
-      <div className="landing-hero-preview-card animate-float">
+      <div className="landing-hero-preview-halo landing-motion-deco landing-hero-halo-pulse" aria-hidden />
+      <div className="landing-hero-preview-card landing-motion-deco animate-float">
         <div className="landing-hero-preview-header">
           <div className="landing-hero-preview-label">{t('landing.heroVisualLabel')}</div>
           <span className="landing-hero-preview-pill">{t('landing.heroVisualLive')}</span>
@@ -189,7 +189,7 @@ function PreviewCard() {
           ))}
         </div>
       </div>
-      <Link to="/discover?focus=nearby" className="landing-hero-floating-chip">
+      <Link to="/discover?focus=nearby" className="landing-hero-floating-chip landing-motion-deco landing-hero-chip-float">
         <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden />
         {t('landing.heroFloatingBadge')}
       </Link>
@@ -198,17 +198,36 @@ function PreviewCard() {
 }
 
 function Marquee() {
-  const items = ['Petitions', 'Volunteer drives', 'Civic polls', 'Relief campaigns', 'Youth councils', 'Peaceful action', 'Impact reports', 'Community votes']
-  const row = [...items, ...items]
+  const { t } = useTranslation()
+  const keys = [
+    'landing.marqueePetitions',
+    'landing.marqueeVolunteer',
+    'landing.marqueePolls',
+    'landing.marqueeRelief',
+    'landing.marqueeCouncils',
+    'landing.marqueePeaceful',
+    'landing.marqueeImpact',
+    'landing.marqueeVotes',
+  ] as const
+  const items = keys.map((key) => t(key))
+
   return (
-    <section className="overflow-hidden border-y border-border bg-card py-5" aria-hidden>
-      <div className="flex animate-marquee gap-12 whitespace-nowrap">
-        {row.map((label, i) => (
-          <div key={`${label}-${i}`} className="flex items-center gap-12 text-sm font-medium text-muted-foreground">
-            <span>{label}</span>
-            <span className="h-1 w-1 rounded-full bg-mint" />
-          </div>
-        ))}
+    <section className="landing-marquee landing-section-reveal" aria-hidden>
+      <div className="landing-marquee-fade landing-marquee-fade--left" aria-hidden />
+      <div className="landing-marquee-fade landing-marquee-fade--right" aria-hidden />
+      <div className="landing-marquee-viewport">
+        <div className="landing-marquee-track landing-motion-deco">
+          {[0, 1].map((copy) => (
+            <div key={copy} className="landing-marquee-group" aria-hidden={copy === 1 ? true : undefined}>
+              {items.map((label) => (
+                <span key={`${copy}-${label}`} className="landing-marquee-item">
+                  <span className="landing-marquee-label">{label}</span>
+                  <span className="landing-marquee-dot" aria-hidden />
+                </span>
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   )

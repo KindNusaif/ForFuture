@@ -294,20 +294,257 @@
     transform: translateY(-10px);
   }
 }
-.landing-lovable .animate-float {
+
+.landing-lovable .landing-motion-deco.animate-float,
+.landing-lovable .animate-float.landing-motion-deco {
   animation: lv-float 6s ease-in-out infinite;
+  will-change: transform;
 }
 
 @keyframes lv-marquee {
   from {
-    transform: translateX(0);
+    transform: translate3d(0, 0, 0);
   }
   to {
-    transform: translateX(-50%);
+    transform: translate3d(-50%, 0, 0);
   }
 }
+
+/* —— Marquee ticker (seamless infinite scroll) —— */
+.landing-lovable .landing-marquee {
+  position: relative;
+  overflow: hidden;
+  border-block: 1px solid var(--lv-border);
+  background: var(--lv-card);
+  padding-block: 1.25rem;
+}
+
+.landing-lovable .landing-marquee-viewport {
+  overflow: hidden;
+  width: 100%;
+}
+
+.landing-lovable .landing-marquee-track {
+  display: flex;
+  width: max-content;
+  flex-wrap: nowrap;
+  animation: lv-marquee 36s linear infinite;
+  will-change: transform;
+}
+
+.landing-lovable .landing-marquee:hover .landing-marquee-track {
+  animation-play-state: paused;
+}
+
+.landing-lovable .landing-marquee-group {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 3rem;
+  padding-right: 3rem;
+}
+
+.landing-lovable .landing-marquee-item {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 3rem;
+  white-space: nowrap;
+}
+
+.landing-lovable .landing-marquee-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--lv-muted-foreground);
+}
+
+.landing-lovable .landing-marquee-dot {
+  display: block;
+  height: 0.375rem;
+  width: 0.375rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  background: var(--lv-mint);
+}
+
+.landing-lovable .landing-marquee-fade {
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 2;
+  width: min(6rem, 12vw);
+}
+
+.landing-lovable .landing-marquee-fade--left {
+  left: 0;
+  background: linear-gradient(to right, var(--lv-card) 25%, transparent);
+}
+
+.landing-lovable .landing-marquee-fade--right {
+  right: 0;
+  background: linear-gradient(to left, var(--lv-card) 25%, transparent);
+}
+
+/* Legacy class — keep for any stray markup */
 .landing-lovable .animate-marquee {
-  animation: lv-marquee 40s linear infinite;
+  display: flex;
+  width: max-content;
+  animation: lv-marquee 36s linear infinite;
+  will-change: transform;
+}
+
+@keyframes landing-hero-glow-drift {
+  0%,
+  100% {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+
+.landing-lovable .landing-hero-glow-drift {
+  animation: landing-hero-glow-drift 14s ease-in-out infinite;
+}
+
+.landing-lovable .landing-hero-glow-drift--delay {
+  animation-delay: -7s;
+}
+
+@keyframes landing-hero-halo-pulse {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.32;
+  }
+}
+
+.landing-lovable .landing-hero-halo-pulse {
+  animation: landing-hero-halo-pulse 8s ease-in-out infinite;
+}
+
+@keyframes landing-hero-chip-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.landing-lovable .landing-hero-chip-float {
+  animation: landing-hero-chip-float 5s ease-in-out infinite;
+}
+
+@keyframes landing-badge-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.65;
+    transform: scale(1.15);
+  }
+}
+
+.landing-lovable .landing-hero-badge-dot.landing-motion-deco {
+  animation: landing-badge-pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes landing-section-in {
+  from {
+    opacity: 0;
+    transform: translateY(1.25rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes landing-hero-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.landing-lovable > section {
+  animation: landing-section-in 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.landing-lovable > section.landing-section-reveal--hero {
+  animation-name: landing-hero-in;
+  animation-duration: 0.9s;
+}
+
+.landing-lovable > section:nth-child(1) {
+  animation-delay: 0.05s;
+}
+.landing-lovable > section:nth-child(2) {
+  animation-delay: 0.12s;
+}
+.landing-lovable > section:nth-child(3) {
+  animation-delay: 0.18s;
+}
+.landing-lovable > section:nth-child(4) {
+  animation-delay: 0.22s;
+}
+.landing-lovable > section:nth-child(5) {
+  animation-delay: 0.26s;
+}
+.landing-lovable > section:nth-child(6) {
+  animation-delay: 0.3s;
+}
+.landing-lovable > section:nth-child(7) {
+  animation-delay: 0.34s;
+}
+.landing-lovable > section:nth-child(8) {
+  animation-delay: 0.38s;
+}
+.landing-lovable > section:nth-child(9) {
+  animation-delay: 0.42s;
+}
+.landing-lovable > section:nth-child(10) {
+  animation-delay: 0.46s;
+}
+.landing-lovable > section:nth-child(11) {
+  animation-delay: 0.5s;
+}
+.landing-lovable > section:nth-child(12) {
+  animation-delay: 0.54s;
+}
+.landing-lovable > section:nth-child(13) {
+  animation-delay: 0.58s;
+}
+
+html[data-reduce-motion='true'] .landing-lovable > section {
+  animation: none;
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-reduce-motion='false']) .landing-lovable .landing-marquee-track {
+    animation: none;
+    transform: none;
+  }
+
+  html:not([data-reduce-motion='false']) .landing-lovable > section {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* —— Hero first viewport (pixel reference) —— */
@@ -365,16 +602,35 @@
   flex-shrink: 0;
   border-radius: 9999px;
   background: var(--lv-mint);
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.landing-lovable .landing-hero-badge-dot.landing-motion-deco {
+  animation: landing-badge-pulse 2.5s ease-in-out infinite;
 }
 
 .landing-lovable .landing-hero-headline {
   font-family: var(--lv-font-display);
-  font-size: clamp(2.75rem, 6.5vw, 5.5rem);
+  font-size: clamp(2.75rem, 5.5vw, 5.5rem);
   font-weight: 400;
   line-height: 0.95;
   letter-spacing: -0.03em;
   color: var(--lv-ink);
+}
+
+@media (min-width: 85.375rem) and (max-width: 95.99rem) {
+  .landing-lovable .landing-hero-headline {
+    font-size: clamp(2.875rem, 4.5vw, 4.5rem);
+  }
+
+  .landing-lovable .landing-hero-preview-wrap {
+    max-width: 28rem;
+  }
+}
+
+@media (min-width: 96rem) {
+  .landing-lovable .landing-hero-headline {
+    font-size: clamp(3.25rem, 4.2vw, 5.25rem);
+  }
 }
 
 .landing-lovable .landing-hero-subcopy {

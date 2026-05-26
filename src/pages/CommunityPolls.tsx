@@ -226,7 +226,9 @@ export default function CommunityPolls({ mode = 'member' }: CommunityPollsProps)
   return (
     <PageContainer className="community-polls-page !py-6 lg:!py-8">
       {isGuestMode ? <GuestModeBanner className="mb-4" /> : null}
-      <div className={`community-polls-layout ${showSidebar ? 'flex gap-6 lg:gap-8' : ''}`}>
+      <div
+        className={`community-polls-layout ${showSidebar ? 'community-polls-layout--with-sidebar' : ''}`}
+      >
         <section className="community-polls-main min-w-0 flex-1">
           <header className="community-polls-hero-panel impact-page-hero mb-4 px-5 py-5 sm:px-6 sm:py-6">
             <div className="relative flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">

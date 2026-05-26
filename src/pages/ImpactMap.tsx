@@ -256,7 +256,7 @@ export default function ImpactMapPage() {
             </button>
           </div>
 
-          <div className="mt-4 flex flex-col gap-4 lg:mt-6 lg:grid lg:grid-cols-[minmax(0,22rem)_1fr] lg:gap-5">
+          <div className="impact-map-split mt-4 lg:mt-6">
             <div
               className={`order-2 min-h-0 lg:order-1 ${mobilePanel === 'list' ? 'block' : 'hidden lg:block'}`}
             >

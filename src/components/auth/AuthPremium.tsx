@@ -334,18 +334,17 @@ export function AuthShell({
           </p>
         </header>
 
-        <div
-          className={`auth-premium-message-slot${banner || error || success ? ' auth-premium-message-slot--active' : ''}`}
-          aria-live="polite"
-        >
-          {banner && <AuthFormAlert variant="success">{banner}</AuthFormAlert>}
-          {error && (
-            <AuthFormAlert variant="error" id={formErrorId} actions={errorActions}>
-              {error}
-            </AuthFormAlert>
-          )}
-          {success && <AuthFormAlert variant="success">{success}</AuthFormAlert>}
-        </div>
+        {(banner || error || success) && (
+          <div className="auth-premium-message-slot auth-premium-message-slot--active" aria-live="polite">
+            {banner && <AuthFormAlert variant="success">{banner}</AuthFormAlert>}
+            {error && (
+              <AuthFormAlert variant="error" id={formErrorId} actions={errorActions}>
+                {error}
+              </AuthFormAlert>
+            )}
+            {success && <AuthFormAlert variant="success">{success}</AuthFormAlert>}
+          </div>
+        )}
 
         {pendingConfirmation ? (
           <SignupConfirmationPanel

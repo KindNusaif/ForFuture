@@ -14,6 +14,7 @@
 @import './styles/admin-dashboard.css';
 @import './styles/guidance.css';
 @import './styles/public-nav.css';
+@import './styles/desktop-first.css';
 
 /* ─── Brand palette (unchanged) ─── */
 @theme {
@@ -400,9 +401,9 @@
 
   /* Respect OS + user reduce-motion (functional spinners preserved) */
   @media (prefers-reduced-motion: reduce) {
-    html:not([data-reduce-motion='false']) *,
-    html:not([data-reduce-motion='false']) *::before,
-    html:not([data-reduce-motion='false']) *::after {
+    html:not([data-reduce-motion='false']) *:not(.landing-motion-deco):not(.landing-motion-deco *),
+    html:not([data-reduce-motion='false']) *:not(.landing-motion-deco):not(.landing-motion-deco *)::before,
+    html:not([data-reduce-motion='false']) *:not(.landing-motion-deco):not(.landing-motion-deco *)::after {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
@@ -410,9 +411,9 @@
     }
   }
 
-  [data-reduce-motion='true'] *:not(.motion-essential):not(.motion-essential *),
-  [data-reduce-motion='true'] *:not(.motion-essential):not(.motion-essential *)::before,
-  [data-reduce-motion='true'] *:not(.motion-essential):not(.motion-essential *)::after {
+  [data-reduce-motion='true'] *:not(.motion-essential):not(.motion-essential *):not(.landing-motion-deco):not(.landing-motion-deco *),
+  [data-reduce-motion='true'] *:not(.motion-essential):not(.motion-essential *):not(.landing-motion-deco):not(.landing-motion-deco *)::before,
+  [data-reduce-motion='true'] *:not(.motion-essential):not(.motion-essential *):not(.landing-motion-deco):not(.landing-motion-deco *)::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

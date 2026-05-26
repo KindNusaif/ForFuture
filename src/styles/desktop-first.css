@@ -1,0 +1,94 @@
+/**
+ * Desktop-first launch polish (1366 / 1440 / 1536) + mobile safety baseline.
+ * Laptop/PC is primary; mobile only needs to not break.
+ */
+
+/* —— Mobile safety (no horizontal scroll, tappable controls) —— */
+@media (max-width: 767px) {
+  html,
+  body {
+    overflow-x: clip;
+    max-width: 100%;
+  }
+
+  .public-nav-bar,
+  .page-container,
+  .feed-page-layout,
+  .community-polls-layout {
+    max-width: 100%;
+  }
+
+  .auth-premium-google,
+  .landing-hero-cta-primary,
+  .landing-hero-cta-secondary,
+  .btn-primary,
+  .btn-secondary {
+    min-height: 2.75rem;
+  }
+}
+
+/* —— Feed: comfortable main column width on desktop —— */
+@media (min-width: 1024px) {
+  .feed-page-main > * {
+    max-width: 52rem;
+  }
+
+  .feed-page-main .feed-welcome-hero,
+  .feed-page-main .feed-tabs-row {
+    max-width: none;
+  }
+}
+
+/* —— Impact Map: list/map split tuned for laptop —— */
+.impact-map-split {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .impact-map-split {
+    display: grid;
+    grid-template-columns: minmax(0, 18rem) minmax(0, 1fr);
+    gap: 1.25rem;
+    align-items: stretch;
+  }
+}
+
+@media (min-width: 1280px) {
+  .impact-map-split {
+    grid-template-columns: minmax(0, 20rem) minmax(0, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  .impact-map-split {
+    grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
+    gap: 1.75rem;
+  }
+}
+
+/* —— Admin: breathing room on large laptops —— */
+@media (min-width: 85.375rem) {
+  .admin-content {
+    padding: 1.5rem 2rem 2rem;
+  }
+
+  .admin-overview-grid {
+    gap: 1.25rem;
+  }
+}
+
+/* —— Feature pages: compact headers, aligned content —— */
+@media (min-width: 1024px) {
+  .impact-page-hero,
+  .community-polls-hero-panel {
+    padding-block: 1.25rem;
+  }
+
+  .inspire-hub-page .page-container,
+  .relief-hub-page .page-container {
+    padding-inline: 0;
+  }
+}
