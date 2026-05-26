@@ -103,10 +103,8 @@
   letter-spacing: -0.02em;
 }
 
-.layout-lovable-marketing .logo-lovable-tagline {
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  font-size: 0.625rem;
+.layout-lovable-marketing .nav-shell-lovable .logo-lovable-tagline {
+  display: none !important;
 }
 
 @theme {

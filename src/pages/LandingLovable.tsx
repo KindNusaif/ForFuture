@@ -101,19 +101,14 @@ function Hero() {
               <p className="landing-hero-social-title">{t('landing.socialProof')}</p>
               <p className="landing-hero-social-subtext">{t('landing.socialProofSubtext')}</p>
             </div>
-            <div className="landing-hero-avatars-row">
-              <div className="landing-hero-avatars shrink-0" aria-hidden>
+            <div className="landing-hero-avatars-row" aria-hidden>
+              <div className="landing-hero-avatars shrink-0">
                 {['from-indigo to-mint', 'from-mint to-cream', 'from-navy to-indigo', 'from-indigo to-navy', 'from-mint to-indigo'].map(
                   (g) => (
                     <span key={g} className={`landing-hero-avatar bg-gradient-to-br ${g}`} />
                   ),
                 )}
               </div>
-              <p className="pt-1 text-xs leading-relaxed text-muted-foreground">
-                {t('landing.heroDecorativeAvatarsNote', {
-                  defaultValue: 'A visual motif representing youth participation — not live user counts.',
-                })}
-              </p>
             </div>
           </div>
           <div className="relative mt-4 lg:col-span-5 lg:mt-0">
