@@ -15,6 +15,7 @@
 @import './styles/guidance.css';
 @import './styles/public-nav.css';
 @import './styles/desktop-first.css';
+@import './styles/ui-polish.css';
 
 /* ─── Brand palette (unchanged) ─── */
 @theme {
@@ -506,7 +507,8 @@
 }
 
 @utility page-title {
-  @apply text-2xl font-extrabold tracking-tight text-primary sm:text-3xl;
+  font-size: clamp(1.625rem, 2.4vw, 1.875rem);
+  @apply font-extrabold tracking-tight text-primary;
 }
 
 @utility card-surface {

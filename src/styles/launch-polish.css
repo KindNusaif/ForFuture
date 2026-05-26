@@ -7,11 +7,19 @@
 
 @utility ff-page-title {
   font-family: var(--ff-display-font);
-  @apply text-2xl font-normal tracking-tight text-primary sm:text-3xl;
+  font-size: clamp(1.625rem, 2.5vw, 1.875rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  @apply tracking-tight text-primary;
 }
 
 @utility ff-page-subtitle {
-  @apply mt-2 max-w-2xl text-sm leading-relaxed text-secondary sm:text-base;
+  margin-top: 0.5rem;
+  max-width: 42rem;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  @apply text-secondary sm:text-base;
 }
 
 /* Premium card hover — calm lift */
