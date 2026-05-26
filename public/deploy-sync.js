@@ -5,7 +5,7 @@
   if (typeof window === 'undefined' || !window.location) return
 
   var BUILD_META = 'forfuture-build'
-  var STORAGE_KEY = 'forfuture_deploy_build'
+  var STORAGE_KEY = 'forfuture_deploy_build_v2'
 
   function getBuildId() {
     var el = document.querySelector('meta[name="' + BUILD_META + '"]')

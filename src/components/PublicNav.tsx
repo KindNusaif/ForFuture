@@ -291,7 +291,7 @@ export default function PublicNav() {
           <div className="public-nav-brand">
             <Logo
               to={mobileLogoTo}
-              showTagline={isMarketingRoute && !signedIn}
+              showTagline={isMarketingRoute && !signedIn && !isLovableHome}
               variant={isLovableHome ? 'lovable' : 'default'}
               className="public-nav-logo"
             />
@@ -342,8 +342,8 @@ export default function PublicNav() {
                   </Link>
                 </div>
                 <div className="public-nav-utilities">
-                  <ThemeQuickToggle variant="compact" />
-                  <LanguageSwitcher variant="default" />
+                  <ThemeQuickToggle variant={isLovableHome ? 'landing' : 'compact'} />
+                  <LanguageSwitcher variant={isLovableHome ? 'landing' : 'default'} />
                 </div>
               </>
             )}

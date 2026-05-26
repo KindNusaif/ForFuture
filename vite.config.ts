@@ -17,48 +17,30 @@ function stampBuildMeta(html: string) {
   )
 }
 
-/** Production: defer app bundle until boot.js confirms index.html entry matches the server. */
-function bootLoaderPlugin() {
+/** Production: cache-bust hashed assets and run deploy-sync before the app bundle (same load path as dev). */
+function deployLoaderPlugin() {
   return {
-    name: 'forfuture-boot-loader',
+    name: 'forfuture-deploy-loader',
     apply: 'build' as const,
     transformIndexHtml: {
       order: 'post',
       handler(html: string) {
-        const moduleMatch = html.match(/<script type="module" crossorigin src="([^"]+)"><\/script>/)
-        const entry = moduleMatch?.[1]
-        const stylesheetMatch = html.match(
-          /<link rel="stylesheet" crossorigin href="(\/assets\/[^"]+\.css)(?:\?[^"]*)?"/,
-        )
-        const stylesheet = stylesheetMatch?.[1]
-        if (!entry) return html
-
-        const withoutModule = html.replace(/\s*<script type="module"[^>]*><\/script>\s*/g, '\n')
-        const withoutDeploySync = withoutModule.replace(
-          /\s*<script src="\/deploy-sync\.js"><\/script>\s*/g,
-          '\n',
-        )
-        const withoutPreload = withoutDeploySync.replace(
-          /<link rel="modulepreload"[^>]*>\s*/g,
-          '',
-        )
         const bust = encodeURIComponent(buildId)
-        const withBustedAssets = withoutPreload
+        const withBustedAssets = html
           .replace(
             /(<link rel="stylesheet" crossorigin href="\/assets\/[^"]+\.css)"/,
             `$1?v=${bust}"`,
           )
-          .replace(/content="(\/assets\/[^"]+\.js)"/, `content="$1?v=${bust}"`)
+          .replace(
+            /(<script type="module" crossorigin src="\/assets\/[^"]+\.js)"/,
+            `$1?v=${bust}"`,
+          )
 
-        const bootTags =
-          `    <meta name="forfuture-entry" content="${entry}?v=${bust}" />\n` +
-          (stylesheet
-            ? `    <meta name="forfuture-stylesheet" content="${stylesheet}?v=${bust}" />\n`
-            : '') +
-          `    <script src="/deploy-sync.js?v=${bust}"></script>\n` +
-          `    <script src="/boot.js?v=${bust}"></script>\n`
-
-        return withBustedAssets.replace('</head>', `${bootTags}  </head>`)
+        const syncTag = `    <script src="/deploy-sync.js?v=${bust}"></script>\n`
+        return withBustedAssets.replace(
+          '<script src="/theme-init.js"></script>',
+          `${syncTag}    <script src="/theme-init.js"></script>`,
+        )
       },
     },
   }
@@ -77,7 +59,7 @@ function buildStampPlugin() {
 }
 
 export default defineConfig({
-  plugins: [react(), tailwindcss(), buildStampPlugin(), bootLoaderPlugin()],
+  plugins: [react(), tailwindcss(), buildStampPlugin(), deployLoaderPlugin()],
   resolve: {
     dedupe: ['react', 'react-dom', 'react-router', 'react-router-dom'],
   },

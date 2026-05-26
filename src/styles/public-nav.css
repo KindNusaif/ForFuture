@@ -303,7 +303,7 @@
 }
 
 /* —— Container queries: center nav when bar has room —— */
-@container public-nav (min-width: 75rem) {
+@container public-nav (min-width: 71rem) {
   .public-nav-grid {
     column-gap: 1.5rem;
   }
@@ -322,7 +322,7 @@
   }
 }
 
-@container public-nav (min-width: 75rem) and (max-width: 91.99rem) {
+@container public-nav (min-width: 71rem) and (max-width: 91.99rem) {
   .public-nav-end {
     gap: 0.5rem;
   }
