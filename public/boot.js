@@ -7,7 +7,7 @@
   var BUILD_META = 'forfuture-build'
   var ENTRY_META = 'forfuture-entry'
   var STYLESHEET_META = 'forfuture-stylesheet'
-  var SESSION_KEY = 'forfuture_boot_reload_v5'
+  var SESSION_KEY = 'forfuture_boot_reload_v6'
   var MAX_RELOADS = 2
 
   function getMeta(name) {
