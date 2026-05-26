@@ -58,14 +58,14 @@ function Hero() {
       <div className="landing-hero-glow landing-hero-glow--mint landing-motion-deco landing-hero-glow-drift" aria-hidden />
       <div className="landing-hero-glow landing-hero-glow--indigo landing-motion-deco landing-hero-glow-drift landing-hero-glow-drift--delay" aria-hidden />
       <div className="pointer-events-none absolute inset-0 grain opacity-50" aria-hidden />
-      <div className="relative mx-auto w-full max-w-7xl px-4 pb-20 pt-8 sm:px-6 md:pb-28 md:pt-12 lg:max-w-[90rem] lg:px-8 lg:pb-32 lg:pt-14">
-        <div className="grid items-center gap-10 lg:grid-cols-12 lg:gap-12 xl:gap-14">
-          <div className="lg:col-span-7">
+      <div className="landing-hero-inner">
+        <div className="landing-hero-grid">
+          <div className="landing-hero-copy">
             <div className="landing-hero-badge inline-flex items-center gap-2">
               <span className="landing-hero-badge-dot landing-motion-deco" aria-hidden />
               <span>{t('landing.eyebrow')}</span>
             </div>
-            <h1 className="landing-hero-headline mt-6 md:mt-7">
+            <h1 className="landing-hero-headline">
               <span className="block">{t('landing.heroTitleLine1')}</span>
               {hasSplitHeadline ? (
                 <span className="mt-0.5 block">
@@ -74,12 +74,9 @@ function Hero() {
                 </span>
               ) : null}
             </h1>
-            <p className="landing-hero-subcopy mt-7 max-w-xl md:mt-8">{t('landing.heroSubtitle')}</p>
-            <p className="landing-hero-positioning mt-4 max-w-xl">{t('landing.heroPositioning')}</p>
-            <div
-              className="mt-9 flex min-h-14 flex-wrap items-center gap-3 md:mt-10"
-              aria-busy={!authReady}
-            >
+            <p className="landing-hero-subcopy">{t('landing.heroSubtitle')}</p>
+            <p className="landing-hero-positioning">{t('landing.heroPositioning')}</p>
+            <div className="landing-hero-ctas" aria-busy={!authReady}>
               {!authReady ? (
                 <div className="landing-hero-cta-placeholder" aria-hidden />
               ) : (
@@ -97,7 +94,7 @@ function Hero() {
                 </>
               )}
             </div>
-            <div className="landing-hero-social mt-9 md:mt-10">
+            <div className="landing-hero-social">
               <p className="landing-hero-social-title">{t('landing.socialProof')}</p>
               <p className="landing-hero-social-subtext">{t('landing.socialProofSubtext')}</p>
             </div>
@@ -111,7 +108,7 @@ function Hero() {
               </div>
             </div>
           </div>
-          <div className="relative mt-4 lg:col-span-5 lg:mt-0">
+          <div className="landing-hero-visual">
             <PreviewCard />
           </div>
         </div>
