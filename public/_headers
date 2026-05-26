@@ -15,6 +15,6 @@
 /theme-init.js
   Cache-Control: no-cache, no-store, must-revalidate
 
-# Hashed assets: revalidate every request until browsers pick up new deploy fingerprints
+# Hashed Vite assets: safe to cache forever (filename changes each deploy)
 /assets/*
-  Cache-Control: public, max-age=0, must-revalidate
+  Cache-Control: public, max-age=31536000, immutable

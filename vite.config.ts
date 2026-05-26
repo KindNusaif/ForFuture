@@ -55,6 +55,7 @@ function bootLoaderPlugin() {
           (stylesheet
             ? `    <meta name="forfuture-stylesheet" content="${stylesheet}?v=${bust}" />\n`
             : '') +
+          `    <script src="/deploy-sync.js?v=${bust}"></script>\n` +
           `    <script src="/boot.js?v=${bust}"></script>\n`
 
         return withBustedAssets.replace('</head>', `${bootTags}  </head>`)

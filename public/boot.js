@@ -7,8 +7,9 @@
   var BUILD_META = 'forfuture-build'
   var ENTRY_META = 'forfuture-entry'
   var STYLESHEET_META = 'forfuture-stylesheet'
-  var SESSION_KEY = 'forfuture_boot_reload_v6'
-  var MAX_RELOADS = 2
+  var SESSION_KEY = 'forfuture_boot_reload_v7'
+  var BUILD_STORAGE_KEY = 'forfuture_deploy_build'
+  var MAX_RELOADS = 3
 
   function getMeta(name) {
     var el = document.querySelector('meta[name="' + name + '"]')
@@ -79,6 +80,34 @@
     })
   }
 
+  function clearCaches() {
+    if (!('caches' in window)) return Promise.resolve()
+    return caches.keys().then(function (keys) {
+      return Promise.all(
+        keys.map(function (key) {
+          return caches.delete(key)
+        }),
+      )
+    })
+  }
+
+  function syncStoredBuild(currentBuild) {
+    if (!currentBuild) return false
+    try {
+      var stored = localStorage.getItem(BUILD_STORAGE_KEY)
+      if (stored && stored !== currentBuild) {
+        localStorage.setItem(BUILD_STORAGE_KEY, currentBuild)
+        return true
+      }
+      if (!stored) {
+        localStorage.setItem(BUILD_STORAGE_KEY, currentBuild)
+      }
+    } catch (e) {
+      /* ignore */
+    }
+    return false
+  }
+
   function start() {
     clearBootQuery()
     purgeServiceWorkers()
@@ -91,6 +120,11 @@
 
     window.__FORFUTURE_BUILD__ = currentBuild
     window.__FORFUTURE_ENTRY__ = currentEntry
+
+    if (syncStoredBuild(currentBuild)) {
+      clearCaches().finally(reloadOnce)
+      return
+    }
 
     fetch(window.location.origin + '/index.html?_ffboot=' + Date.now(), {
       cache: 'no-store',
@@ -117,12 +151,20 @@
           return
         }
         if (serverBuild && currentBuild && serverBuild !== currentBuild) {
-          reloadOnce()
+          try {
+            localStorage.setItem(BUILD_STORAGE_KEY, serverBuild)
+          } catch (e) {
+            /* ignore */
+          }
+          clearCaches().finally(reloadOnce)
           return
         }
 
         try {
           sessionStorage.removeItem(SESSION_KEY)
+          if (serverBuild || currentBuild) {
+            localStorage.setItem(BUILD_STORAGE_KEY, serverBuild || currentBuild)
+          }
         } catch (e) {
           /* ignore */
         }

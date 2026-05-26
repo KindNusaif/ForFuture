@@ -44,4 +44,9 @@
 [[headers]]
   for = "/assets/*"
   [headers.values]
-    Cache-Control = "public, max-age=0, must-revalidate"
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/deploy-sync.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"

@@ -291,7 +291,7 @@ export default function PublicNav() {
           <div className="public-nav-brand">
             <Logo
               to={mobileLogoTo}
-              showTagline={isMarketingRoute && !signedIn && !isLovableHome}
+              showTagline={isMarketingRoute && !signedIn}
               variant={isLovableHome ? 'lovable' : 'default'}
               className="public-nav-logo"
             />

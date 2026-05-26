@@ -303,8 +303,7 @@
 }
 
 /* —— Container queries: center nav when bar has room —— */
-/* ~1152px inner bar — full center nav on typical laptop widths */
-@container public-nav (min-width: 71rem) {
+@container public-nav (min-width: 75rem) {
   .public-nav-grid {
     column-gap: 1.5rem;
   }
@@ -323,7 +322,7 @@
   }
 }
 
-@container public-nav (min-width: 71rem) and (max-width: 91.99rem) {
+@container public-nav (min-width: 75rem) and (max-width: 91.99rem) {
   .public-nav-end {
     gap: 0.5rem;
   }
