@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { Menu, X } from 'lucide-react'
-import { useId, useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ThemeQuickToggle from './appearance/ThemeQuickToggle'
 import LanguageSwitcher from './LanguageSwitcher'
@@ -52,6 +52,19 @@ export default function PublicNav() {
   const showAppQuickLinks = !isMarketingRoute && authReady && signedIn
   const showMarketingGuestActions = isMarketingRoute
   const showLaptopMenu = showMarketingCenterNav
+
+  useEffect(() => {
+    setOpen(false)
+  }, [location.pathname, location.search, location.hash])
+
+  useEffect(() => {
+    if (!open) return
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [open])
 
   const marketingNavLinks = (
     <>
@@ -291,7 +304,7 @@ export default function PublicNav() {
           <div className="public-nav-brand">
             <Logo
               to={mobileLogoTo}
-              showTagline={isMarketingRoute && !signedIn && !isLovableHome}
+              showTagline={isMarketingRoute && !signedIn}
               variant={isLovableHome ? 'lovable' : 'default'}
               className="public-nav-logo"
             />
@@ -351,14 +364,16 @@ export default function PublicNav() {
         </div>
       </div>
 
-      <nav
-        id={menuPanelId}
-        className={`public-nav-drawer${open ? ' public-nav-drawer--open' : ''}`}
-        aria-label={t('nav.mobileNav')}
-        hidden={!open}
-      >
-        {drawerContent}
-      </nav>
+      <div className="public-nav-drawer-wrap">
+        <nav
+          id={menuPanelId}
+          className={`public-nav-drawer${open ? ' public-nav-drawer--open' : ''}`}
+          aria-label={t('nav.mobileNav')}
+          hidden={!open}
+        >
+          {drawerContent}
+        </nav>
+      </div>
     </header>
   )
 }

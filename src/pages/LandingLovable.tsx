@@ -75,9 +75,7 @@ function Hero() {
               ) : null}
             </h1>
             <p className="landing-hero-subcopy mt-7 max-w-xl md:mt-8">{t('landing.heroSubtitle')}</p>
-            <p className="mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground md:text-[0.9375rem]">
-              {t('landing.heroPositioning')}
-            </p>
+            <p className="landing-hero-positioning mt-4 max-w-xl">{t('landing.heroPositioning')}</p>
             <div
               className="mt-9 flex min-h-14 flex-wrap items-center gap-3 md:mt-10"
               aria-busy={!authReady}
@@ -99,15 +97,11 @@ function Hero() {
                 </>
               )}
             </div>
-            <div className="landing-hero-social mt-9 border-l-2 border-mint/35 pl-5 md:mt-10">
-              <p className="text-base font-semibold leading-snug text-foreground md:text-lg">
-                {t('landing.socialProof')}
-              </p>
-              <p className="mt-2 max-w-lg text-sm leading-relaxed text-muted-foreground">
-                {t('landing.socialProofSubtext')}
-              </p>
+            <div className="landing-hero-social mt-9 md:mt-10">
+              <p className="landing-hero-social-title">{t('landing.socialProof')}</p>
+              <p className="landing-hero-social-subtext">{t('landing.socialProofSubtext')}</p>
             </div>
-            <div className="mt-7 flex items-start gap-4 md:mt-8">
+            <div className="landing-hero-avatars-row">
               <div className="landing-hero-avatars shrink-0" aria-hidden>
                 {['from-indigo to-mint', 'from-mint to-cream', 'from-navy to-indigo', 'from-indigo to-navy', 'from-mint to-indigo'].map(
                   (g) => (
