@@ -201,11 +201,7 @@ select {
   line-height: 1.5;
 }
 
-/* —— Landing hero (reference alignment) —— */
-.landing-lovable .landing-hero-inner {
-  max-width: 80rem;
-}
-
+/* —— Landing hero (typography + column rhythm; width/padding live in landing-lovable.css) —— */
 .landing-lovable .landing-hero-headline {
   max-width: 48rem;
 }
@@ -235,11 +231,6 @@ select {
 }
 
 @media (min-width: 1280px) {
-  .landing-lovable .landing-hero-inner {
-    padding-top: 5rem;
-    padding-inline: 2.5rem;
-  }
-
   .landing-lovable .landing-hero-grid {
     gap: 4rem;
   }
@@ -252,7 +243,7 @@ select {
 
 @media (min-width: 1280px) {
   .page-container {
-    max-width: 80rem;
+    max-width: 90rem;
   }
 }
 
