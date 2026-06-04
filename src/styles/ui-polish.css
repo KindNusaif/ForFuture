@@ -262,10 +262,6 @@ select {
   gap: 1rem;
 }
 
-.landing-lovable .landing-hero-preview-wrap {
-  max-width: 36rem;
-}
-
 @media (min-width: 1024px) {
   .landing-lovable .landing-hero-grid {
     gap: 3.5rem;
@@ -274,6 +270,7 @@ select {
   .landing-lovable .landing-hero-visual {
     align-items: center;
     justify-content: center;
+    padding-inline: 0.5rem;
   }
 }
 

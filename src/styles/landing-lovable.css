@@ -554,12 +554,14 @@ html[data-reduce-motion='true'] .landing-lovable > section {
 .landing-lovable .landing-hero {
   position: relative;
   isolation: isolate;
-  padding-bottom: 4rem;
+  overflow-x: clip;
+  overflow-y: visible;
+  padding-bottom: 4.5rem;
 }
 
 @media (min-width: 1024px) {
   .landing-lovable .landing-hero {
-    padding-bottom: 5rem;
+    padding-bottom: 6.5rem;
   }
 }
 
@@ -605,6 +607,7 @@ html[data-reduce-motion='true'] .landing-lovable > section {
 @media (min-width: 1024px) {
   .landing-lovable .landing-hero-grid {
     grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    align-items: center;
     gap: 3rem;
   }
 }
@@ -620,19 +623,19 @@ html[data-reduce-motion='true'] .landing-lovable > section {
   max-width: 48rem;
 }
 
+/* Override global .landing-hero-visual box overlay (index.css) */
 .landing-lovable .landing-hero-visual {
   display: flex;
   width: 100%;
   min-width: 0;
   align-items: center;
   justify-content: center;
+  overflow: visible;
+  padding-top: 0.25rem;
 }
 
-@media (min-width: 1024px) {
-  .landing-lovable .landing-hero-visual {
-    justify-content: flex-end;
-    padding-top: 0.5rem;
-  }
+.landing-lovable .landing-hero-visual::before {
+  display: none;
 }
 
 .landing-lovable .landing-hero-glow {
@@ -917,6 +920,14 @@ html[data-reduce-motion='true'] .landing-lovable .landing-hero-cta-placeholder {
 @media (max-width: 639.98px) {
   .landing-lovable .landing-hero-preview-wrap {
     max-width: 100%;
+    padding-bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .landing-lovable .landing-hero-chip-float {
+    animation: none;
   }
 
   .landing-lovable .landing-hero-cta-primary,
@@ -957,34 +968,67 @@ html[data-reduce-motion='true'] .landing-lovable .landing-hero-cta-placeholder {
 }
 
 .landing-lovable .landing-hero-preview-wrap {
+  position: relative;
   width: 100%;
-  max-width: 26rem;
+  max-width: 36rem;
   margin-inline: auto;
+  padding-bottom: 2.75rem;
+  overflow: visible;
+}
+
+@media (min-width: 640px) {
+  .landing-lovable .landing-hero-preview-wrap {
+    display: block;
+    max-width: 32rem;
+    padding-bottom: 3rem;
+  }
 }
 
 @media (min-width: 1024px) {
   .landing-lovable .landing-hero-preview-wrap {
-    margin-inline: 0 0 auto;
-    max-width: none;
+    max-width: 36rem;
+    margin-inline: auto;
   }
 }
 
 .landing-lovable .landing-hero-preview-halo {
   position: absolute;
-  inset: -1.5rem;
-  border-radius: 2rem;
-  background: var(--lv-gradient-glow);
-  opacity: 0.22;
-  filter: blur(48px);
+  top: 8%;
+  left: 50%;
+  z-index: 0;
+  width: min(100%, 22rem);
+  height: min(88%, 20rem);
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in oklab, var(--lv-indigo) 28%, transparent) 0%,
+    color-mix(in oklab, var(--lv-mint) 18%, transparent) 45%,
+    transparent 72%
+  );
+  opacity: 0.35;
+  filter: blur(40px);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+[data-theme='dark'] .landing-lovable .landing-hero-preview-halo {
+  opacity: 0.28;
 }
 
 .landing-lovable .landing-hero-preview-card {
   position: relative;
+  z-index: 1;
   border-radius: 1.5rem;
   border: 1px solid var(--lv-border);
   background: var(--lv-card);
-  padding: 1.5rem;
+  padding: 1.625rem;
   box-shadow: var(--lv-shadow-elegant);
+}
+
+@media (min-width: 640px) {
+  .landing-lovable .landing-hero-preview-card {
+    padding: 1.75rem;
+  }
 }
 
 .landing-lovable .landing-hero-preview-header {
@@ -1086,15 +1130,17 @@ html[data-reduce-motion='true'] .landing-lovable .landing-hero-cta-placeholder {
 }
 
 .landing-lovable .landing-hero-floating-chip {
-  position: absolute;
-  bottom: -1rem;
-  left: 1.5rem;
+  position: relative;
   z-index: 2;
   display: inline-flex;
-  max-width: min(calc(100vw - 2.5rem), 17.5rem);
+  width: fit-content;
+  max-width: 100%;
   align-items: center;
   gap: 0.5rem;
+  align-self: center;
+  margin-top: 0.875rem;
   border-radius: 9999px;
+  border: 1px solid color-mix(in oklab, var(--lv-navy) 85%, var(--lv-mint));
   background: var(--lv-navy);
   padding: 0.5rem 0.875rem;
   font-size: 0.6875rem;
@@ -1108,9 +1154,21 @@ html[data-reduce-motion='true'] .landing-lovable .landing-hero-cta-placeholder {
     box-shadow 0.2s ease;
 }
 
-@media (min-width: 480px) {
+@media (min-width: 640px) {
   .landing-lovable .landing-hero-floating-chip {
-    max-width: none;
+    position: absolute;
+    bottom: 0;
+    left: 1.75rem;
+    margin-top: 0;
+    align-self: auto;
+    max-width: min(calc(100% - 2rem), 18rem);
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+  }
+}
+
+@media (min-width: 480px) and (max-width: 639.98px) {
+  .landing-lovable .landing-hero-floating-chip {
     padding: 0.5rem 1rem;
     font-size: 0.75rem;
   }
@@ -1118,6 +1176,12 @@ html[data-reduce-motion='true'] .landing-lovable .landing-hero-cta-placeholder {
 
 .landing-lovable .landing-hero-floating-chip:hover {
   transform: translateY(-1px);
+  box-shadow: 0 14px 36px -8px color-mix(in oklab, var(--lv-navy) 55%, transparent);
+}
+
+[data-theme='dark'] .landing-lovable .landing-hero-floating-chip {
+  border-color: color-mix(in oklab, var(--lv-mint) 35%, transparent);
+  box-shadow: 0 12px 32px -10px color-mix(in oklab, black 55%, transparent);
 }
 
 .landing-lovable .landing-hero-floating-chip:focus-visible {

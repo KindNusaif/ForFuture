@@ -54,7 +54,7 @@ function Hero() {
   const hasSplitHeadline = Boolean(t('landing.heroTitleThrough') || t('landing.heroTitleAccent'))
 
   return (
-    <section className="landing-hero landing-section-reveal landing-section-reveal--hero relative overflow-hidden bg-hero">
+    <section className="landing-hero landing-section-reveal landing-section-reveal--hero relative bg-hero">
       <div className="landing-hero-glow landing-hero-glow--mint landing-motion-deco landing-hero-glow-drift" aria-hidden />
       <div className="landing-hero-glow landing-hero-glow--indigo landing-motion-deco landing-hero-glow-drift landing-hero-glow-drift--delay" aria-hidden />
       <div className="pointer-events-none absolute inset-0 grain opacity-50" aria-hidden />
