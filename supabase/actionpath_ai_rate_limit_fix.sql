@@ -1,5 +1,5 @@
 -- One-time fix if actionpath_ai_usage was created with last_request_at NOT NULL DEFAULT now()
--- Run in Supabase SQL Editor, then redeploy actionpath-ai.
+-- Run in Supabase SQL Editor, then run actionpath_ai_rpc.sql, then redeploy actionpath-ai.
 
 alter table public.actionpath_ai_usage
   alter column last_request_at drop not null;

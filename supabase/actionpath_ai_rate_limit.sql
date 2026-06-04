@@ -20,3 +20,6 @@ alter table public.actionpath_ai_usage enable row level security;
 
 create index if not exists idx_actionpath_ai_usage_last_request
   on public.actionpath_ai_usage (last_request_at desc);
+
+-- Atomic check/record helpers (run actionpath_ai_rpc.sql for function bodies)
+-- \i actionpath_ai_rpc.sql

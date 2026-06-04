@@ -143,6 +143,53 @@ select {
 }
 
 /* —— ActionPath AI —— */
+/* ActionPath AI — smooth loading + result reveal */
+.actionpath-loading-bar-fill {
+  width: 35%;
+  animation: actionpath-progress 1.8s ease-in-out infinite;
+}
+
+@keyframes actionpath-progress {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(180%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.actionpath-shimmer {
+  animation: actionpath-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes actionpath-shimmer {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.actionpath-result {
+  animation: actionpath-fade-in 0.35s ease-out both;
+}
+
+@keyframes actionpath-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .actionpath-panel textarea {
   font-size: var(--ff-type-body-sm);
   line-height: 1.55;

@@ -1,4 +1,5 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { isRequestAborted } from '../../lib/supabaseRequest'
 import {
   ArrowRight,
   Loader2,
@@ -61,12 +62,16 @@ export default function ActionPathAI({
 
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [loadingPhase, setLoadingPhase] = useState<'connect' | 'generate'>('connect')
   const [error, setError] = useState<string | null>(null)
   const [errorCode, setErrorCode] = useState<ActionPathErrorCode | null>(null)
+  const [retryAfterSec, setRetryAfterSec] = useState<number | null>(null)
   const [suggestion, setSuggestion] = useState<ActionPathSuggestion | null>(null)
   const [dismissed, setDismissed] = useState(false)
   const inFlightRef = useRef(false)
   const lastValidInputRef = useRef<string | null>(null)
+  const abortRef = useRef<AbortController | null>(null)
+  const phaseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const trimmed = input.trim()
   const validation = useMemo(() => validateActionPathInput(input), [input])
@@ -86,17 +91,39 @@ export default function ActionPathAI({
         })
       : null
 
+  const cooldownActive = retryAfterSec != null && retryAfterSec > 0
+
   const canGenerate =
     inputValid &&
     !loading &&
+    !cooldownActive &&
     !formDisabled &&
     Boolean(user)
 
   const canRetry =
     Boolean(lastValidInputRef.current) &&
     !loading &&
+    !cooldownActive &&
     !formDisabled &&
     Boolean(user)
+
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort()
+      if (phaseTimerRef.current) clearTimeout(phaseTimerRef.current)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (retryAfterSec == null || retryAfterSec <= 0) return
+    const timer = window.setInterval(() => {
+      setRetryAfterSec((sec) => {
+        if (sec == null || sec <= 1) return null
+        return sec - 1
+      })
+    }, 1000)
+    return () => window.clearInterval(timer)
+  }, [errorCode === 'rate_limit' ? error : null])
 
   function resolveErrorMessage(err: unknown): string {
     if (err instanceof ActionPathAiError) {
@@ -162,21 +189,45 @@ export default function ActionPathAI({
 
     if (inFlightRef.current) return
 
+    abortRef.current?.abort()
+    const controller = new AbortController()
+    abortRef.current = controller
+
     inFlightRef.current = true
     setLoading(true)
+    setLoadingPhase('connect')
     setError(null)
     setErrorCode(null)
+    setRetryAfterSec(null)
     setDismissed(false)
     lastValidInputRef.current = check.trimmed
 
+    if (phaseTimerRef.current) clearTimeout(phaseTimerRef.current)
+    phaseTimerRef.current = setTimeout(() => {
+      setLoadingPhase('generate')
+    }, 1800)
+
     try {
-      const result = await generateActionPath(check.trimmed)
+      const result = await generateActionPath(check.trimmed, { signal: controller.signal })
       setSuggestion(result)
     } catch (err) {
+      if (isRequestAborted(err)) return
       setSuggestion(null)
-      setErrorCode(err instanceof ActionPathAiError ? err.code : 'generic')
-      setError(resolveErrorMessage(err))
+      if (err instanceof ActionPathAiError) {
+        setErrorCode(err.code)
+        setError(resolveErrorMessage(err))
+        if (err.code === 'rate_limit' && err.retryAfterSec != null && err.retryAfterSec > 0) {
+          setRetryAfterSec(err.retryAfterSec)
+        }
+      } else {
+        setErrorCode('generic')
+        setError(resolveErrorMessage(err))
+      }
     } finally {
+      if (phaseTimerRef.current) {
+        clearTimeout(phaseTimerRef.current)
+        phaseTimerRef.current = null
+      }
       setLoading(false)
       inFlightRef.current = false
     }
@@ -249,6 +300,7 @@ export default function ActionPathAI({
               if (error && (!nextValidation.valid || next.trim() !== lastValidInputRef.current)) {
                 setError(null)
                 setErrorCode(null)
+                setRetryAfterSec(null)
               }
             }}
             disabled={loading || formDisabled}
@@ -289,7 +341,15 @@ export default function ActionPathAI({
           >
             <div className="min-w-0 flex-1 space-y-1">
               <p className="leading-relaxed">{error}</p>
-              {(errorCode === 'rate_limit' || errorCode === 'timeout') && (
+              {cooldownActive && (
+                <p className="text-xs font-semibold tabular-nums leading-relaxed opacity-90">
+                  {t('actionPath.cooldownCountdown', {
+                    defaultValue: 'Ready to try again in {{seconds}}s',
+                    seconds: retryAfterSec,
+                  })}
+                </p>
+              )}
+              {(errorCode === 'rate_limit' || errorCode === 'timeout') && !cooldownActive && (
                 <p className="text-xs leading-relaxed opacity-90">
                   {t('actionPath.errorRetryHint', {
                     defaultValue: 'Wait a moment, then try once more.',
@@ -318,14 +378,25 @@ export default function ActionPathAI({
 
         {loading && (
           <div
-            className="animate-pulse space-y-3 rounded-xl border border-accent-100 bg-surface/60 p-4"
+            className="actionpath-loading space-y-3 rounded-xl border border-accent-100 bg-surface/60 p-4"
             aria-live="polite"
             aria-busy="true"
           >
-            <p className="text-sm text-secondary">{t('actionPath.loadingHint')}</p>
-            <div className="h-3 w-2/3 rounded bg-muted" />
-            <div className="h-3 w-full rounded bg-muted" />
-            <div className="h-3 w-5/6 rounded bg-muted" />
+            <p className="text-sm font-medium text-secondary">
+              {loadingPhase === 'connect'
+                ? t('actionPath.loadingConnect', {
+                    defaultValue: 'Connecting to ActionPath AI…',
+                  })
+                : t('actionPath.loadingHint')}
+            </p>
+            <div className="actionpath-loading-bar h-1.5 w-full overflow-hidden rounded-full bg-accent-100/80 dark:bg-accent-900/40">
+              <div className="actionpath-loading-bar-fill h-full rounded-full bg-linear-to-r from-accent-500 to-brand-500" />
+            </div>
+            <div className="space-y-2 pt-1">
+              <div className="h-3 w-2/3 rounded bg-muted/80 actionpath-shimmer" />
+              <div className="h-3 w-full rounded bg-muted/80 actionpath-shimmer" />
+              <div className="h-3 w-5/6 rounded bg-muted/80 actionpath-shimmer" />
+            </div>
           </div>
         )}
 
@@ -376,7 +447,7 @@ export default function ActionPathAI({
       </div>
 
       {showResult && suggestion && recommendedConfig && (
-        <div className="border-t border-accent-100/80 bg-surface/80 px-5 py-5 sm:px-6">
+        <div className="actionpath-result border-t border-accent-100/80 bg-surface/80 px-5 py-5 sm:px-6">
           <div className="mb-4 flex items-center justify-between gap-2">
             <h3 className="text-base font-bold text-primary">{t('actionPath.resultTitle')}</h3>
             <button

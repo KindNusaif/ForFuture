@@ -3,6 +3,11 @@ import type { MovementType } from '../types'
 import type { ReliefCreateSubtype } from './reliefHub'
 import { requireSupabase } from './supabase'
 import {
+  isRequestAborted,
+  RequestTimeoutError,
+  withTimeout,
+} from './supabaseRequest'
+import {
   ACTIONPATH_INPUT_MAX,
   validateActionPathInput,
   type ActionPathValidationReason,
@@ -43,7 +48,7 @@ export interface ActionPathApiSuggestion {
 
 export type ActionPathEdgeResponse =
   | { ok: true; suggestion: ActionPathApiSuggestion }
-  | { ok: false; error: string; code?: string }
+  | { ok: false; error: string; code?: string; retry_after_sec?: number }
 
 export interface ActionPathSuggestion {
   recommendedType: ActionPathRecommendedType
@@ -228,11 +233,17 @@ function coalesceEdgeBody(data: unknown): ActionPathEdgeResponse | null {
   if (o.ok === true && o.suggestion && typeof o.suggestion === 'object') {
     return { ok: true, suggestion: o.suggestion as ActionPathApiSuggestion }
   }
+  const retryAfter =
+    typeof o.retry_after_sec === 'number' && o.retry_after_sec > 0
+      ? Math.ceil(o.retry_after_sec)
+      : undefined
+
   if (o.ok === false && typeof o.error === 'string') {
     return {
       ok: false,
       error: o.error,
       code: typeof o.code === 'string' ? o.code : undefined,
+      retry_after_sec: retryAfter,
     }
   }
 
@@ -241,6 +252,7 @@ function coalesceEdgeBody(data: unknown): ActionPathEdgeResponse | null {
       ok: false,
       error: o.error,
       code: typeof o.code === 'string' ? o.code : undefined,
+      retry_after_sec: retryAfter,
     }
   }
 
@@ -346,7 +358,15 @@ function throwFromEdgeBody(body: ActionPathEdgeResponse): never {
       body.code === 'openai_rate_limit')
       ? raw
       : ACTIONPATH_GENERIC_ERROR
-  throw new ActionPathAiError(message, mapErrorCode(raw || message, body.code))
+  const retryAfterSec =
+    body.retry_after_sec != null && body.retry_after_sec > 0
+      ? Math.ceil(body.retry_after_sec)
+      : undefined
+  throw new ActionPathAiError(
+    message,
+    mapErrorCode(raw || message, body.code),
+    retryAfterSec,
+  )
 }
 
 function resolveInvokePayload(data: unknown, error: unknown): ActionPathSuggestion {
@@ -480,7 +500,14 @@ function validationErrorMessage(reason: ActionPathValidationReason): string {
   }
 }
 
-export async function generateActionPath(input: string): Promise<ActionPathSuggestion> {
+export type GenerateActionPathOptions = {
+  signal?: AbortSignal
+}
+
+export async function generateActionPath(
+  input: string,
+  options?: GenerateActionPathOptions,
+): Promise<ActionPathSuggestion> {
   const validation = validateActionPathInput(input)
   if (!validation.valid) {
     throw new ActionPathAiError(validationErrorMessage(validation.reason), 'invalid_input')
@@ -488,24 +515,17 @@ export async function generateActionPath(input: string): Promise<ActionPathSugge
 
   const client = requireSupabase()
   const trimmed = validation.trimmed
-
-  const invokePromise = client.functions.invoke('actionpath-ai', {
-    body: { input: trimmed },
-  })
-
-  const timeoutPromise = new Promise<never>((_, reject) => {
-    setTimeout(() => {
-      reject(
-        new ActionPathAiError(
-          'This is taking longer than expected. Please try again.',
-          'timeout',
-        ),
-      )
-    }, ACTIONPATH_REQUEST_TIMEOUT_MS)
-  })
+  const signal = options?.signal
 
   try {
-    const { data, error } = await Promise.race([invokePromise, timeoutPromise])
+    const { data, error } = await withTimeout(
+      client.functions.invoke('actionpath-ai', {
+        body: { input: trimmed },
+      }),
+      ACTIONPATH_REQUEST_TIMEOUT_MS,
+      'This is taking longer than expected. Please try again.',
+      signal,
+    )
 
     devLog(error ? 'invoke-error' : 200, data)
 
@@ -532,8 +552,9 @@ export async function generateActionPath(input: string): Promise<ActionPathSugge
 
     return resolveInvokePayload(data, error)
   } catch (err) {
+    if (isRequestAborted(err)) throw err
     if (err instanceof ActionPathAiError) throw err
-    if (err instanceof Error && err.name === 'AbortError') {
+    if (err instanceof RequestTimeoutError) {
       throw new ActionPathAiError(
         'This is taking longer than expected. Please try again.',
         'timeout',

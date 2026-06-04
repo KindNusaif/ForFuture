@@ -87,10 +87,18 @@ function jsonResponse(body: unknown, status = 200) {
 
 type ErrorCode = 'invalid_input' | 'auth' | 'config' | 'rate_limit' | 'api' | 'openai_rate_limit'
 
-function fail(message: string, status = 400, code?: ErrorCode) {
+function fail(message: string, status = 400, code?: ErrorCode, retryAfterSec?: number) {
   // Return 200 for app errors so Supabase JS client always delivers JSON in `data`.
   const httpStatus = status === 401 ? 401 : 200
-  return jsonResponse({ ok: false, error: message, ...(code ? { code } : {}) }, httpStatus)
+  return jsonResponse(
+    {
+      ok: false,
+      error: message,
+      ...(code ? { code } : {}),
+      ...(retryAfterSec != null && retryAfterSec > 0 ? { retry_after_sec: retryAfterSec } : {}),
+    },
+    httpStatus,
+  )
 }
 
 function success(suggestion: ApiSuggestion) {
@@ -338,7 +346,14 @@ function validateAiSuggestion(data: unknown): { ok: true; value: ApiSuggestion }
   }
 }
 
-/** Cooldown uses last_request_at, which is updated only after a successful AI response. */
+type RateLimitRpcResult = {
+  allowed?: boolean
+  retry_after_sec?: number
+  reason?: 'cooldown' | 'hourly'
+  message?: string
+}
+
+/** Cooldown uses last_request_at, updated only after a successful AI response (Postgres RPC). */
 async function checkRateLimit(
   admin: ReturnType<typeof createClient>,
   userId: string,
@@ -347,56 +362,86 @@ async function checkRateLimit(
   | { allowed: false; retryAfterSec: number; reason: 'cooldown' | 'hourly'; message: string }
 > {
   try {
-    const now = new Date()
-    const { data: row, error: selectError } = await admin
-      .from('actionpath_ai_usage')
-      .select('window_start, request_count, last_request_at')
-      .eq('user_id', userId)
-      .maybeSingle()
+    const { data, error } = await admin.rpc('actionpath_ai_check_rate_limit', {
+      p_user_id: userId,
+    })
 
-    if (selectError) {
-      console.error('actionpath-ai rate limit select', selectError.message)
-      return { allowed: true }
+    if (error) {
+      console.error('actionpath-ai rate limit rpc', error.message)
+      return await checkRateLimitFallback(admin, userId)
     }
 
-    if (row?.last_request_at) {
-      const last = new Date(row.last_request_at).getTime()
-      if (now.getTime() - last < COOLDOWN_MS) {
-        const retryAfterSec = Math.ceil((COOLDOWN_MS - (now.getTime() - last)) / 1000)
-        return {
-          allowed: false,
-          retryAfterSec,
-          reason: 'cooldown' as const,
-          message: `Please wait ${retryAfterSec} seconds before generating again.`,
-        }
-      }
+    const result = (data ?? {}) as RateLimitRpcResult
+    if (result.allowed !== false) return { allowed: true }
+
+    const retryAfterSec = Math.max(1, Math.ceil(Number(result.retry_after_sec) || COOLDOWN_MS / 1000))
+    const message =
+      typeof result.message === 'string' && result.message.trim()
+        ? result.message.trim()
+        : `Please wait ${retryAfterSec} seconds before generating again.`
+
+    return {
+      allowed: false,
+      retryAfterSec,
+      reason: result.reason === 'hourly' ? 'hourly' : 'cooldown',
+      message,
     }
-
-    let windowStart = row?.window_start ? new Date(row.window_start) : now
-    let count = row?.request_count ?? 0
-
-    if (now.getTime() - windowStart.getTime() > HOUR_MS) {
-      windowStart = now
-      count = 0
-    }
-
-    if (count >= MAX_PER_HOUR) {
-      const resetAt = windowStart.getTime() + HOUR_MS
-      const retryAfterSec = Math.max(60, Math.ceil((resetAt - now.getTime()) / 1000))
-      const mins = Math.max(1, Math.ceil(retryAfterSec / 60))
-      return {
-        allowed: false,
-        retryAfterSec,
-        reason: 'hourly' as const,
-        message: `You've used ActionPath AI many times this hour. Try again in about ${mins} minutes.`,
-      }
-    }
-
-    return { allowed: true }
   } catch (err) {
     console.error('actionpath-ai rate limit', err instanceof Error ? err.message : 'unknown')
     return { allowed: true }
   }
+}
+
+/** Fallback if RPC is not deployed yet (direct table read). */
+async function checkRateLimitFallback(
+  admin: ReturnType<typeof createClient>,
+  userId: string,
+): Promise<
+  | { allowed: true }
+  | { allowed: false; retryAfterSec: number; reason: 'cooldown' | 'hourly'; message: string }
+> {
+  const now = new Date()
+  const { data: row, error: selectError } = await admin
+    .from('actionpath_ai_usage')
+    .select('window_start, request_count, last_request_at')
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  if (selectError) return { allowed: true }
+
+  if (row?.last_request_at) {
+    const last = new Date(row.last_request_at).getTime()
+    if (now.getTime() - last < COOLDOWN_MS) {
+      const retryAfterSec = Math.ceil((COOLDOWN_MS - (now.getTime() - last)) / 1000)
+      return {
+        allowed: false,
+        retryAfterSec,
+        reason: 'cooldown',
+        message: `Please wait ${retryAfterSec} seconds before generating again.`,
+      }
+    }
+  }
+
+  let windowStart = row?.window_start ? new Date(row.window_start) : now
+  let count = row?.request_count ?? 0
+  if (now.getTime() - windowStart.getTime() > HOUR_MS) {
+    windowStart = now
+    count = 0
+  }
+
+  if (count >= MAX_PER_HOUR) {
+    const resetAt = windowStart.getTime() + HOUR_MS
+    const retryAfterSec = Math.max(60, Math.ceil((resetAt - now.getTime()) / 1000))
+    const mins = Math.max(1, Math.ceil(retryAfterSec / 60))
+    return {
+      allowed: false,
+      retryAfterSec,
+      reason: 'hourly',
+      message: `You've used ActionPath AI many times this hour. Try again in about ${mins} minutes.`,
+    }
+  }
+
+  return { allowed: true }
 }
 
 /** Only successful generations count toward hourly limits and cooldown. */
@@ -404,6 +449,14 @@ async function recordRateLimitSuccess(
   admin: ReturnType<typeof createClient>,
   userId: string,
 ): Promise<void> {
+  try {
+    const { error } = await admin.rpc('actionpath_ai_record_success', { p_user_id: userId })
+    if (!error) return
+    console.error('actionpath-ai record rpc', error.message)
+  } catch (err) {
+    console.error('actionpath-ai record rpc', err instanceof Error ? err.message : 'unknown')
+  }
+
   try {
     const now = new Date()
     const { data: row } = await admin
@@ -510,7 +563,7 @@ async function handleActionPathRequest(req: Request): Promise<Response> {
   const admin = createClient(supabaseUrl, serviceRoleKey)
   const rate = await checkRateLimit(admin, user.id)
   if (!rate.allowed) {
-    return fail(rate.message, 429, 'rate_limit')
+    return fail(rate.message, 429, 'rate_limit', rate.retryAfterSec)
   }
 
   try {

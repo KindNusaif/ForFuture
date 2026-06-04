@@ -1788,6 +1788,8 @@
     "startOver": "Start over",
     "safetyNote": "Safety note",
     "loadingHint": "Shaping your movement suggestion…",
+    "loadingConnect": "Connecting to ActionPath AI…",
+    "cooldownCountdown": "Ready to try again in {{seconds}}s",
     "authTitle": "Join the Movement",
     "authMessage": "Create an account to shape ideas with ActionPath AI and turn your thoughts into civic action.",
     "fieldLabels": {
