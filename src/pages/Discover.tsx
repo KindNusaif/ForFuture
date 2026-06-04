@@ -21,17 +21,12 @@ function DiscoverGuestContent() {
   const { data, loading, error, reload } = useDiscoverData(true)
 
   useDataSync((event) => {
-    if (
-      event.type === 'feed:invalidate' ||
-      event.type === 'post:created' ||
-      event.type === 'post:updated' ||
-      event.type === 'post:deleted'
-    ) {
+    if (event.type === 'feed:invalidate' || event.type === 'post:created') {
       reload()
     }
   })
 
-  useVisibilityRefetch(reload, { enabled: !loading })
+  useVisibilityRefetch(reload, { enabled: !loading && Boolean(data) })
 
   return (
     <>

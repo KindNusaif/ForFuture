@@ -106,11 +106,11 @@ function ProfileContent({ userId, email }: { userId: string; email?: string | nu
   useDataSync((event) => {
     if (event.type === 'profile:invalidate') {
       if (event.userId && event.userId !== userId) return
-      void reloadMovements(true)
+      void reloadMovements(allPosts.length > 0)
       return
     }
     if (event.type === 'post:created' && event.userId === userId) {
-      void reloadMovements(true)
+      void reloadMovements(allPosts.length > 0)
       return
     }
     if (event.type === 'post:deleted') {
@@ -119,7 +119,7 @@ function ProfileContent({ userId, email }: { userId: string; email?: string | nu
   })
 
   useVisibilityRefetch(() => {
-    void reloadMovements(true)
+    void reloadMovements(allPosts.length > 0)
   })
 
   async function saveBio() {

@@ -26,7 +26,6 @@ export default function DataSyncProvider({ children }: { children: React.ReactNo
           emitDataSync({ type: 'post:updated', postId })
         } else if (key.startsWith('poll:')) {
           emitDataSync({ type: 'post:updated', postId: key.slice(5) })
-          emitDataSync({ type: 'polls:invalidate' })
         } else if (key.startsWith('comment:')) {
           const [, postId, contentType] = key.split(':')
           emitDataSync({

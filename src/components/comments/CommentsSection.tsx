@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { MessageCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -59,9 +59,14 @@ export default function CommentsSection({
     [onCountChange],
   )
 
-  const loadInitial = useCallback(async () => {
+  const commentsRef = useRef(comments)
+  useEffect(() => {
+    commentsRef.current = comments
+  }, [comments])
+
+  const loadInitial = useCallback(async (options?: { silent?: boolean }) => {
     if (!allowed) return
-    setLoading(true)
+    if (!options?.silent) setLoading(true)
     setError(null)
     try {
       const [page, total] = await Promise.all([
@@ -86,7 +91,7 @@ export default function CommentsSection({
     if (event.type !== 'comments:changed') return
     if (event.postId !== post.id) return
     if (event.contentType === 'inspire') return
-    void loadInitial()
+    void loadInitial({ silent: commentsRef.current.length > 0 })
   })
 
   async function loadMore() {

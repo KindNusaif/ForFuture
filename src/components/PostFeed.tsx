@@ -274,7 +274,9 @@ function PostFeedContent({
       } catch (err) {
         if (requestId !== requestIdRef.current || isRequestAborted(err)) return
         setError(formatError(err))
-        if (!append && !options?.silent) setPosts([])
+        if (!append && !options?.silent) {
+          setPosts([])
+        }
       } finally {
         if (requestId === requestIdRef.current) {
           setLoading(false)
@@ -418,16 +420,19 @@ function PostFeedContent({
     postsRef.current = posts
   }, [loadPage, posts])
 
+  const syncRefetch = useCallback(() => {
+    invalidateFeedCache(feedTab)
+    void loadPageRef.current(0, false, { silent: postsRef.current.length > 0 })
+  }, [feedTab])
+
   useDataSync((event) => {
     if (event.type === 'feed:invalidate') {
       if (event.feedTab && event.feedTab !== feedTab) return
-      invalidateFeedCache(feedTab)
-      void loadPageRef.current(0, false, { silent: postsRef.current.length > 0 })
+      syncRefetch()
       return
     }
     if (event.type === 'post:created') {
-      invalidateFeedCache(feedTab)
-      void loadPageRef.current(0, false, { silent: postsRef.current.length > 0 })
+      syncRefetch()
       return
     }
     if (event.type === 'post:deleted') {
@@ -436,14 +441,20 @@ function PostFeedContent({
       return
     }
     if (event.type === 'post:updated') {
+      const inList = postsRef.current.some((p) => p.id === event.postId)
+      if (!inList) return
       void (async () => {
-        const updated = await fetchPostById(event.postId, viewerUserId)
-        if (!updated) return
-        const follows = followsRef.current
-        const withFollow = isGuest
-          ? updated
-          : applyFollowStateToPosts([updated], follows.followedIds, follows.followerCounts)[0]
-        setPosts((prev) => upsertById(prev, normalizePostForDisplay(withFollow)))
+        try {
+          const updated = await fetchPostById(event.postId, viewerUserId)
+          if (!updated) return
+          const follows = followsRef.current
+          const withFollow = isGuest
+            ? updated
+            : applyFollowStateToPosts([updated], follows.followedIds, follows.followerCounts)[0]
+          setPosts((prev) => upsertById(prev, normalizePostForDisplay(withFollow)))
+        } catch {
+          /* keep existing row — local vote/support already applied */
+        }
       })()
       return
     }
@@ -452,16 +463,10 @@ function PostFeedContent({
     }
   })
 
-  useVisibilityRefetch(
-    () => {
-      invalidateFeedCache(feedTab)
-      void loadPageRef.current(0, false, { silent: true })
-    },
-    { enabled: !loading },
-  )
+  useVisibilityRefetch(syncRefetch, { enabled: !loading && !enriching })
 
   const showFeedLoading =
-    loading || (isFollowingFeed && movementFollows.loading) || (enriching && posts.length === 0)
+    (loading || (isFollowingFeed && movementFollows.loading)) && posts.length === 0
 
   const emptyState = useMemo(() => {
     if (isFollowingFeed) {
@@ -729,11 +734,17 @@ function PostFeedContent({
 
       <AsyncLoadHint
         className="mt-4"
-        showSlowHint={isRequestActive && showSlowHint && !error}
-        showRecovery={isRequestActive && showRecovery && !error}
+        showSlowHint={(isRequestActive || enriching) && showSlowHint && !error}
+        showRecovery={(isRequestActive || enriching) && showRecovery && !error}
         error={error}
         onRetry={handleRetry}
       />
+
+      {enriching && posts.length > 0 && !error ? (
+        <p className="mt-2 text-center text-xs text-muted" role="status" aria-live="polite">
+          {t('feed.syncing', { defaultValue: 'Updating latest movements…' })}
+        </p>
+      ) : null}
 
       {isFollowingFeed && movementFollows.error && !movementFollows.loading && (
         <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-200">
@@ -750,7 +761,7 @@ function PostFeedContent({
 
       {showFeedLoading ? (
         <FeedPostListSkeleton />
-      ) : error ? null : filtered.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <div className="mt-8">
           <EmptyState
             icon={reliefHub ? HeartHandshake : Inbox}

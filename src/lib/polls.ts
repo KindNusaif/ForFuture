@@ -1,5 +1,4 @@
 import { mapDuplicateActionError } from './duplicateErrors'
-import { notifyPostUpdated } from './dataSync'
 import { enhanceSupabaseError, isMissingRelation } from './supabaseErrors'
 import { requireSupabase } from './supabase'
 import { isPollMovement } from './movements'
@@ -180,7 +179,6 @@ export async function castPollVote(
   const pollMap = await fetchPollOptionsForPosts([postId], voterUserId)
   const poll = normalizePollVoteState(pollMap.get(postId))
   if (!poll) throw new Error('Could not load poll results.')
-  notifyPostUpdated(postId)
   return poll
 }
 

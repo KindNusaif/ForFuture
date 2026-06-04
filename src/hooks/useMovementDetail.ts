@@ -82,7 +82,17 @@ export function useMovementDetail({
         setError('This movement is no longer available.')
         return
       }
-      reload()
+      void (async () => {
+        try {
+          const updated = await fetchPostById(postId, isGuest ? undefined : userId)
+          if (updated) {
+            setPost(updated)
+            setError(null)
+          }
+        } catch {
+          /* keep current detail — user action already updated local state */
+        }
+      })()
     },
     enabled,
   )

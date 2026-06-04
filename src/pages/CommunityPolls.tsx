@@ -17,7 +17,7 @@ import { useCreatePoll } from '../hooks/useCreatePoll'
 import { useToast } from '../hooks/useToast'
 import { useDataSync } from '../hooks/useDataSync'
 import { useVisibilityRefetch } from '../hooks/useVisibilityRefetch'
-import { upsertById } from '../lib/listUtils'
+import { safeList, upsertById } from '../lib/listUtils'
 import { castPollVote } from '../lib/polls'
 import {
   enrichPosts,
@@ -68,15 +68,25 @@ export default function CommunityPolls({ mode = 'member' }: CommunityPollsProps)
   const requestIdRef = useRef(0)
   const abortRef = useRef<AbortController | null>(null)
 
+  const postsRef = useRef(posts)
+  useEffect(() => {
+    postsRef.current = posts
+  }, [posts])
+
   const loadPage = useCallback(
-    async (offset: number, append: boolean) => {
+    async (offset: number, append: boolean, options?: { silent?: boolean }) => {
       abortRef.current?.abort()
       const controller = new AbortController()
       abortRef.current = controller
       const requestId = ++requestIdRef.current
 
-      if (!append) setLoading(true)
-      else setLoadingMore(true)
+      if (append) {
+        setLoadingMore(true)
+      } else if (options?.silent) {
+        setError(null)
+      } else {
+        setLoading(true)
+      }
 
       try {
         const { posts: pagePosts, hasMore: more, nextOffset: next } = await withAutoRetry(
@@ -95,7 +105,7 @@ export default function CommunityPolls({ mode = 'member' }: CommunityPollsProps)
 
         if (requestId !== requestIdRef.current || controller.signal.aborted) return
 
-        setPosts((prev) => (append ? [...prev, ...pagePosts] : pagePosts))
+        setPosts((prev) => (append ? [...prev, ...safeList(pagePosts)] : safeList(pagePosts)))
         setHasMore(more)
         setNextOffset(next)
         setError(null)
@@ -106,7 +116,7 @@ export default function CommunityPolls({ mode = 'member' }: CommunityPollsProps)
             defaultValue: "We couldn't load community polls right now. Please try again.",
           }),
         )
-        if (!append) setPosts([])
+        if (!append && !options?.silent) setPosts([])
       } finally {
         if (requestId === requestIdRef.current) {
           setLoading(false)
@@ -142,16 +152,31 @@ export default function CommunityPolls({ mode = 'member' }: CommunityPollsProps)
     })
   }, [registerPollPublishedListener, prependPoll])
 
+  const loadPageRef = useRef(loadPage)
+  useEffect(() => {
+    loadPageRef.current = loadPage
+  }, [loadPage])
+
+  const silentRefresh = useCallback(() => {
+    void loadPageRef.current(0, false, { silent: postsRef.current.length > 0 })
+  }, [])
+
   useDataSync((event) => {
     if (event.type === 'polls:invalidate') {
-      void loadPage(0, false)
+      silentRefresh()
       return
     }
     if (event.type === 'post:updated') {
+      const inList = postsRef.current.some((p) => p.id === event.postId)
+      if (!inList) return
       void (async () => {
-        const updated = await fetchPostById(event.postId, userId)
-        if (updated?.movement_type === 'quick_youth_poll') {
-          setPosts((prev) => upsertById(prev, updated))
+        try {
+          const updated = await fetchPostById(event.postId, userId)
+          if (updated?.movement_type === 'quick_youth_poll') {
+            setPosts((prev) => upsertById(prev, updated))
+          }
+        } catch {
+          /* keep local vote state */
         }
       })()
     }
@@ -160,9 +185,7 @@ export default function CommunityPolls({ mode = 'member' }: CommunityPollsProps)
     }
   })
 
-  useVisibilityRefetch(() => {
-    void loadPage(0, false)
-  })
+  useVisibilityRefetch(silentRefresh, { enabled: !loading })
 
   useEffect(() => {
     const navToast = (location.state as { toast?: { type: 'success' | 'error'; message: string; detail?: string } })
@@ -182,7 +205,7 @@ export default function CommunityPolls({ mode = 'member' }: CommunityPollsProps)
   )
 
   const filteredPosts = useMemo(() => {
-    let list = [...posts]
+    let list = [...safeList(posts)]
     if (tab === 'trending') {
       list = list.filter((p) => (p.poll?.totalVotes ?? 0) > 0)
       list.sort((a, b) => (b.poll?.totalVotes ?? 0) - (a.poll?.totalVotes ?? 0))

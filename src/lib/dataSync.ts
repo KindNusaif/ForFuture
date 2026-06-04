@@ -1,6 +1,5 @@
 import type { FeedTab } from '../components/FeedTabs'
 import { invalidateFeedCache } from './feedTabCache'
-import { isPollMovement } from './movements'
 import type { MovementType } from '../types'
 
 export type DataSyncEvent =
@@ -33,7 +32,26 @@ export function subscribeDataSync(listener: Listener): () => void {
   }
 }
 
+const recentEvents = new Map<string, number>()
+const DEDUPE_MS = 600
+
+function eventKey(event: DataSyncEvent): string {
+  return JSON.stringify(event)
+}
+
+/** Emit once per window to avoid double refetch from local action + realtime echo. */
 export function emitDataSync(event: DataSyncEvent): void {
+  const key = eventKey(event)
+  const now = Date.now()
+  const last = recentEvents.get(key)
+  if (last != null && now - last < DEDUPE_MS) return
+  recentEvents.set(key, now)
+  if (recentEvents.size > 80) {
+    for (const [k, t] of recentEvents) {
+      if (now - t > DEDUPE_MS * 4) recentEvents.delete(k)
+    }
+  }
+
   for (const listener of listeners) {
     try {
       listener(event)
@@ -53,22 +71,19 @@ export function notifyPostCreated(post: {
   movement_type: MovementType
   user_id: string
 }): void {
+  invalidateFeedCache()
   emitDataSync({
     type: 'post:created',
     postId: post.id,
     movementType: post.movement_type,
     userId: post.user_id,
   })
-  invalidateAllFeeds()
-  if (isPollMovement(post.movement_type)) {
-    emitDataSync({ type: 'polls:invalidate' })
-  }
   emitDataSync({ type: 'profile:invalidate', userId: post.user_id })
 }
 
 export function notifyPostDeleted(postId: string, userId?: string): void {
+  invalidateFeedCache()
   emitDataSync({ type: 'post:deleted', postId, userId })
-  invalidateAllFeeds()
   emitDataSync({ type: 'polls:invalidate' })
   if (userId) emitDataSync({ type: 'profile:invalidate', userId })
 }
