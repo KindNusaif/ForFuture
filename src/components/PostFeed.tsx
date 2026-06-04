@@ -8,7 +8,9 @@ import FeedDiscoveryBar from './FeedDiscoveryBar'
 import FeedTabs, { type FeedTab } from './FeedTabs'
 import SafePostCard from './SafePostCard'
 import { FeedPostListSkeleton } from './Skeleton'
+import { useDataSync } from '../hooks/useDataSync'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
+import { useVisibilityRefetch } from '../hooks/useVisibilityRefetch'
 import { useToast } from '../hooks/useToast'
 import { useAuthGate } from '../hooks/useAuthGate'
 import { guestMovementDetailPath } from '../lib/guestExplore'
@@ -22,10 +24,12 @@ import { signPetition } from '../lib/petitionSignatures'
 import { castPollVote } from '../lib/polls'
 import AsyncLoadHint from './AsyncLoadHint'
 import { useLoadingProgress } from '../hooks/useLoadingProgress'
+import { removeById, upsertById } from '../lib/listUtils'
 import {
   DEFAULT_FEED_PAGE_SIZE,
   enrichPosts,
   fetchFeedRowsPage,
+  fetchPostById,
   normalizePostForDisplay,
 } from '../lib/posts'
 import { withAutoRetry } from '../lib/supabaseRequest'
@@ -406,6 +410,55 @@ function PostFeedContent({
       cancelled = true
     }
   }, [commentEligibleIds])
+
+  const loadPageRef = useRef(loadPage)
+  const postsRef = useRef(posts)
+  useEffect(() => {
+    loadPageRef.current = loadPage
+    postsRef.current = posts
+  }, [loadPage, posts])
+
+  useDataSync((event) => {
+    if (event.type === 'feed:invalidate') {
+      if (event.feedTab && event.feedTab !== feedTab) return
+      invalidateFeedCache(feedTab)
+      void loadPageRef.current(0, false, { silent: postsRef.current.length > 0 })
+      return
+    }
+    if (event.type === 'post:created') {
+      invalidateFeedCache(feedTab)
+      void loadPageRef.current(0, false, { silent: postsRef.current.length > 0 })
+      return
+    }
+    if (event.type === 'post:deleted') {
+      setPosts((prev) => removeById(prev, event.postId))
+      invalidateFeedCache(feedTab)
+      return
+    }
+    if (event.type === 'post:updated') {
+      void (async () => {
+        const updated = await fetchPostById(event.postId, viewerUserId)
+        if (!updated) return
+        const follows = followsRef.current
+        const withFollow = isGuest
+          ? updated
+          : applyFollowStateToPosts([updated], follows.followedIds, follows.followerCounts)[0]
+        setPosts((prev) => upsertById(prev, normalizePostForDisplay(withFollow)))
+      })()
+      return
+    }
+    if (event.type === 'follows:invalidate' && !isGuest) {
+      void followsRef.current.reloadFollowedIds()
+    }
+  })
+
+  useVisibilityRefetch(
+    () => {
+      invalidateFeedCache(feedTab)
+      void loadPageRef.current(0, false, { silent: true })
+    },
+    { enabled: !loading },
+  )
 
   const showFeedLoading =
     loading || (isFollowingFeed && movementFollows.loading) || (enriching && posts.length === 0)

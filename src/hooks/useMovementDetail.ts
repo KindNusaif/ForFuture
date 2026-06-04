@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useDataSync } from './useDataSync'
 import { formatError } from '../lib/errors'
 import { fetchPostById } from '../lib/posts'
 import { isRequestAborted } from '../lib/supabaseRequest'
@@ -71,6 +72,20 @@ export function useMovementDetail({
   const reload = useCallback(() => {
     load()
   }, [load])
+
+  useDataSync(
+    (event) => {
+      if (event.type !== 'post:updated' && event.type !== 'post:deleted') return
+      if (event.postId !== postId) return
+      if (event.type === 'post:deleted') {
+        setPost(null)
+        setError('This movement is no longer available.')
+        return
+      }
+      reload()
+    },
+    enabled,
+  )
 
   return { post, loading, error, reload, setPost }
 }

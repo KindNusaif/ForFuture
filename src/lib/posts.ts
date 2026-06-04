@@ -29,6 +29,7 @@ import { formatYouthVoiceLabel } from './youthVoiceId'
 import type { ReliefHubFilter } from './reliefHub'
 import { defaultReliefStatus } from './reliefHub'
 import { coerceCategory, safeArray } from './safeData'
+import { notifyPostCreated, notifyPostDeleted } from './dataSync'
 import type {
   Category,
   CreateMovementInput,
@@ -756,6 +757,11 @@ export async function createPost(input: CreateMovementInput) {
     await insertPollOptions(post.id, options)
   }
 
+  notifyPostCreated({
+    id: post.id,
+    movement_type: post.movement_type,
+    user_id: post.user_id ?? input.userId,
+  })
   return post
 }
 
@@ -790,6 +796,7 @@ export async function deletePost(postId: string, userId: string): Promise<void> 
   const { error } = await client.from('posts').delete().eq('id', postId).eq('user_id', userId)
 
   if (error) throw enhanceSupabaseError(error)
+  notifyPostDeleted(postId, userId)
 }
 
 /** Total supports received across a user's posts (lightweight aggregate) */

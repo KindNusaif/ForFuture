@@ -5,6 +5,7 @@ import { useAuthGate } from '../hooks/useAuthGate'
 import { useAuthUser } from '../hooks/useAuthUser'
 import { useToast } from '../hooks/useToast'
 import { CreatePollContext, type PollPublishedListener } from './create-poll-context'
+import type { Post } from '../types'
 
 export function CreatePollProvider({ children }: { children: ReactNode }) {
   const { t } = useTranslation()
@@ -22,10 +23,10 @@ export function CreatePollProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const notifyPublished = useCallback(() => {
+  const notifyPublished = useCallback((post: import('../types').Post) => {
     listenersRef.current.forEach((listener) => {
       try {
-        listener()
+        listener(post)
       } catch (err) {
         if (import.meta.env.DEV) console.error(err)
       }
@@ -51,11 +52,14 @@ export function CreatePollProvider({ children }: { children: ReactNode }) {
     }
   }, [loading, isMember])
 
-  const handlePublished = useCallback(() => {
-    setOpen(false)
-    toast.success(t('polls.publishSuccess', { defaultValue: 'Poll published successfully.' }))
-    notifyPublished()
-  }, [notifyPublished, t, toast])
+  const handlePublished = useCallback(
+    (post: Post) => {
+      setOpen(false)
+      toast.success(t('polls.publishSuccess', { defaultValue: 'Poll published successfully.' }))
+      notifyPublished(post)
+    },
+    [notifyPublished, t, toast],
+  )
 
   const value = useMemo(
     () => ({ openCreatePoll, registerPollPublishedListener }),

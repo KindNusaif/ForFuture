@@ -1,6 +1,7 @@
 import { createContext } from 'react'
+import type { Post } from '../types'
 
-export type PollPublishedListener = () => void
+export type PollPublishedListener = (post: Post) => void
 
 export interface CreatePollContextValue {
   openCreatePoll: () => void

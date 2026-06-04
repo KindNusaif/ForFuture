@@ -5,6 +5,7 @@ import {
   followMovement,
   unfollowMovement,
 } from '../lib/movementFollows'
+import { useDataSync } from './useDataSync'
 import { formatError } from '../lib/errors'
 
 export function useMovementFollows(userId: string | undefined) {
@@ -46,6 +47,12 @@ export function useMovementFollows(userId: string | undefined) {
   useEffect(() => {
     void reloadFollowedIds()
   }, [reloadFollowedIds])
+
+  useDataSync((event) => {
+    if (event.type === 'follows:invalidate') {
+      void reloadFollowedIds()
+    }
+  }, Boolean(userId))
 
   const refreshCountsForPosts = useCallback(async (movementIds: string[]) => {
     if (movementIds.length === 0) return

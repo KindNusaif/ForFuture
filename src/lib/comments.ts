@@ -1,4 +1,5 @@
 import { mapDuplicateActionError } from './duplicateErrors'
+import { notifyCommentsChanged } from './dataSync'
 import { enhanceSupabaseError, isMissingRelation } from './supabaseErrors'
 import { requireSupabase } from './supabase'
 import { chunkIds, DEFAULT_REQUEST_TIMEOUT_MS, withTimeout } from './supabaseRequest'
@@ -233,7 +234,9 @@ export async function createComment(
   )
 
   if (error) throw enhanceSupabaseError(error)
-  return mapComment(data as unknown as Record<string, unknown>)
+  const comment = mapComment(data as unknown as Record<string, unknown>)
+  notifyCommentsChanged(contentId, contentType === 'inspire' ? 'inspire' : 'movement')
+  return comment
 }
 
 export async function updateComment(commentId: string, body: string): Promise<Comment> {
@@ -256,16 +259,35 @@ export async function updateComment(commentId: string, body: string): Promise<Co
   )
 
   if (error) throw enhanceSupabaseError(error)
-  return mapComment(data as unknown as Record<string, unknown>)
+  const comment = mapComment(data as unknown as Record<string, unknown>)
+  notifyCommentsChanged(
+    comment.content_id,
+    comment.content_type === 'inspire' ? 'inspire' : 'movement',
+  )
+  return comment
 }
 
 export async function deleteComment(commentId: string): Promise<void> {
   const client = requireSupabase()
+  const { data: existing, error: fetchError } = await withTimeout(
+    client.from(TABLE).select('content_id, content_type').eq('id', commentId).maybeSingle(),
+    DEFAULT_REQUEST_TIMEOUT_MS,
+  )
+  if (fetchError) throw enhanceSupabaseError(fetchError)
+
   const { error } = await withTimeout(
     client.from(TABLE).update({ status: 'removed' }).eq('id', commentId),
     DEFAULT_REQUEST_TIMEOUT_MS,
   )
   if (error) throw enhanceSupabaseError(error)
+
+  if (existing?.content_id) {
+    const row = existing as { content_id: string; content_type?: string }
+    notifyCommentsChanged(
+      row.content_id,
+      row.content_type === 'inspire' ? 'inspire' : 'movement',
+    )
+  }
 }
 
 export async function submitCommentReport(

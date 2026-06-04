@@ -20,6 +20,9 @@ import MyImpactSection from '../components/profile/MyImpactSection'
 import { ProfileHeaderSkeleton } from '../components/Skeleton'
 import { MODERATION_FEATURE_BLURB } from '../lib/moderation'
 import { useAuth } from '../hooks/useAuth'
+import { useDataSync } from '../hooks/useDataSync'
+import { useVisibilityRefetch } from '../hooks/useVisibilityRefetch'
+import { removeById } from '../lib/listUtils'
 import { useLoadingProgress } from '../hooks/useLoadingProgress'
 import { updateProfileBio } from '../lib/auth'
 import { deletePost, fetchPostsByUser, PROFILE_MOVEMENTS_PAGE_SIZE } from '../lib/posts'
@@ -99,6 +102,25 @@ function ProfileContent({ userId, email }: { userId: string; email?: string | nu
       abortRef.current?.abort()
     }
   }, [reloadMovements])
+
+  useDataSync((event) => {
+    if (event.type === 'profile:invalidate') {
+      if (event.userId && event.userId !== userId) return
+      void reloadMovements(true)
+      return
+    }
+    if (event.type === 'post:created' && event.userId === userId) {
+      void reloadMovements(true)
+      return
+    }
+    if (event.type === 'post:deleted') {
+      setAllPosts((prev) => removeById(prev, event.postId))
+    }
+  })
+
+  useVisibilityRefetch(() => {
+    void reloadMovements(true)
+  })
 
   async function saveBio() {
     if (bioSaveStatus === 'saving') return

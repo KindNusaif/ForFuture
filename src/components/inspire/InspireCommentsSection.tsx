@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { MessageCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAsyncAction } from '../../hooks/useAsyncAction'
+import { useDataSync } from '../../hooks/useDataSync'
 import { useAuthGate } from '../../hooks/useAuthGate'
 import { useJoinMovement } from '../../hooks/useJoinMovement'
 import { useToast } from '../../hooks/useToast'
@@ -75,6 +76,13 @@ export default function InspireCommentsSection({
   useEffect(() => {
     void loadInitial()
   }, [loadInitial])
+
+  useDataSync((event) => {
+    if (event.type !== 'comments:changed') return
+    if (event.postId !== inspirePostId) return
+    if (event.contentType !== 'inspire') return
+    void loadInitial()
+  })
 
   const [runCreate, creating] = useAsyncAction(async (body: string) => {
     const created = await createComment(inspirePostId, body, 'inspire')

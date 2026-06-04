@@ -1,3 +1,4 @@
+import { notifyFollowsChanged } from './dataSync'
 import { enhanceSupabaseError, isMissingRelation } from './supabaseErrors'
 import { requireSupabase } from './supabase'
 import { DEFAULT_REQUEST_TIMEOUT_MS, withTimeout } from './supabaseRequest'
@@ -30,6 +31,7 @@ export async function followMovement(userId: string, movementId: string): Promis
     if (error.code === '23505') return
     throw enhanceSupabaseError(error)
   }
+  notifyFollowsChanged()
 }
 
 export async function unfollowMovement(userId: string, movementId: string): Promise<void> {
@@ -43,6 +45,7 @@ export async function unfollowMovement(userId: string, movementId: string): Prom
     DEFAULT_REQUEST_TIMEOUT_MS,
   )
   if (error) throw enhanceSupabaseError(error)
+  notifyFollowsChanged()
 }
 
 export async function fetchFollowerCounts(

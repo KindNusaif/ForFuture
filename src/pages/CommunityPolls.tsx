@@ -15,8 +15,16 @@ import { useAuthUser } from '../hooks/useAuthUser'
 import { useAuthGate } from '../hooks/useAuthGate'
 import { useCreatePoll } from '../hooks/useCreatePoll'
 import { useToast } from '../hooks/useToast'
+import { useDataSync } from '../hooks/useDataSync'
+import { useVisibilityRefetch } from '../hooks/useVisibilityRefetch'
+import { upsertById } from '../lib/listUtils'
 import { castPollVote } from '../lib/polls'
-import { fetchPostsPage, DEFAULT_FEED_PAGE_SIZE } from '../lib/posts'
+import {
+  enrichPosts,
+  fetchPostById,
+  fetchPostsPage,
+  DEFAULT_FEED_PAGE_SIZE,
+} from '../lib/posts'
 import { fetchCommentCountsForPosts } from '../lib/comments'
 import { canPostHaveComments } from '../lib/commentEligibility'
 import { guestMovementDetailPath } from '../lib/guestExplore'
@@ -114,12 +122,47 @@ export default function CommunityPolls({ mode = 'member' }: CommunityPollsProps)
     return () => abortRef.current?.abort()
   }, [loadPage])
 
+  const prependPoll = useCallback(
+    async (post: Post) => {
+      try {
+        const [enriched] = await enrichPosts([post], userId)
+        setPosts((prev) => upsertById(prev, enriched, { prepend: true }))
+        setError(null)
+      } catch {
+        void loadPage(0, false)
+      }
+    },
+    [loadPage, userId],
+  )
+
   useEffect(() => {
-    return registerPollPublishedListener(() => {
+    return registerPollPublishedListener((post) => {
       setTab('mine')
-      void loadPage(0, false)
+      void prependPoll(post)
     })
-  }, [registerPollPublishedListener, loadPage])
+  }, [registerPollPublishedListener, prependPoll])
+
+  useDataSync((event) => {
+    if (event.type === 'polls:invalidate') {
+      void loadPage(0, false)
+      return
+    }
+    if (event.type === 'post:updated') {
+      void (async () => {
+        const updated = await fetchPostById(event.postId, userId)
+        if (updated?.movement_type === 'quick_youth_poll') {
+          setPosts((prev) => upsertById(prev, updated))
+        }
+      })()
+    }
+    if (event.type === 'post:deleted') {
+      setPosts((prev) => prev.filter((p) => p.id !== event.postId))
+    }
+  })
+
+  useVisibilityRefetch(() => {
+    void loadPage(0, false)
+  })
 
   useEffect(() => {
     const navToast = (location.state as { toast?: { type: 'success' | 'error'; message: string; detail?: string } })

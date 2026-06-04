@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { MessageCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAsyncAction } from '../../hooks/useAsyncAction'
+import { useDataSync } from '../../hooks/useDataSync'
 import { useToast } from '../../hooks/useToast'
 import { useAuthGate } from '../../hooks/useAuthGate'
 import { useJoinMovement } from '../../hooks/useJoinMovement'
@@ -80,6 +81,13 @@ export default function CommentsSection({
   useEffect(() => {
     void loadInitial()
   }, [loadInitial])
+
+  useDataSync((event) => {
+    if (event.type !== 'comments:changed') return
+    if (event.postId !== post.id) return
+    if (event.contentType === 'inspire') return
+    void loadInitial()
+  })
 
   async function loadMore() {
     if (!hasMore || loadingMore || comments.length === 0) return

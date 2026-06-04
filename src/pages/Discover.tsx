@@ -12,11 +12,26 @@ import DiscoverFeaturedSection from '../components/discover/DiscoverFeaturedSect
 import DiscoverImpactPreview from '../components/discover/DiscoverImpactPreview'
 import DiscoverVisitorCta from '../components/discover/DiscoverVisitorCta'
 import { useDiscoverData } from '../hooks/useDiscoverData'
+import { useDataSync } from '../hooks/useDataSync'
+import { useVisibilityRefetch } from '../hooks/useVisibilityRefetch'
 import { useAuthUser } from '../hooks/useAuthUser'
 
 function DiscoverGuestContent() {
   const { t } = useTranslation()
   const { data, loading, error, reload } = useDiscoverData(true)
+
+  useDataSync((event) => {
+    if (
+      event.type === 'feed:invalidate' ||
+      event.type === 'post:created' ||
+      event.type === 'post:updated' ||
+      event.type === 'post:deleted'
+    ) {
+      reload()
+    }
+  })
+
+  useVisibilityRefetch(reload, { enabled: !loading })
 
   return (
     <>
