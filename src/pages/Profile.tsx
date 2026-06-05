@@ -22,10 +22,10 @@ import { MODERATION_FEATURE_BLURB } from '../lib/moderation'
 import { useAuth } from '../hooks/useAuth'
 import { useDataSync } from '../hooks/useDataSync'
 import { useVisibilityRefetch } from '../hooks/useVisibilityRefetch'
-import { removeById } from '../lib/listUtils'
+import { removeById, upsertById } from '../lib/listUtils'
 import { useLoadingProgress } from '../hooks/useLoadingProgress'
 import { updateProfileBio } from '../lib/auth'
-import { deletePost, fetchPostsByUser, PROFILE_MOVEMENTS_PAGE_SIZE } from '../lib/posts'
+import { deletePost, fetchPostById, fetchPostsByUser, PROFILE_MOVEMENTS_PAGE_SIZE } from '../lib/posts'
 import { getTotalPollVotesReceived } from '../lib/polls'
 import { formatError } from '../lib/errors'
 import { isRequestAborted } from '../lib/supabaseRequest'
@@ -52,6 +52,10 @@ function ProfileContent({ userId, email }: { userId: string; email?: string | nu
 
   const abortRef = useRef<AbortController | null>(null)
   const requestIdRef = useRef(0)
+  const allPostsRef = useRef(allPosts)
+  useEffect(() => {
+    allPostsRef.current = allPosts
+  }, [allPosts])
   const { showSlowHint, showRecovery } = useLoadingProgress(movementsLoading || refreshing)
 
   const bioDraft = bioOverride ?? profile?.bio ?? ''
@@ -115,6 +119,20 @@ function ProfileContent({ userId, email }: { userId: string; email?: string | nu
     }
     if (event.type === 'post:deleted') {
       setAllPosts((prev) => removeById(prev, event.postId))
+      return
+    }
+    if (event.type === 'post:updated') {
+      if (!allPostsRef.current.some((p) => p.id === event.postId)) return
+      void (async () => {
+        try {
+          const updated = await fetchPostById(event.postId, userId)
+          if (updated?.user_id === userId) {
+            setAllPosts((prev) => upsertById(prev, updated))
+          }
+        } catch {
+          /* keep current profile list */
+        }
+      })()
     }
   })
 

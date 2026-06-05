@@ -9,6 +9,8 @@ import PageContainer from '../components/ui/PageContainer'
 import SkeletonCard from '../components/ui/SkeletonCard'
 import { useAuthUser } from '../hooks/useAuthUser'
 import { useAuthGate } from '../hooks/useAuthGate'
+import { useDataSync } from '../hooks/useDataSync'
+import { useVisibilityRefetch } from '../hooks/useVisibilityRefetch'
 import { fetchCommentCount } from '../lib/comments'
 import { fetchInspirePostsPage, fetchSavedInspireIds } from '../lib/inspire'
 import { INSPIRE_FILTER_CHIPS, isInspireCategory } from '../lib/inspireCategories'
@@ -34,14 +36,23 @@ export default function InspireHub() {
   const [error, setError] = useState<string | null>(null)
   const [commentCounts, setCommentCounts] = useState<Record<string, number>>({})
   const requestIdRef = useRef(0)
+  const postsRef = useRef(posts)
+  const loadPageRef = useRef<(offset: number, append: boolean, options?: { silent?: boolean }) => Promise<void>>(
+    () => Promise.resolve(),
+  )
+
+  useEffect(() => {
+    postsRef.current = posts
+  }, [posts])
 
   const createPath = '/inspire/create'
 
   const loadPage = useCallback(
-    async (offset: number, append: boolean) => {
+    async (offset: number, append: boolean, options?: { silent?: boolean }) => {
       const requestId = ++requestIdRef.current
-      if (!append) setLoading(true)
-      else setLoadingMore(true)
+      if (append) setLoadingMore(true)
+      else if (!options?.silent) setLoading(true)
+      else setError(null)
 
       try {
         const { posts: pagePosts, hasMore: more, nextOffset: next } = await withAutoRetry(() =>
@@ -72,7 +83,7 @@ export default function InspireHub() {
             defaultValue: 'We couldn’t load Inspire Hub stories right now. Please try again.',
           }),
         )
-        if (!append) setPosts([])
+        if (!append && !options?.silent) setPosts([])
       } finally {
         if (requestId === requestIdRef.current) {
           setLoading(false)
@@ -84,8 +95,31 @@ export default function InspireHub() {
   )
 
   useEffect(() => {
+    loadPageRef.current = loadPage
+  }, [loadPage])
+
+  useEffect(() => {
     void loadPage(0, false)
   }, [loadPage])
+
+  const silentRefresh = useCallback(() => {
+    void loadPageRef.current(0, false, { silent: postsRef.current.length > 0 })
+  }, [])
+
+  useDataSync((event) => {
+    if (event.type === 'inspire:invalidate') {
+      silentRefresh()
+      return
+    }
+    if (event.type === 'comments:changed' && event.contentType === 'inspire') {
+      if (!postsRef.current.some((p) => p.id === event.postId)) return
+      void fetchCommentCount(event.postId, 'inspire').then((count) => {
+        setCommentCounts((prev) => ({ ...prev, [event.postId]: count }))
+      }).catch(() => {})
+    }
+  })
+
+  useVisibilityRefetch(silentRefresh, { enabled: !loading && posts.length > 0 })
 
   useEffect(() => {
     if (posts.length === 0) return
@@ -193,7 +227,7 @@ export default function InspireHub() {
       {error && (
         <div className="alert-warning mb-6 flex flex-col gap-3 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between" role="alert">
           <p>{error}</p>
-          <button type="button" onClick={() => void loadPage(0, false)} className="btn-secondary shrink-0 text-sm">
+          <button type="button" onClick={() => void loadPage(0, false, { silent: posts.length > 0 })} className="btn-secondary shrink-0 text-sm">
             {t('inspire.retry', { defaultValue: 'Try again' })}
           </button>
         </div>

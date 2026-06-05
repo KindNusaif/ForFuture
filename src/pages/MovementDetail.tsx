@@ -14,6 +14,7 @@ import AsyncLoadHint from '../components/AsyncLoadHint'
 import { useJoinMovement } from '../hooks/useJoinMovement'
 import { useAuthUser } from '../hooks/useAuthUser'
 import { useMovementDetail } from '../hooks/useMovementDetail'
+import { useVisibilityRefetch } from '../hooks/useVisibilityRefetch'
 import { useLoadingProgress } from '../hooks/useLoadingProgress'
 import { castPollVote } from '../lib/polls'
 import { getActionSuccessMessage } from '../lib/movements'
@@ -73,6 +74,8 @@ function MovementDetailContent({
   const displayError = actionError ?? error
   const showPageLoading = waitingForAuth || loading
   const { showSlowHint, showRecovery } = useLoadingProgress(showPageLoading)
+
+  useVisibilityRefetch(reload, { enabled: !showPageLoading && Boolean(post) })
 
   const relatedDetailBase = isGuest ? '/explore' : '/feed'
   const { posts: relatedPosts, loading: relatedLoading } = useRelatedMovements(

@@ -1,3 +1,4 @@
+import { notifyPostUpdated } from './dataSync'
 import { getActionTypeForMovement } from './movements'
 import { enhanceSupabaseError, isMissingRelation } from './supabaseErrors'
 import { requireSupabase } from './supabase'
@@ -151,6 +152,7 @@ export async function togglePostAction(
       if (!isMissingRelation(error)) throw error
       await deleteAction(postId, userId, true)
     }
+    notifyPostUpdated(postId)
     return false
   }
 
@@ -160,6 +162,7 @@ export async function togglePostAction(
     if (!isMissingRelation(error)) throw enhanceSupabaseError(error)
     await insertAction(postId, userId, movementType, true, donationSubtype)
   }
+  notifyPostUpdated(postId)
   return true
 }
 

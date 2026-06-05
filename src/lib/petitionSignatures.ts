@@ -1,3 +1,4 @@
+import { notifyPostUpdated } from './dataSync'
 import { mapDuplicateActionError } from './duplicateErrors'
 import { enhanceSupabaseError } from './supabaseErrors'
 import { requireSupabase } from './supabase'
@@ -85,6 +86,7 @@ export async function signPetition(petitionId: string, userId: string): Promise<
     }
     throw enhanceSupabaseError(error)
   }
+  notifyPostUpdated(petitionId)
 }
 
 export async function fetchPetitionIdsSupportedByUser(userId: string): Promise<string[]> {

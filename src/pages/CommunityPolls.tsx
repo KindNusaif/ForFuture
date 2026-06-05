@@ -25,7 +25,7 @@ import {
   fetchPostsPage,
   DEFAULT_FEED_PAGE_SIZE,
 } from '../lib/posts'
-import { fetchCommentCountsForPosts } from '../lib/comments'
+import { fetchCommentCount, fetchCommentCountsForPosts } from '../lib/comments'
 import { canPostHaveComments } from '../lib/commentEligibility'
 import { guestMovementDetailPath } from '../lib/guestExplore'
 import { isRequestAborted, withAutoRetry } from '../lib/supabaseRequest'
@@ -139,7 +139,7 @@ export default function CommunityPolls({ mode = 'member' }: CommunityPollsProps)
         setPosts((prev) => upsertById(prev, enriched, { prepend: true }))
         setError(null)
       } catch {
-        void loadPage(0, false)
+        void loadPage(0, false, { silent: postsRef.current.length > 0 })
       }
     },
     [loadPage, userId],
@@ -153,6 +153,7 @@ export default function CommunityPolls({ mode = 'member' }: CommunityPollsProps)
   }, [registerPollPublishedListener, prependPoll])
 
   const loadPageRef = useRef(loadPage)
+  const commentEligibleIdsRef = useRef<string[]>([])
   useEffect(() => {
     loadPageRef.current = loadPage
   }, [loadPage])
@@ -163,6 +164,10 @@ export default function CommunityPolls({ mode = 'member' }: CommunityPollsProps)
 
   useDataSync((event) => {
     if (event.type === 'polls:invalidate') {
+      silentRefresh()
+      return
+    }
+    if (event.type === 'post:created' && event.movementType === 'quick_youth_poll') {
       silentRefresh()
       return
     }
@@ -179,9 +184,18 @@ export default function CommunityPolls({ mode = 'member' }: CommunityPollsProps)
           /* keep local vote state */
         }
       })()
+      return
     }
     if (event.type === 'post:deleted') {
       setPosts((prev) => prev.filter((p) => p.id !== event.postId))
+      return
+    }
+    if (event.type === 'comments:changed') {
+      if (event.contentType === 'inspire') return
+      if (!commentEligibleIdsRef.current.includes(event.postId)) return
+      void fetchCommentCount(event.postId).then((count) => {
+        setCommentCounts((prev) => ({ ...prev, [event.postId]: count }))
+      }).catch(() => {})
     }
   })
 
@@ -221,6 +235,7 @@ export default function CommunityPolls({ mode = 'member' }: CommunityPollsProps)
   )
 
   useEffect(() => {
+    commentEligibleIdsRef.current = commentEligibleIds
     if (commentEligibleIds.length === 0) {
       setCommentCounts({})
       return
@@ -358,7 +373,7 @@ export default function CommunityPolls({ mode = 'member' }: CommunityPollsProps)
               role="alert"
             >
               <p>{error}</p>
-              <button type="button" className="btn-secondary shrink-0 text-sm" onClick={() => void loadPage(0, false)}>
+              <button type="button" className="btn-secondary shrink-0 text-sm" onClick={() => void loadPage(0, false, { silent: posts.length > 0 })}>
                 {t('polls.retry', { defaultValue: 'Try again' })}
               </button>
             </div>

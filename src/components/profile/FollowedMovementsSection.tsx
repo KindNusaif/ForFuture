@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { BellRing, Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { useDataSync } from '../../hooks/useDataSync'
+import { useVisibilityRefetch } from '../../hooks/useVisibilityRefetch'
 import { fetchFollowedMovementIds } from '../../lib/movementFollows'
 import { fetchPostsPage } from '../../lib/posts'
 import { formatError } from '../../lib/errors'
@@ -16,40 +18,48 @@ export default function FollowedMovementsSection({ userId }: FollowedMovementsSe
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const postsRef = useRef(posts)
 
   useEffect(() => {
-    let mounted = true
-    async function load() {
-      setLoading(true)
-      setError(null)
-      try {
-        const ids = await fetchFollowedMovementIds(userId)
-        if (!mounted) return
-        if (ids.length === 0) {
-          setPosts([])
-          setLoading(false)
-          return
-        }
-        const slice = ids.slice(0, 6)
-        const { posts: loaded } = await fetchPostsPage({
-          viewerUserId: userId,
-          movementIds: slice,
-          limit: 6,
-        })
-        if (!mounted) return
-        setPosts(loaded)
-      } catch (err) {
-        if (!mounted) return
-        setError(formatError(err))
-      } finally {
-        if (mounted) setLoading(false)
+    postsRef.current = posts
+  }, [posts])
+
+  const load = useCallback(async (options?: { silent?: boolean }) => {
+    if (!options?.silent) setLoading(true)
+    setError(null)
+    try {
+      const ids = await fetchFollowedMovementIds(userId)
+      if (ids.length === 0) {
+        setPosts([])
+        return
       }
-    }
-    void load()
-    return () => {
-      mounted = false
+      const slice = ids.slice(0, 6)
+      const { posts: loaded } = await fetchPostsPage({
+        viewerUserId: userId,
+        movementIds: slice,
+        limit: 6,
+      })
+      setPosts(loaded)
+    } catch (err) {
+      setError(formatError(err))
+    } finally {
+      setLoading(false)
     }
   }, [userId])
+
+  useEffect(() => {
+    void load()
+  }, [load])
+
+  useDataSync((event) => {
+    if (event.type === 'follows:invalidate') {
+      void load({ silent: postsRef.current.length > 0 })
+    }
+  })
+
+  useVisibilityRefetch(() => {
+    void load({ silent: postsRef.current.length > 0 })
+  }, { enabled: !loading && posts.length > 0 })
 
   return (
     <section className="card-surface mt-8 p-5 sm:p-6" aria-labelledby="followed-movements-heading">

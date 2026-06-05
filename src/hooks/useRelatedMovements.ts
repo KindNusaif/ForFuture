@@ -29,7 +29,6 @@ export function useRelatedMovements(
     } catch (err) {
       if (requestId !== requestIdRef.current || isRequestAborted(err)) return
       setError(formatError(err))
-      setPosts([])
     } finally {
       if (requestId === requestIdRef.current) setLoading(false)
     }

@@ -46,7 +46,7 @@ import type { ReliefHubFilter } from '../lib/reliefHub'
 import { matchesReliefTab, type ReliefHubTab } from '../lib/reliefCampaignPublic'
 import { applyFollowStateToPosts } from '../lib/movementFollows'
 import { canPostHaveComments } from '../lib/commentEligibility'
-import { fetchCommentCountsForPosts } from '../lib/comments'
+import { fetchCommentCount, fetchCommentCountsForPosts } from '../lib/comments'
 import { useMovementFollows } from '../hooks/useMovementFollows'
 import {
   buildFeedCacheKey,
@@ -400,6 +400,7 @@ function PostFeedContent({
   )
 
   useEffect(() => {
+    commentEligibleIdsRef.current = commentEligibleIds
     if (commentEligibleIds.length === 0) {
       setCommentCounts({})
       return
@@ -415,15 +416,27 @@ function PostFeedContent({
 
   const loadPageRef = useRef(loadPage)
   const postsRef = useRef(posts)
+  const commentEligibleIdsRef = useRef<string[]>([])
+  const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => {
     loadPageRef.current = loadPage
     postsRef.current = posts
   }, [loadPage, posts])
 
   const syncRefetch = useCallback(() => {
-    invalidateFeedCache(feedTab)
-    void loadPageRef.current(0, false, { silent: postsRef.current.length > 0 })
+    if (syncTimerRef.current) window.clearTimeout(syncTimerRef.current)
+    syncTimerRef.current = window.setTimeout(() => {
+      syncTimerRef.current = null
+      invalidateFeedCache(feedTab)
+      void loadPageRef.current(0, false, { silent: postsRef.current.length > 0 })
+    }, 400)
   }, [feedTab])
+
+  useEffect(() => {
+    return () => {
+      if (syncTimerRef.current) window.clearTimeout(syncTimerRef.current)
+    }
+  }, [])
 
   useDataSync((event) => {
     if (event.type === 'feed:invalidate') {
@@ -458,8 +471,12 @@ function PostFeedContent({
       })()
       return
     }
-    if (event.type === 'follows:invalidate' && !isGuest) {
-      void followsRef.current.reloadFollowedIds()
+    if (event.type === 'comments:changed') {
+      if (event.contentType === 'inspire') return
+      if (!commentEligibleIdsRef.current.includes(event.postId)) return
+      void fetchCommentCount(event.postId).then((count) => {
+        setCommentCounts((prev) => ({ ...prev, [event.postId]: count }))
+      }).catch(() => {})
     }
   })
 
@@ -553,7 +570,7 @@ function PostFeedContent({
   }, [toastProp, onToastDismiss, toast])
 
   function handleRetry() {
-    void loadPage(0, false)
+    void loadPage(0, false, { silent: posts.length > 0 })
   }
 
   function handleLoadMore() {

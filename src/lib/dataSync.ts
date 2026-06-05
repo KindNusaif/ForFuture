@@ -13,6 +13,7 @@ export type DataSyncEvent =
   | { type: 'post:updated'; postId: string }
   | { type: 'feed:invalidate'; feedTab?: FeedTab }
   | { type: 'polls:invalidate' }
+  | { type: 'inspire:invalidate' }
   | { type: 'profile:invalidate'; userId?: string }
   | { type: 'follows:invalidate' }
   | {
@@ -94,6 +95,10 @@ export function notifyPostUpdated(postId: string): void {
 
 export function notifyFollowsChanged(): void {
   emitDataSync({ type: 'follows:invalidate' })
+}
+
+export function notifyInspireChanged(): void {
+  emitDataSync({ type: 'inspire:invalidate' })
 }
 
 export function notifyCommentsChanged(

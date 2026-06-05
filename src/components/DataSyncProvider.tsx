@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { emitDataSync } from '../lib/dataSync'
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
+import type { MovementType } from '../types'
 
 const REALTIME_DEBOUNCE_MS = 400
 
@@ -37,6 +38,8 @@ export default function DataSyncProvider({ children }: { children: React.ReactNo
           emitDataSync({ type: 'follows:invalidate' })
         } else if (key.startsWith('feed:')) {
           emitDataSync({ type: 'feed:invalidate' })
+        } else if (key === 'inspire') {
+          emitDataSync({ type: 'inspire:invalidate' })
         }
       }
     }
@@ -53,9 +56,18 @@ export default function DataSyncProvider({ children }: { children: React.ReactNo
         'postgres_changes',
         { event: 'INSERT', schema: 'private', table: 'posts' },
         (payload) => {
-          const row = payload.new as { id?: string; movement_type?: string }
-          if (!row?.id) return
-          schedule('feed:all')
+          const row = payload.new as {
+            id?: string
+            movement_type?: MovementType
+            user_id?: string
+          }
+          if (!row?.id || !row.user_id || !row.movement_type) return
+          emitDataSync({
+            type: 'post:created',
+            postId: row.id,
+            movementType: row.movement_type,
+            userId: row.user_id,
+          })
           if (row.movement_type === 'quick_youth_poll') {
             emitDataSync({ type: 'polls:invalidate' })
           }
@@ -105,6 +117,29 @@ export default function DataSyncProvider({ children }: { children: React.ReactNo
         { event: '*', schema: 'public', table: 'movement_follows' },
         () => {
           schedule('follows')
+        },
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'post_actions' },
+        (payload) => {
+          const row = (payload.new ?? payload.old) as { post_id?: string }
+          if (row?.post_id) schedule(`post:${row.post_id}`)
+        },
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'petition_signatures' },
+        (payload) => {
+          const row = payload.new as { petition_id?: string }
+          if (row?.petition_id) schedule(`post:${row.petition_id}`)
+        },
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'inspire_posts' },
+        () => {
+          schedule('inspire')
         },
       )
       .subscribe()

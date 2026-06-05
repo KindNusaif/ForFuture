@@ -1,3 +1,4 @@
+import { notifyInspireChanged } from './dataSync'
 import { enhanceSupabaseError, isMissingRelation } from './supabaseErrors'
 import { requireSupabase } from './supabase'
 import { DEFAULT_REQUEST_TIMEOUT_MS, withTimeout } from './supabaseRequest'
@@ -150,6 +151,7 @@ export async function createInspirePost(
   )
   if (error) throw enhanceSupabaseError(error)
   const [post] = await attachAuthors([data as InspireRow])
+  notifyInspireChanged()
   return post
 }
 
@@ -171,6 +173,7 @@ export async function updateInspirePost(
   )
   if (error) throw enhanceSupabaseError(error)
   const [post] = await attachAuthors([data as InspireRow])
+  notifyInspireChanged()
   return post
 }
 
@@ -181,6 +184,7 @@ export async function deleteInspirePost(postId: string, userId: string): Promise
     DEFAULT_REQUEST_TIMEOUT_MS,
   )
   if (error) throw enhanceSupabaseError(error)
+  notifyInspireChanged()
 }
 
 export function getInspireExcerpt(body: string, maxLen = 160): string {

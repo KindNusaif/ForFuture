@@ -15,6 +15,11 @@ export function useMovementFollows(userId: string | undefined) {
   const [processingId, setProcessingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const mountedRef = useRef(true)
+  const followedIdsRef = useRef(followedIds)
+
+  useEffect(() => {
+    followedIdsRef.current = followedIds
+  }, [followedIds])
 
   useEffect(() => {
     mountedRef.current = true
@@ -23,13 +28,13 @@ export function useMovementFollows(userId: string | undefined) {
     }
   }, [])
 
-  const reloadFollowedIds = useCallback(async () => {
+  const reloadFollowedIds = useCallback(async (options?: { silent?: boolean }) => {
     if (!userId) {
       setFollowedIds(new Set())
       setLoading(false)
       return
     }
-    setLoading(true)
+    if (!options?.silent) setLoading(true)
     setError(null)
     try {
       const ids = await fetchFollowedMovementIds(userId)
@@ -38,7 +43,6 @@ export function useMovementFollows(userId: string | undefined) {
     } catch (err) {
       if (!mountedRef.current) return
       setError(formatError(err))
-      setFollowedIds(new Set())
     } finally {
       if (mountedRef.current) setLoading(false)
     }
@@ -50,7 +54,7 @@ export function useMovementFollows(userId: string | undefined) {
 
   useDataSync((event) => {
     if (event.type === 'follows:invalidate') {
-      void reloadFollowedIds()
+      void reloadFollowedIds({ silent: followedIdsRef.current.size > 0 })
     }
   }, Boolean(userId))
 
