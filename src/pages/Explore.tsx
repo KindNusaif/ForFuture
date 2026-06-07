@@ -9,7 +9,7 @@ import { useAuthUser } from '../hooks/useAuthUser'
 export default function Explore() {
   const { t } = useTranslation()
   const location = useLocation()
-  const { isMember, loading } = useAuthUser()
+  const { isMember, loading, authReady, loggingOut } = useAuthUser()
 
   useEffect(() => {
     const previous = document.title
@@ -30,13 +30,16 @@ export default function Explore() {
     return <Navigate to={`/feed${location.search}`} replace />
   }
 
-  if (loading) {
+  if (!authReady || loading || loggingOut) {
     return (
-      <main className="flex min-h-[40vh] items-center justify-center px-4">
+      <main className="flex min-h-[40vh] flex-col items-center justify-center gap-3 px-4">
         <Loader2
           className="motion-essential h-8 w-8 animate-spin text-accent-600"
-          aria-label="Loading"
+          aria-hidden
         />
+        <p className="text-sm text-secondary" role="status" aria-live="polite">
+          {t('explore.loadingMovements', { defaultValue: 'Loading youth movements…' })}
+        </p>
       </main>
     )
   }
