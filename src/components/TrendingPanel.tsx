@@ -37,6 +37,14 @@ const QUICK_LINKS: QuickLink[] = [
     descKey: 'feed.quickLinkTrustDesc',
     descDefault: 'Explore verified organizations and trusted campaigns.',
   },
+  {
+    to: '/inspire',
+    icon: Sparkles,
+    titleKey: 'feed.inspireHubTitle',
+    titleDefault: 'Inspire Hub',
+    descKey: 'feed.inspireHubDesc',
+    descDefault: 'Explore achievements, ideas, stories, and lessons worth your time.',
+  },
 ]
 
 /**
@@ -110,25 +118,6 @@ export default function TrendingPanel() {
             })}
           </ul>
         </div>
-
-        <Link to="/inspire" className="dashboard-side-link card-surface group flex items-center gap-3 p-4">
-          <span className="tip-icon h-10! w-10!">
-            <Sparkles className="h-5 w-5" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-primary">
-              {t('feed.inspireHubTitle', { defaultValue: 'Inspire Hub' })}
-            </p>
-            <p className="mt-0.5 text-xs leading-relaxed text-secondary">
-              {t('feed.inspireHubDesc', {
-                defaultValue: 'Explore achievements, ideas, stories, and lessons worth your time.',
-              })}
-            </p>
-            <p className="mt-2 text-xs font-semibold text-accent-600 dark:text-accent-400">
-              {t('feed.openInspireHub', { defaultValue: 'Open Inspire Hub →' })}
-            </p>
-          </div>
-        </Link>
 
         <Link to="/impact" className="dashboard-side-link card-surface flex items-center gap-3 p-4">
           <span className="tip-icon h-10! w-10!">
