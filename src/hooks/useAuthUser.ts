@@ -2,15 +2,29 @@ import { useAuth } from './useAuth'
 
 /** Reusable guest vs member detection */
 export function useAuthUser() {
-  const { user, profile, loading, loggingOut, configured, isGuest, isMember } = useAuth()
+  const {
+    user,
+    profile,
+    loading,
+    authReady,
+    loggingOut,
+    configured,
+    isGuest,
+    isMember,
+    role,
+    isAdmin,
+  } = useAuth()
 
   return {
     user,
     profile,
     loading,
+    authReady,
     loggingOut,
     configured,
     isGuest,
     isMember,
+    role,
+    isAdmin,
   }
 }

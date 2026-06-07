@@ -1,8 +1,8 @@
 import type { Profile } from '../types'
 
 /** Session bootstrap finished (Supabase auth resolved). */
-export function isAuthSessionReady(loading: boolean): boolean {
-  return !loading
+export function isAuthSessionReady(loading: boolean, loggingOut = false): boolean {
+  return !loading && !loggingOut
 }
 
 /**

@@ -48,8 +48,7 @@ export default function LandingLovable() {
 
 function Hero() {
   const { t } = useTranslation()
-  const { isMember, loading, loggingOut, configured } = useAuth()
-  const authReady = !configured || (!loading && !loggingOut)
+  const { isMember, authReady } = useAuth()
   const signedIn = authReady && isMember
   const hasSplitHeadline = Boolean(t('landing.heroTitleThrough') || t('landing.heroTitleAccent'))
 
@@ -743,8 +742,7 @@ function Voices() {
 
 function CTA() {
   const { t } = useTranslation()
-  const { isMember, loading, loggingOut, configured } = useAuth()
-  const authReady = !configured || (!loading && !loggingOut)
+  const { isMember, authReady } = useAuth()
   const signedIn = authReady && isMember
 
   return (

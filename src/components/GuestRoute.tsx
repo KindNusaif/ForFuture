@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import LogoutTransitionLoader from './auth/LogoutTransitionLoader'
 import SessionBootstrapLoader from './auth/SessionBootstrapLoader'
 import { useAuth } from '../hooks/useAuth'
 import { useLoadingProgress } from '../hooks/useLoadingProgress'
@@ -13,14 +14,14 @@ import { sanitizeErrorForDisplay } from '../lib/supabaseErrors'
 export default function GuestRoute({ children }: { children: ReactNode }) {
   const { t } = useTranslation()
   const location = useLocation()
-  const { user, loading, loggingOut, configured, profile, profileError, authError } = useAuth()
+  const { user, loading, authReady, loggingOut, configured, profile, profileError, authError } = useAuth()
   const { showSlowHint, showRecovery } = useLoadingProgress(loading)
   const profileReady = isAuthProfileReady(loading, user?.id, profile, profileError)
 
   if (!configured) return <>{children}</>
 
   if (loggingOut) {
-    return <SessionBootstrapLoader showSlowHint={false} showRecovery={false} minHeight="half" />
+    return <LogoutTransitionLoader />
   }
 
   if (authError) {
@@ -48,7 +49,7 @@ export default function GuestRoute({ children }: { children: ReactNode }) {
     )
   }
 
-  if (!profileReady) {
+  if (!profileReady || !authReady) {
     return <SessionBootstrapLoader showSlowHint={showSlowHint} showRecovery={showRecovery} minHeight="half" />
   }
 

@@ -11,6 +11,15 @@ vi.mock('../hooks/useLoadingProgress', () => ({
   useLoadingProgress: () => ({ showSlowHint: false, showRecovery: false }),
 }))
 
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string, opts?: { defaultValue?: string }) => {
+      if (key === 'auth.setupRequiredTitle') return 'Setup required'
+      return opts?.defaultValue ?? key
+    },
+  }),
+}))
+
 import { useAuth } from '../hooks/useAuth'
 
 describe('ProtectedRoute', () => {
@@ -20,11 +29,14 @@ describe('ProtectedRoute', () => {
       session: null,
       profile: null,
       loading: false,
+      authReady: true,
       configured: false,
       authError: null,
       profileError: null,
       isGuest: true,
       isMember: false,
+      role: 'user',
+      isAdmin: false,
       loggingOut: false,
       refreshProfile: vi.fn(),
       logout: vi.fn(),
@@ -48,11 +60,14 @@ describe('ProtectedRoute', () => {
       session: null,
       profile: null,
       loading: false,
+      authReady: true,
       configured: true,
       authError: null,
       profileError: null,
       isGuest: true,
       isMember: false,
+      role: 'user',
+      isAdmin: false,
       loggingOut: false,
       refreshProfile: vi.fn(),
       logout: vi.fn(),

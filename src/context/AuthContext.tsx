@@ -18,11 +18,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profileError, setProfileError] = useState<string | null>(null)
 
   const profileUserIdRef = useRef<string | null>(null)
+  const profileLoadGenRef = useRef(0)
   const logoutInFlightRef = useRef(false)
 
   const finishLoading = useCallback(() => setLoading(false), [])
 
   const clearLocalAuth = useCallback(() => {
+    profileLoadGenRef.current += 1
     profileUserIdRef.current = null
     setProfile(null)
     setSession(null)
@@ -33,19 +35,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loadProfile = useCallback(async (user: User, force = false) => {
     if (!force && profileUserIdRef.current === user.id) return
 
+    const requestUserId = user.id
+    const generation = ++profileLoadGenRef.current
     setProfileError(null)
     try {
-      let data = await getProfile(user.id)
+      let data = await getProfile(requestUserId)
+      if (generation !== profileLoadGenRef.current) return
       if (!data) {
         const name =
           (user.user_metadata?.display_name as string | undefined) ??
           user.email?.split('@')[0] ??
-          'User'
-        data = await ensureProfile(user.id, name)
+          'ForFuture member'
+        data = await ensureProfile(requestUserId, name)
+        if (generation !== profileLoadGenRef.current) return
       }
-      profileUserIdRef.current = user.id
+      profileUserIdRef.current = requestUserId
       setProfile(data)
     } catch (err) {
+      if (generation !== profileLoadGenRef.current) return
       profileUserIdRef.current = null
       setProfile(null)
       setProfileError(formatError(err))
@@ -70,12 +77,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!isSupabaseConfigured || !supabase) return
       const { error } = await supabase.auth.signOut()
       if (error) throw error
-    } finally {
+    } catch (err) {
       logoutInFlightRef.current = false
       setLoggingOut(false)
-      finishLoading()
+      throw err
     }
-  }, [clearLocalAuth, finishLoading])
+    /* Keep loggingOut true until SIGNED_OUT or navigation — avoids protected-route flash. */
+  }, [clearLocalAuth])
 
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) {
@@ -100,7 +108,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         })
         .catch(() => {
-          /* still unblock the app */
+          if (mounted) {
+            setAuthError('We could not connect to ForFuture. Please check your connection and try again.')
+          }
         })
         .finally(() => {
           if (mounted) finishLoading()
@@ -127,6 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (event === 'SIGNED_OUT') {
         clearLocalAuth()
+        clearUserSessionCache()
         setLoggingOut(false)
         logoutInFlightRef.current = false
         finishLoading()
@@ -154,22 +165,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [loadProfile, finishLoading, clearLocalAuth])
 
+  const authReady = !loading && !loggingOut
+
   const value = useMemo(
     () => ({
       session,
       user: session?.user ?? null,
       profile,
       loading,
+      authReady,
       configured: isSupabaseConfigured,
       authError,
       profileError,
-      isGuest: !loading && !loggingOut && !session?.user,
-      isMember: !loading && !loggingOut && Boolean(session?.user),
+      isGuest: authReady && !session?.user,
+      isMember: authReady && Boolean(session?.user),
+      role: (profile?.is_admin ? 'admin' : 'user') as 'admin' | 'user',
+      isAdmin: Boolean(profile?.is_admin),
       loggingOut,
       refreshProfile,
       logout,
     }),
-    [session, profile, loading, loggingOut, authError, profileError, refreshProfile, logout],
+    [session, profile, loading, authReady, loggingOut, authError, profileError, refreshProfile, logout],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

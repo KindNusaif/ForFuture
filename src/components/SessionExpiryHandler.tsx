@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useToast } from '../hooks/useToast'
+import { authStateFromPath } from '../lib/authReturn'
 import { SESSION_EXPIRED_EVENT } from '../lib/sessionErrors'
 
 const PUBLIC_PATHS = new Set([
@@ -47,7 +48,7 @@ export default function SessionExpiryHandler() {
       const returnTo = location.pathname + location.search
       navigate('/login', {
         replace: true,
-        state: returnTo && returnTo !== '/' ? { from: returnTo } : undefined,
+        state: returnTo && returnTo !== '/' ? authStateFromPath(returnTo) : undefined,
       })
 
       window.setTimeout(() => {

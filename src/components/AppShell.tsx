@@ -49,14 +49,14 @@ export default function AppShell({ children }: { children?: ReactNode }) {
     if (loggingOut) return
     try {
       await logout()
-      navigate('/', { replace: true })
     } catch {
-      navigate('/', { replace: true })
       toast.error(
         t('auth.logoutFailed', {
           defaultValue: "We couldn't log you out. Please try again.",
         }),
       )
+    } finally {
+      navigate('/', { replace: true })
     }
   }
 

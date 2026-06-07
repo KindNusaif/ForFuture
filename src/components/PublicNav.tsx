@@ -26,7 +26,7 @@ function mobileNavClass(isActive: boolean): string {
 
 export default function PublicNav() {
   const [open, setOpen] = useState(false)
-  const { isMember, loading, loggingOut } = useAuth()
+  const { isMember, authReady } = useAuth()
   const { t } = useTranslation()
   const menuPanelId = useId()
   const location = useLocation()
@@ -46,7 +46,6 @@ export default function PublicNav() {
 
   const isLovableHome = location.pathname === '/'
   const isMarketingRoute = isPublicMarketingRoute(location.pathname)
-  const authReady = !loading && !loggingOut
   const signedIn = authReady && isMember
   const showMarketingCenterNav = isMarketingRoute
   const showAppQuickLinks = !isMarketingRoute && authReady && signedIn

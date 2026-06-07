@@ -12,12 +12,14 @@ import { isSupabaseConfigured } from '../lib/supabase'
 import { mapSignupValidationMessage } from '../lib/mapSignupValidation'
 import { validateSignup } from '../lib/validation'
 import { resolveAuthReturn } from '../lib/authReturn'
+import { useAuth } from '../hooks/useAuth'
 
 const RESEND_COOLDOWN_MS = 60_000
 
 export default function Signup() {
   const { t } = useTranslation()
   const location = useLocation()
+  const { user } = useAuth()
   const from = resolveAuthReturn(location.state)
 
   const [displayName, setDisplayName] = useState('')
@@ -52,6 +54,12 @@ export default function Signup() {
     }, RESEND_COOLDOWN_MS)
   }
 
+  useEffect(() => {
+    if (user && loading) {
+      setLoading(false)
+    }
+  }, [user, loading])
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (loading || pendingEmail) return
@@ -76,22 +84,25 @@ export default function Signup() {
     }
 
     setLoading(true)
+    const loadingGuard = window.setTimeout(() => setLoading(false), 20_000)
     try {
       const result = await signUp(trimmedEmail, password, name)
 
       if (result.needsEmailConfirmation) {
         setPendingEmail(trimmedEmail)
         setLoading(false)
+        window.clearTimeout(loadingGuard)
         return
       }
 
       setSuccess(t('auth.signupSuccess'))
-      setLoading(false)
       /* GuestRoute redirects when AuthContext receives the new session. */
     } catch (err) {
       setLastError(err)
       setError(mapAuthError(err, 'signup', t))
       setLoading(false)
+    } finally {
+      window.clearTimeout(loadingGuard)
     }
   }
 

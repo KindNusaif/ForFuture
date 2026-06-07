@@ -9,7 +9,7 @@ import { sanitizeErrorForDisplay } from '../lib/supabaseErrors'
 
 export default function ProtectedRoute({ children }: { children: ReactNode }) {
   const { t } = useTranslation()
-  const { user, loading, loggingOut, configured, authError, profileError } = useAuth()
+  const { user, loading, authReady, loggingOut, configured, authError, profileError } = useAuth()
   const location = useLocation()
   const { showSlowHint, showRecovery } = useLoadingProgress(loading && !authError)
 
@@ -31,7 +31,7 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
     )
   }
 
-  if (loading) {
+  if (loading || !authReady) {
     return <SessionBootstrapLoader showSlowHint={showSlowHint} showRecovery={showRecovery} minHeight="screen" />
   }
 

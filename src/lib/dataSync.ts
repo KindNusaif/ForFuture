@@ -107,3 +107,11 @@ export function notifyCommentsChanged(
 ): void {
   emitDataSync({ type: 'comments:changed', postId, contentType })
 }
+
+/** Clears in-memory dedupe state and notifies mounted views to drop user-specific data. */
+export function resetDataSyncState(): void {
+  recentEvents.clear()
+  emitDataSync({ type: 'feed:invalidate' })
+  emitDataSync({ type: 'polls:invalidate' })
+  emitDataSync({ type: 'follows:invalidate' })
+}

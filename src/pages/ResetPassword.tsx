@@ -9,13 +9,15 @@ import {
 } from '../components/auth/AuthPremium'
 import AuthPasswordHelper from '../components/auth/AuthPasswordHelper'
 import { usePasswordRecoverySession } from '../hooks/usePasswordRecoverySession'
-import { signOut, updatePassword } from '../lib/auth'
+import { useAuth } from '../hooks/useAuth'
+import { updatePassword } from '../lib/auth'
 import { mapAuthError } from '../lib/authUserMessages'
 import { isSupabaseConfigured } from '../lib/supabase'
 import { hasPasswordResetErrors, validatePasswordReset } from '../lib/validation'
 
 export default function ResetPassword() {
   const { t } = useTranslation()
+  const { logout } = useAuth()
   const recoveryStatus = usePasswordRecoverySession()
   const reactId = useId()
   const passId = `${reactId}-pw`
@@ -47,7 +49,7 @@ export default function ResetPassword() {
     setError(null)
     try {
       await updatePassword(password)
-      await signOut()
+      await logout()
       setSuccess(true)
     } catch (err) {
       setError(mapAuthError(err, 'passwordReset', t) || t('auth.resetUpdateFailed'))
