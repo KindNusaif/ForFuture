@@ -33,7 +33,7 @@ create or replace function public.is_platform_admin()
 returns boolean
 language sql
 stable
-security definer
+security invoker
 set search_path = pg_catalog, public
 as $$
   select coalesce(
@@ -43,6 +43,7 @@ as $$
 $$;
 
 revoke all on function public.is_platform_admin() from public;
+revoke all on function public.is_platform_admin() from anon;
 grant execute on function public.is_platform_admin() to authenticated;
 
 -- =============================================================================
@@ -198,7 +199,7 @@ returns table (
 )
 language plpgsql
 stable
-security definer
+security invoker
 set search_path = pg_catalog, public, private
 as $$
 begin
@@ -250,7 +251,7 @@ create or replace function public.admin_update_content_report(
 )
 returns void
 language plpgsql
-security definer
+security invoker
 set search_path = pg_catalog, public
 as $$
 begin
@@ -279,7 +280,9 @@ end;
 $$;
 
 revoke all on function public.admin_get_moderation_queue() from public;
+revoke all on function public.admin_get_moderation_queue() from anon;
 revoke all on function public.admin_update_content_report(uuid, text, text) from public;
+revoke all on function public.admin_update_content_report(uuid, text, text) from anon;
 grant execute on function public.admin_get_moderation_queue() to authenticated;
 grant execute on function public.admin_update_content_report(uuid, text, text) to authenticated;
 

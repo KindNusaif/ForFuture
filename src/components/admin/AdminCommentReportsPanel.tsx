@@ -56,7 +56,9 @@ export default function AdminCommentReportsPanel() {
   ) {
     setUpdatingId(item.id)
     try {
-      await updateCommentModerationReport(item.id, status, commentStatus)
+      await updateCommentModerationReport(item.id, status, commentStatus, {
+        contentId: item.content_id,
+      })
       await load()
     } catch (err) {
       setError(formatError(err))

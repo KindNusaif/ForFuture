@@ -83,11 +83,9 @@ grant insert, delete on public.movement_attachments to authenticated;
 -- 4. Storage policies — path: {userId}/{movementId}/{filename}
 -- =============================================================================
 
+-- Public bucket URLs work without a broad SELECT policy (avoids bucket listing).
+
 drop policy if exists "Public read movement images" on storage.objects;
-create policy "Public read movement images"
-  on storage.objects for select
-  to anon, authenticated
-  using (bucket_id = 'movement-images');
 
 drop policy if exists "Authenticated upload movement images" on storage.objects;
 create policy "Authenticated upload movement images"
@@ -108,10 +106,6 @@ create policy "Owners delete movement images"
   );
 
 drop policy if exists "Public read movement documents" on storage.objects;
-create policy "Public read movement documents"
-  on storage.objects for select
-  to anon, authenticated
-  using (bucket_id = 'movement-documents');
 
 drop policy if exists "Authenticated upload movement documents" on storage.objects;
 create policy "Authenticated upload movement documents"
@@ -131,7 +125,6 @@ create policy "Owners delete movement documents"
     and (storage.foldername(name))[1] = auth.uid()::text
   );
 
-grant select on storage.objects to anon, authenticated;
 grant insert, delete on storage.objects to authenticated;
 
 notify pgrst, 'reload schema';

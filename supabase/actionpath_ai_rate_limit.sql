@@ -16,7 +16,20 @@ create table if not exists public.actionpath_ai_usage (
 
 alter table public.actionpath_ai_usage enable row level security;
 
--- No policies: authenticated clients cannot read/write; edge function uses service role.
+-- Block direct PostgREST access; edge function (service role) and RPCs use elevated access.
+drop policy if exists "Block anon access to actionpath ai usage" on public.actionpath_ai_usage;
+create policy "Block anon access to actionpath ai usage"
+  on public.actionpath_ai_usage for all
+  to anon
+  using (false)
+  with check (false);
+
+drop policy if exists "Block authenticated direct access to actionpath ai usage" on public.actionpath_ai_usage;
+create policy "Block authenticated direct access to actionpath ai usage"
+  on public.actionpath_ai_usage for all
+  to authenticated
+  using (false)
+  with check (false);
 
 create index if not exists idx_actionpath_ai_usage_last_request
   on public.actionpath_ai_usage (last_request_at desc);

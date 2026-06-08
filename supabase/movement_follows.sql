@@ -20,7 +20,9 @@ create index if not exists idx_movement_follows_created_at
   on public.movement_follows (created_at desc);
 
 -- Public aggregate counts (no user ids exposed in API usage pattern)
-create or replace view public.movement_follower_counts as
+create or replace view public.movement_follower_counts
+with (security_invoker = true)
+as
 select
   movement_id,
   count(*)::int as follower_count

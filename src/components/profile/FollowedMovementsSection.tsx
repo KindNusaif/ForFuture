@@ -3,9 +3,11 @@ import { Link } from 'react-router-dom'
 import { BellRing, Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useDataSync } from '../../hooks/useDataSync'
+import { useRouteFocusRefetch } from '../../hooks/useRouteFocusRefetch'
 import { useVisibilityRefetch } from '../../hooks/useVisibilityRefetch'
 import { fetchFollowedMovementIds } from '../../lib/movementFollows'
-import { fetchPostsPage } from '../../lib/posts'
+import { fetchPostById, fetchPostsPage } from '../../lib/posts'
+import { upsertById } from '../../lib/listUtils'
 import { formatError } from '../../lib/errors'
 import type { Post } from '../../types'
 
@@ -54,12 +56,38 @@ export default function FollowedMovementsSection({ userId }: FollowedMovementsSe
   useDataSync((event) => {
     if (event.type === 'follows:invalidate') {
       void load({ silent: postsRef.current.length > 0 })
+      return
+    }
+    if (event.type === 'post:created') {
+      void load({ silent: postsRef.current.length > 0 })
+      return
+    }
+    if (event.type === 'post:deleted') {
+      setPosts((prev) => prev.filter((p) => p.id !== event.postId))
+      return
+    }
+    if (event.type === 'post:updated') {
+      const inList = postsRef.current.some((p) => p.id === event.postId)
+      if (!inList) return
+      void (async () => {
+        try {
+          const updated = await fetchPostById(event.postId, userId)
+          if (updated) {
+            setPosts((prev) => upsertById(prev, updated))
+          }
+        } catch {
+          /* keep preview row */
+        }
+      })()
     }
   })
 
-  useVisibilityRefetch(() => {
+  const silentReload = useCallback(() => {
     void load({ silent: postsRef.current.length > 0 })
-  }, { enabled: !loading && posts.length > 0 })
+  }, [load])
+
+  useVisibilityRefetch(silentReload, { enabled: !loading })
+  useRouteFocusRefetch(silentReload, { pathPrefixes: ['/profile'], enabled: !loading })
 
   return (
     <section className="card-surface mt-8 p-5 sm:p-6" aria-labelledby="followed-movements-heading">

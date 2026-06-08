@@ -1682,10 +1682,6 @@ grant insert, delete on public.movement_attachments to authenticated;
 -- =============================================================================
 
 drop policy if exists "Public read movement images" on storage.objects;
-create policy "Public read movement images"
-  on storage.objects for select
-  to anon, authenticated
-  using (bucket_id = 'movement-images');
 
 drop policy if exists "Authenticated upload movement images" on storage.objects;
 create policy "Authenticated upload movement images"
@@ -1706,10 +1702,6 @@ create policy "Owners delete movement images"
   );
 
 drop policy if exists "Public read movement documents" on storage.objects;
-create policy "Public read movement documents"
-  on storage.objects for select
-  to anon, authenticated
-  using (bucket_id = 'movement-documents');
 
 drop policy if exists "Authenticated upload movement documents" on storage.objects;
 create policy "Authenticated upload movement documents"

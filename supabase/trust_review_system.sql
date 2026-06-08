@@ -282,7 +282,7 @@ returns table (
   organizer_verified_at timestamptz
 )
 language plpgsql
-security definer
+security invoker
 set search_path = pg_catalog, public
 as $$
 begin
@@ -316,7 +316,7 @@ create or replace function public.admin_update_organizer_verification(
 )
 returns void
 language plpgsql
-security definer
+security invoker
 set search_path = pg_catalog, public
 as $$
 begin
@@ -372,7 +372,7 @@ returns table (
   owner_is_verified_organizer boolean
 )
 language plpgsql
-security definer
+security invoker
 set search_path = pg_catalog, private, public
 as $$
 begin
@@ -419,7 +419,7 @@ create or replace function public.admin_update_campaign_review(
 )
 returns void
 language plpgsql
-security definer
+security invoker
 set search_path = pg_catalog, private, public
 as $$
 begin
@@ -466,9 +466,20 @@ begin
 end;
 $$;
 
+revoke all on function public.admin_search_profiles_for_trust(text) from public;
+revoke all on function public.admin_search_profiles_for_trust(text) from anon;
 grant execute on function public.admin_search_profiles_for_trust(text) to authenticated;
+
+revoke all on function public.admin_update_organizer_verification(uuid, boolean, text) from public;
+revoke all on function public.admin_update_organizer_verification(uuid, boolean, text) from anon;
 grant execute on function public.admin_update_organizer_verification(uuid, boolean, text) to authenticated;
+
+revoke all on function public.admin_get_campaign_review_queue(text, text) from public;
+revoke all on function public.admin_get_campaign_review_queue(text, text) from anon;
 grant execute on function public.admin_get_campaign_review_queue(text, text) to authenticated;
+
+revoke all on function public.admin_update_campaign_review(uuid, text, text, text) from public;
+revoke all on function public.admin_update_campaign_review(uuid, text, text, text) from anon;
 grant execute on function public.admin_update_campaign_review(uuid, text, text, text) to authenticated;
 
 notify pgrst, 'reload schema';

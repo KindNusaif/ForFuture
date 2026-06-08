@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useDataSync } from './useDataSync'
+import { useVisibilityRefetch } from './useVisibilityRefetch'
 import { formatError } from '../lib/errors'
 import { fetchRelatedPosts } from '../lib/posts'
 import { isRequestAborted } from '../lib/supabaseRequest'
@@ -14,12 +16,17 @@ export function useRelatedMovements(
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const requestIdRef = useRef(0)
+  const postsRef = useRef(posts)
 
-  const load = useCallback(async () => {
+  useEffect(() => {
+    postsRef.current = posts
+  }, [posts])
+
+  const load = useCallback(async (options?: { silent?: boolean }) => {
     if (!postId || !category || !enabled) return
 
     const requestId = ++requestIdRef.current
-    setLoading(true)
+    if (!options?.silent) setLoading(true)
     setError(null)
 
     try {
@@ -37,6 +44,30 @@ export function useRelatedMovements(
   useEffect(() => {
     void load()
   }, [load])
+
+  const silentReload = useCallback(() => {
+    void load({ silent: postsRef.current.length > 0 })
+  }, [load])
+
+  useDataSync(
+    (event) => {
+      if (event.type === 'post:updated') {
+        if (
+          event.postId === postId ||
+          postsRef.current.some((row) => row.id === event.postId)
+        ) {
+          silentReload()
+        }
+        return
+      }
+      if (event.type === 'post:created' || event.type === 'feed:invalidate') {
+        silentReload()
+      }
+    },
+    enabled,
+  )
+
+  useVisibilityRefetch(silentReload, { enabled: enabled && !loading && posts.length > 0 })
 
   return { posts, loading, error, reload: load }
 }

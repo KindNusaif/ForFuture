@@ -29,6 +29,7 @@ import {
   loadCreateMovementDraft,
   saveCreateMovementDraft,
 } from '../lib/createMovementDraft'
+import { notifyPollPublished, notifyPostUpdated } from '../lib/dataSync'
 import { createPost } from '../lib/posts'
 import { ensureYouthVoiceId } from '../lib/auth'
 import { formatError } from '../lib/errors'
@@ -495,6 +496,11 @@ export default function CreatePost() {
         } finally {
           setUploadingMedia(false)
         }
+        notifyPostUpdated(post.id)
+      }
+
+      if (isPoll) {
+        notifyPollPublished(post.id, user.id)
       }
 
       if (useWizardMode) {

@@ -6,6 +6,7 @@ import {
   MOVEMENT_IMAGES_BUCKET,
   type MediaKind,
 } from './mediaConfig'
+import { notifyPostUpdated } from './dataSync'
 import { enhanceSupabaseError, isMissingRelation } from './supabaseErrors'
 import { requireSupabase } from './supabase'
 import { chunkIds, DEFAULT_REQUEST_TIMEOUT_MS, withTimeout } from './supabaseRequest'
@@ -244,6 +245,7 @@ export async function uploadMovementAttachments(input: {
     rows.push(mapAttachmentRow(data as Record<string, unknown>))
   }
 
+  notifyPostUpdated(input.movementId)
   return rows
 }
 
@@ -287,4 +289,5 @@ export async function deleteMovementAttachment(attachment: MovementAttachment): 
   await client.storage.from(attachment.storage_bucket).remove([attachment.storage_path])
   const { error } = await client.from('movement_attachments').delete().eq('id', attachment.id)
   if (error) throw enhanceSupabaseError(error)
+  notifyPostUpdated(attachment.movement_id)
 }

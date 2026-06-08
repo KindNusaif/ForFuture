@@ -1,5 +1,6 @@
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { emitDataSync } from './dataSync'
+import { invalidateFeedCache } from './feedTabCache'
 import { isSupabaseConfigured, supabase } from './supabase'
 import type { MovementType } from '../types'
 
@@ -58,6 +59,7 @@ function buildChannel(client: NonNullable<typeof supabase>): RealtimeChannel {
           user_id?: string
         }
         if (!row?.id || !row.user_id || !row.movement_type) return
+        invalidateFeedCache()
         emitDataSync({
           type: 'post:created',
           postId: row.id,
@@ -83,7 +85,12 @@ function buildChannel(client: NonNullable<typeof supabase>): RealtimeChannel {
       (payload) => {
         const row = payload.old as { id?: string; user_id?: string }
         if (!row?.id) return
+        invalidateFeedCache()
         emitDataSync({ type: 'post:deleted', postId: row.id, userId: row.user_id })
+        emitDataSync({ type: 'polls:invalidate' })
+        if (row.user_id) {
+          emitDataSync({ type: 'profile:invalidate', userId: row.user_id })
+        }
         schedule('feed:all')
       },
     )

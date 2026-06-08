@@ -21,6 +21,7 @@ export type DataSyncEvent =
       postId: string
       contentType?: 'movement' | 'inspire'
     }
+  | { type: 'poll:published'; postId: string; userId: string }
 
 type Listener = (event: DataSyncEvent) => void
 
@@ -80,6 +81,9 @@ export function notifyPostCreated(post: {
     userId: post.user_id,
   })
   emitDataSync({ type: 'profile:invalidate', userId: post.user_id })
+  if (post.movement_type === 'quick_youth_poll') {
+    emitDataSync({ type: 'polls:invalidate' })
+  }
 }
 
 export function notifyPostDeleted(postId: string, userId?: string): void {
@@ -108,10 +112,17 @@ export function notifyCommentsChanged(
   emitDataSync({ type: 'comments:changed', postId, contentType })
 }
 
+/** After poll publish — prepend on polls page without waiting for full refetch. */
+export function notifyPollPublished(postId: string, userId: string): void {
+  emitDataSync({ type: 'poll:published', postId, userId })
+}
+
 /** Clears in-memory dedupe state and notifies mounted views to drop user-specific data. */
 export function resetDataSyncState(): void {
   recentEvents.clear()
   emitDataSync({ type: 'feed:invalidate' })
   emitDataSync({ type: 'polls:invalidate' })
   emitDataSync({ type: 'follows:invalidate' })
+  emitDataSync({ type: 'profile:invalidate' })
+  emitDataSync({ type: 'inspire:invalidate' })
 }

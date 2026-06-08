@@ -13,7 +13,9 @@ import { useToast } from '../hooks/useToast'
 import AsyncLoadHint from '../components/AsyncLoadHint'
 import { useJoinMovement } from '../hooks/useJoinMovement'
 import { useAuthUser } from '../hooks/useAuthUser'
+import { useDataSync } from '../hooks/useDataSync'
 import { useMovementDetail } from '../hooks/useMovementDetail'
+import { useRouteFocusRefetch } from '../hooks/useRouteFocusRefetch'
 import { useVisibilityRefetch } from '../hooks/useVisibilityRefetch'
 import { useLoadingProgress } from '../hooks/useLoadingProgress'
 import { castPollVote } from '../lib/polls'
@@ -76,6 +78,18 @@ function MovementDetailContent({
   const { showSlowHint, showRecovery } = useLoadingProgress(showPageLoading)
 
   useVisibilityRefetch(reload, { enabled: !showPageLoading && Boolean(post) })
+  useRouteFocusRefetch(reload, {
+    pathPrefixes: ['/feed', '/explore', '/movements'],
+    enabled: !showPageLoading && Boolean(post),
+  })
+
+  useDataSync(
+    (event) => {
+      if (event.type !== 'follows:invalidate' || !post?.id || isGuest) return
+      void movementFollows.refreshCountsForPosts([post.id])
+    },
+    Boolean(post) && !showPageLoading,
+  )
 
   const relatedDetailBase = isGuest ? '/explore' : '/feed'
   const { posts: relatedPosts, loading: relatedLoading } = useRelatedMovements(

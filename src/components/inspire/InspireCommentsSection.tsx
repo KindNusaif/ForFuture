@@ -16,6 +16,7 @@ import {
 } from '../../lib/comments'
 import { authStateFromPath, buildAuthReturn } from '../../lib/authReturn'
 import { formatError } from '../../lib/errors'
+import { upsertById } from '../../lib/listUtils'
 import CommentComposer from '../comments/CommentComposer'
 import CommentList from '../comments/CommentList'
 
@@ -91,7 +92,7 @@ export default function InspireCommentsSection({
 
   const [runCreate, creating] = useAsyncAction(async (body: string) => {
     const created = await createComment(inspirePostId, body, 'inspire')
-    setComments((prev) => [created, ...prev])
+    setComments((prev) => upsertById(prev, created, { prepend: true }))
     syncCount(count + 1)
     toast.success(t('comments.posted', { defaultValue: 'Comment posted.' }))
   })

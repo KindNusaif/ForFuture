@@ -7,6 +7,7 @@ import { useDataSync } from '../../hooks/useDataSync'
 import { useToast } from '../../hooks/useToast'
 import { useAuthGate } from '../../hooks/useAuthGate'
 import { useJoinMovement } from '../../hooks/useJoinMovement'
+import { upsertById } from '../../lib/listUtils'
 import { canPostHaveComments } from '../../lib/commentEligibility'
 import {
   COMMENT_PAGE_SIZE,
@@ -114,8 +115,11 @@ export default function CommentsSection({
 
   const [runCreate, creating] = useAsyncAction(async (body: string) => {
     const created = await createComment(post.id, body)
-    setComments((prev) => [created, ...prev])
+    setComments((prev) => upsertById(prev, created, { prepend: true }))
     syncCount(count + 1)
+    toast.success(
+      t('comments.postedToast', { defaultValue: 'Comment posted.' }),
+    )
   })
 
   function handleDeleted(commentId: string) {

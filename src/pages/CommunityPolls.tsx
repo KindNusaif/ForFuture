@@ -16,6 +16,7 @@ import { useAuthGate } from '../hooks/useAuthGate'
 import { useCreatePoll } from '../hooks/useCreatePoll'
 import { useToast } from '../hooks/useToast'
 import { useDataSync } from '../hooks/useDataSync'
+import { useRouteFocusRefetch } from '../hooks/useRouteFocusRefetch'
 import { useVisibilityRefetch } from '../hooks/useVisibilityRefetch'
 import { safeList, upsertById } from '../lib/listUtils'
 import { castPollVote } from '../lib/polls'
@@ -133,10 +134,20 @@ export default function CommunityPolls({ mode = 'member' }: CommunityPollsProps)
   }, [loadPage])
 
   const prependPoll = useCallback(
-    async (post: Post) => {
+    async (postOrId: Post | string) => {
+      const postId = typeof postOrId === 'string' ? postOrId : postOrId.id
       try {
-        const [enriched] = await enrichPosts([post], userId)
-        setPosts((prev) => upsertById(prev, enriched, { prepend: true }))
+        const fresh = await fetchPostById(postId, userId)
+        if (fresh?.movement_type === 'quick_youth_poll') {
+          setPosts((prev) => upsertById(prev, fresh, { prepend: true }))
+        } else if (typeof postOrId !== 'string') {
+          const [enriched] = await enrichPosts([postOrId], userId)
+          setPosts((prev) => upsertById(prev, enriched, { prepend: true }))
+        } else {
+          void loadPage(0, false, { silent: postsRef.current.length > 0 })
+          return
+        }
+        setLoading(false)
         setError(null)
       } catch {
         void loadPage(0, false, { silent: postsRef.current.length > 0 })
@@ -145,12 +156,19 @@ export default function CommunityPolls({ mode = 'member' }: CommunityPollsProps)
     [loadPage, userId],
   )
 
+  const showNewPoll = useCallback(
+    (postId: string) => {
+      setTab('mine')
+      void prependPoll(postId)
+    },
+    [prependPoll],
+  )
+
   useEffect(() => {
     return registerPollPublishedListener((post) => {
-      setTab('mine')
-      void prependPoll(post)
+      showNewPoll(post.id)
     })
-  }, [registerPollPublishedListener, prependPoll])
+  }, [registerPollPublishedListener, showNewPoll])
 
   const loadPageRef = useRef(loadPage)
   const commentEligibleIdsRef = useRef<string[]>([])
@@ -163,12 +181,24 @@ export default function CommunityPolls({ mode = 'member' }: CommunityPollsProps)
   }, [])
 
   useDataSync((event) => {
+    if (event.type === 'poll:published') {
+      if (!userId || event.userId === userId) {
+        showNewPoll(event.postId)
+      } else {
+        silentRefresh()
+      }
+      return
+    }
     if (event.type === 'polls:invalidate') {
       silentRefresh()
       return
     }
     if (event.type === 'post:created' && event.movementType === 'quick_youth_poll') {
-      silentRefresh()
+      if (userId && event.userId === userId) {
+        showNewPoll(event.postId)
+      } else {
+        silentRefresh()
+      }
       return
     }
     if (event.type === 'post:updated') {
@@ -200,6 +230,10 @@ export default function CommunityPolls({ mode = 'member' }: CommunityPollsProps)
   })
 
   useVisibilityRefetch(silentRefresh, { enabled: !loading })
+  useRouteFocusRefetch(silentRefresh, {
+    pathPrefixes: ['/polls', '/explore/polls'],
+    enabled: !loading,
+  })
 
   useEffect(() => {
     const navToast = (location.state as { toast?: { type: 'success' | 'error'; message: string; detail?: string } })

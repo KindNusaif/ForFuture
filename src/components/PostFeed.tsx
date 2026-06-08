@@ -10,6 +10,7 @@ import SafePostCard from './SafePostCard'
 import { FeedPostListSkeleton } from './Skeleton'
 import { useDataSync } from '../hooks/useDataSync'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
+import { useRouteFocusRefetch } from '../hooks/useRouteFocusRefetch'
 import { useVisibilityRefetch } from '../hooks/useVisibilityRefetch'
 import { useToast } from '../hooks/useToast'
 import { useAuthGate } from '../hooks/useAuthGate'
@@ -471,6 +472,14 @@ function PostFeedContent({
       })()
       return
     }
+    if (event.type === 'follows:invalidate') {
+      const ids = postsRef.current.map((p) => p.id)
+      if (ids.length > 0) {
+        void followsRef.current.refreshCountsForPosts(ids)
+      }
+      if (isFollowingFeed) syncRefetch()
+      return
+    }
     if (event.type === 'comments:changed') {
       if (event.contentType === 'inspire') return
       if (!commentEligibleIdsRef.current.includes(event.postId)) return
@@ -481,6 +490,10 @@ function PostFeedContent({
   })
 
   useVisibilityRefetch(syncRefetch, { enabled: !loading && !enriching })
+  useRouteFocusRefetch(syncRefetch, {
+    pathPrefixes: ['/feed', '/explore', '/movements', '/relief', '/explore/relief'],
+    enabled: !loading && !enriching,
+  })
 
   const showFeedLoading =
     (loading || (isFollowingFeed && movementFollows.loading)) && posts.length === 0

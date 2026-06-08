@@ -261,6 +261,9 @@ begin
 end;
 $$;
 
+revoke all on function public.poll_vote_after_insert() from public;
+revoke all on function public.poll_vote_after_insert() from anon, authenticated;
+
 drop trigger if exists poll_vote_after_insert on public.poll_votes;
 create trigger poll_vote_after_insert
   after insert on public.poll_votes

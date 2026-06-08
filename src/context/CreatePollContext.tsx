@@ -4,12 +4,14 @@ import CreatePollModal from '../components/polls/CreatePollModal'
 import { useAuthGate } from '../hooks/useAuthGate'
 import { useAuthUser } from '../hooks/useAuthUser'
 import { useToast } from '../hooks/useToast'
+import { notifyPollPublished } from '../lib/dataSync'
+import { enrichPosts, fetchPostById } from '../lib/posts'
 import { CreatePollContext, type PollPublishedListener } from './create-poll-context'
 import type { Post } from '../types'
 
 export function CreatePollProvider({ children }: { children: ReactNode }) {
   const { t } = useTranslation()
-  const { isMember, loading } = useAuthUser()
+  const { isMember, loading, user } = useAuthUser()
   const { gate } = useAuthGate()
   const toast = useToast()
   const [open, setOpen] = useState(false)
@@ -56,9 +58,21 @@ export function CreatePollProvider({ children }: { children: ReactNode }) {
     (post: Post) => {
       setOpen(false)
       toast.success(t('polls.publishSuccess', { defaultValue: 'Poll published successfully.' }))
-      notifyPublished(post)
+      void (async () => {
+        try {
+          const fresh = await fetchPostById(post.id, user?.id)
+          const published = fresh ?? (await enrichPosts([post], user?.id))[0] ?? post
+          const ownerId = published.user_id ?? user?.id
+          if (ownerId) notifyPollPublished(published.id, ownerId)
+          notifyPublished(published)
+        } catch {
+          const ownerId = post.user_id ?? user?.id
+          if (ownerId) notifyPollPublished(post.id, ownerId)
+          notifyPublished(post)
+        }
+      })()
     },
-    [notifyPublished, t, toast],
+    [notifyPublished, t, toast, user?.id],
   )
 
   const value = useMemo(

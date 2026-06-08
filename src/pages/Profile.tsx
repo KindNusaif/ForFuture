@@ -21,6 +21,7 @@ import { ProfileHeaderSkeleton } from '../components/Skeleton'
 import { MODERATION_FEATURE_BLURB } from '../lib/moderation'
 import { useAuth } from '../hooks/useAuth'
 import { useDataSync } from '../hooks/useDataSync'
+import { useRouteFocusRefetch } from '../hooks/useRouteFocusRefetch'
 import { useVisibilityRefetch } from '../hooks/useVisibilityRefetch'
 import { removeById, upsertById } from '../lib/listUtils'
 import { useLoadingProgress } from '../hooks/useLoadingProgress'
@@ -117,6 +118,10 @@ function ProfileContent({ userId, email }: { userId: string; email?: string | nu
       void reloadMovements(allPosts.length > 0)
       return
     }
+    if (event.type === 'polls:invalidate') {
+      void reloadMovements(allPosts.length > 0)
+      return
+    }
     if (event.type === 'post:deleted') {
       setAllPosts((prev) => removeById(prev, event.postId))
       return
@@ -139,6 +144,13 @@ function ProfileContent({ userId, email }: { userId: string; email?: string | nu
   useVisibilityRefetch(() => {
     void reloadMovements(allPosts.length > 0)
   })
+
+  useRouteFocusRefetch(
+    () => {
+      void reloadMovements(allPosts.length > 0)
+    },
+    { pathPrefixes: ['/profile'], enabled: !movementsLoading },
+  )
 
   async function saveBio() {
     if (bioSaveStatus === 'saving') return

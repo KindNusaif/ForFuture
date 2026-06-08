@@ -327,6 +327,7 @@ export async function updateCommentModerationReport(
   reportId: string,
   status: CommentReportStatus,
   commentStatus?: CommentStatus,
+  options?: { contentId?: string | null },
 ): Promise<void> {
   const client = requireSupabase()
   const { error } = await withTimeout(
@@ -338,6 +339,9 @@ export async function updateCommentModerationReport(
     DEFAULT_REQUEST_TIMEOUT_MS,
   )
   if (error) throw enhanceSupabaseError(error)
+  if (options?.contentId) {
+    notifyCommentsChanged(options.contentId, 'movement')
+  }
 }
 
 /** Allow editing own comments within 30 minutes of posting. */

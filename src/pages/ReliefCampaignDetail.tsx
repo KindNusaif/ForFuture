@@ -6,6 +6,9 @@ import MovementDetailView from '../components/movement/MovementDetailView'
 import ReliefCampaignTrustPanel from '../components/relief/ReliefCampaignTrustPanel'
 import ReliefUpdatesTimeline from '../components/relief/ReliefUpdatesTimeline'
 import { useAuth } from '../hooks/useAuth'
+import { useDataSync } from '../hooks/useDataSync'
+import { useRouteFocusRefetch } from '../hooks/useRouteFocusRefetch'
+import { useVisibilityRefetch } from '../hooks/useVisibilityRefetch'
 import { fetchPostById } from '../lib/posts'
 import { fetchReliefCampaignUpdates } from '../lib/reliefUpdates'
 import { isReliefPost, getReliefDisplaySubtype } from '../lib/reliefHub'
@@ -31,10 +34,12 @@ export default function ReliefCampaignDetail({ mode = 'member' }: ReliefCampaign
   const [error, setError] = useState<string | null>(null)
   const [updates, setUpdates] = useState<Awaited<ReturnType<typeof fetchReliefCampaignUpdates>>>([])
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (options?: { silent?: boolean }) => {
     if (!id) return
-    setLoading(true)
-    setError(null)
+    if (!options?.silent) {
+      setLoading(true)
+      setError(null)
+    }
     try {
       const row = await fetchPostById(id, user?.id)
       if (!row || !isReliefPost(row)) {
@@ -46,15 +51,37 @@ export default function ReliefCampaignDetail({ mode = 'member' }: ReliefCampaign
       const timeline = await fetchReliefCampaignUpdates(id).catch(() => [])
       setUpdates(timeline)
     } catch {
-      setError(t('reliefHub.loadError'))
+      if (!options?.silent) setError(t('reliefHub.loadError'))
     } finally {
-      setLoading(false)
+      if (!options?.silent) setLoading(false)
     }
   }, [id, user?.id, t])
 
   useEffect(() => {
     void load()
   }, [load])
+
+  const silentReload = useCallback(() => {
+    void load({ silent: true })
+  }, [load])
+
+  useDataSync((event) => {
+    if (!id) return
+    if (event.type === 'post:updated' && event.postId === id) {
+      silentReload()
+      return
+    }
+    if (event.type === 'post:deleted' && event.postId === id) {
+      setPost(null)
+      setError(t('reliefHub.campaignNotFound'))
+    }
+  })
+
+  useVisibilityRefetch(silentReload, { enabled: Boolean(id) && !loading })
+  useRouteFocusRefetch(silentReload, {
+    pathPrefixes: ['/relief', '/explore/relief'],
+    enabled: Boolean(id) && !loading,
+  })
 
   if (loading) {
     return (

@@ -1,3 +1,4 @@
+import { notifyPostUpdated } from './dataSync'
 import { requireSupabase } from './supabase'
 import { withTimeout, DEFAULT_REQUEST_TIMEOUT_MS } from './supabaseRequest'
 
@@ -60,5 +61,6 @@ export async function createReliefCampaignUpdate(input: {
     DEFAULT_REQUEST_TIMEOUT_MS,
   )
   if (error) throw error
+  notifyPostUpdated(input.postId)
   return data as ReliefCampaignUpdate
 }

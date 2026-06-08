@@ -1,9 +1,72 @@
--- ForFuture: Youth Impact Pulse — public aggregate dashboard metrics
--- Run after fix_database.sql, trust_review_system.sql, donation_relief_hub.sql
--- Safe to re-run (idempotent)
+-- Fix Supabase Database Linter security warnings (0025, 0028, 0029)
+-- Safe to re-run in Supabase SQL Editor.
+--
+-- 1. Public buckets: remove broad SELECT policies that allow listing all objects.
+-- 2. SECURITY DEFINER RPCs: switch to SECURITY INVOKER + RLS, or revoke API execute.
+-- 3. Trigger helpers: revoke execute from anon/authenticated (not callable via PostgREST).
 
 -- =============================================================================
--- Helper — aggregate count not visible to anon via RLS (private schema, not in API)
+-- 1. Storage — public buckets do not need SELECT policies for direct URLs
+-- =============================================================================
+
+drop policy if exists "Public read movement images" on storage.objects;
+drop policy if exists "Public read movement documents" on storage.objects;
+
+-- =============================================================================
+-- 2. RLS — admin + invoker helpers need broader profile/post access for admins
+-- =============================================================================
+
+create or replace function public.is_platform_admin()
+returns boolean
+language sql
+stable
+security invoker
+set search_path = pg_catalog, public
+as $$
+  select coalesce(
+    (select p.is_admin from public.profiles p where p.id = (select auth.uid())),
+    false
+  );
+$$;
+
+revoke all on function public.is_platform_admin() from public;
+revoke all on function public.is_platform_admin() from anon;
+grant execute on function public.is_platform_admin() to authenticated;
+
+drop policy if exists "Profiles select own or verified badges" on public.profiles;
+create policy "Profiles select own or verified badges"
+  on public.profiles for select to anon, authenticated
+  using (
+    (select auth.uid()) = id
+    or coalesce(is_verified_organization, false) = true
+    or coalesce(is_verified_organizer, false) = true
+    or public.is_platform_admin()
+  );
+
+drop policy if exists "Admins update profiles for trust verification" on public.profiles;
+create policy "Admins update profiles for trust verification"
+  on public.profiles for update to authenticated
+  using (public.is_platform_admin())
+  with check (public.is_platform_admin());
+
+do $$
+begin
+  if exists (
+    select 1 from pg_tables where schemaname = 'private' and tablename = 'posts'
+  ) then
+    execute 'drop policy if exists "Admins update posts for campaign review" on private.posts';
+    execute $p$
+      create policy "Admins update posts for campaign review"
+        on private.posts for update to authenticated
+        using (public.is_platform_admin())
+        with check (public.is_platform_admin())
+    $p$;
+  end if;
+end;
+$$;
+
+-- =============================================================================
+-- 3. Internal helper (private schema — not exposed via PostgREST)
 -- =============================================================================
 
 create or replace function private.count_processed_content_reports()
@@ -22,8 +85,35 @@ revoke all on function private.count_processed_content_reports() from public;
 grant execute on function private.count_processed_content_reports() to anon, authenticated;
 
 -- =============================================================================
--- RPC: single public-safe JSON payload (aggregates only — no PII)
+-- 4. Public helpers — SECURITY INVOKER (safe via RLS / private helper)
 -- =============================================================================
+
+create or replace function public.post_comments_allowed(p_post_id uuid)
+returns boolean
+language sql
+stable
+security invoker
+set search_path = pg_catalog, public, private
+as $$
+  select exists (
+    select 1
+    from public.posts_public_safe p
+    where p.id = p_post_id
+      and p.posting_identity <> 'youth_voice'
+      and p.movement_type in (
+        'idea_for_change',
+        'raise_voice',
+        'peaceful_civic_action',
+        'volunteer_drive',
+        'quick_youth_poll',
+        'youth_petition'
+      )
+  );
+$$;
+
+revoke all on function public.post_comments_allowed(uuid) from public;
+revoke all on function public.post_comments_allowed(uuid) from anon;
+grant execute on function public.post_comments_allowed(uuid) to anon, authenticated;
 
 create or replace function public.get_youth_impact_pulse_dashboard()
 returns jsonb
@@ -294,6 +384,109 @@ begin
 end;
 $$;
 
+revoke all on function public.get_youth_impact_pulse_dashboard() from public;
+revoke all on function public.get_youth_impact_pulse_dashboard() from anon;
 grant execute on function public.get_youth_impact_pulse_dashboard() to anon, authenticated;
+
+-- =============================================================================
+-- 5. Admin RPCs — SECURITY INVOKER (admin gate + RLS policies above)
+-- =============================================================================
+
+alter function public.admin_get_platform_stats() security invoker;
+alter function public.admin_list_profiles(text, int, int) security invoker;
+alter function public.admin_get_recent_activity(int) security invoker;
+alter function public.admin_get_moderation_queue() security invoker;
+alter function public.admin_update_content_report(uuid, text, text) security invoker;
+alter function public.admin_get_comment_moderation_queue() security invoker;
+alter function public.admin_update_comment_report(uuid, text, text) security invoker;
+alter function public.admin_search_profiles_for_trust(text) security invoker;
+alter function public.admin_update_organizer_verification(uuid, boolean, text) security invoker;
+alter function public.admin_get_campaign_review_queue(text, text) security invoker;
+alter function public.admin_update_campaign_review(uuid, text, text, text) security invoker;
+
+-- Authenticated admins only (explicit revoke from anon)
+revoke all on function public.admin_get_platform_stats() from public;
+revoke all on function public.admin_get_platform_stats() from anon;
+grant execute on function public.admin_get_platform_stats() to authenticated;
+
+revoke all on function public.admin_list_profiles(text, int, int) from public;
+revoke all on function public.admin_list_profiles(text, int, int) from anon;
+grant execute on function public.admin_list_profiles(text, int, int) to authenticated;
+
+revoke all on function public.admin_get_recent_activity(int) from public;
+revoke all on function public.admin_get_recent_activity(int) from anon;
+grant execute on function public.admin_get_recent_activity(int) to authenticated;
+
+revoke all on function public.admin_get_moderation_queue() from public;
+revoke all on function public.admin_get_moderation_queue() from anon;
+grant execute on function public.admin_get_moderation_queue() to authenticated;
+
+revoke all on function public.admin_update_content_report(uuid, text, text) from public;
+revoke all on function public.admin_update_content_report(uuid, text, text) from anon;
+grant execute on function public.admin_update_content_report(uuid, text, text) to authenticated;
+
+revoke all on function public.admin_get_comment_moderation_queue() from public;
+revoke all on function public.admin_get_comment_moderation_queue() from anon;
+grant execute on function public.admin_get_comment_moderation_queue() to authenticated;
+
+revoke all on function public.admin_update_comment_report(uuid, text, text) from public;
+revoke all on function public.admin_update_comment_report(uuid, text, text) from anon;
+grant execute on function public.admin_update_comment_report(uuid, text, text) to authenticated;
+
+revoke all on function public.admin_search_profiles_for_trust(text) from public;
+revoke all on function public.admin_search_profiles_for_trust(text) from anon;
+grant execute on function public.admin_search_profiles_for_trust(text) to authenticated;
+
+revoke all on function public.admin_update_organizer_verification(uuid, boolean, text) from public;
+revoke all on function public.admin_update_organizer_verification(uuid, boolean, text) from anon;
+grant execute on function public.admin_update_organizer_verification(uuid, boolean, text) to authenticated;
+
+revoke all on function public.admin_get_campaign_review_queue(text, text) from public;
+revoke all on function public.admin_get_campaign_review_queue(text, text) from anon;
+grant execute on function public.admin_get_campaign_review_queue(text, text) to authenticated;
+
+revoke all on function public.admin_update_campaign_review(uuid, text, text, text) from public;
+revoke all on function public.admin_update_campaign_review(uuid, text, text, text) from anon;
+grant execute on function public.admin_update_campaign_review(uuid, text, text, text) to authenticated;
+
+-- =============================================================================
+-- 6. Trigger helper — not callable via PostgREST
+-- =============================================================================
+
+revoke all on function public.poll_vote_after_insert() from public;
+revoke all on function public.poll_vote_after_insert() from anon, authenticated;
+
+-- =============================================================================
+-- 7. Security definer view — use invoker + underlying RLS
+-- =============================================================================
+
+create or replace view public.movement_follower_counts
+with (security_invoker = true)
+as
+select
+  movement_id,
+  count(*)::int as follower_count
+from public.movement_follows
+group by movement_id;
+
+grant select on public.movement_follower_counts to anon, authenticated;
+
+-- =============================================================================
+-- 8. RLS enabled with no policies — document service-role-only table
+-- =============================================================================
+
+drop policy if exists "Block anon access to actionpath ai usage" on public.actionpath_ai_usage;
+create policy "Block anon access to actionpath ai usage"
+  on public.actionpath_ai_usage for all
+  to anon
+  using (false)
+  with check (false);
+
+drop policy if exists "Block authenticated direct access to actionpath ai usage" on public.actionpath_ai_usage;
+create policy "Block authenticated direct access to actionpath ai usage"
+  on public.actionpath_ai_usage for all
+  to authenticated
+  using (false)
+  with check (false);
 
 notify pgrst, 'reload schema';

@@ -9,7 +9,7 @@
 create or replace function public.admin_get_platform_stats()
 returns jsonb
 language plpgsql
-security definer
+security invoker
 set search_path = pg_catalog, public, private
 as $$
 declare
@@ -62,6 +62,7 @@ end;
 $$;
 
 revoke all on function public.admin_get_platform_stats() from public;
+revoke all on function public.admin_get_platform_stats() from anon;
 grant execute on function public.admin_get_platform_stats() to authenticated;
 
 -- =============================================================================
@@ -82,7 +83,7 @@ returns table (
   created_at timestamptz
 )
 language plpgsql
-security definer
+security invoker
 set search_path = pg_catalog, public
 as $$
 begin
@@ -113,6 +114,7 @@ end;
 $$;
 
 revoke all on function public.admin_list_profiles(text, int, int) from public;
+revoke all on function public.admin_list_profiles(text, int, int) from anon;
 grant execute on function public.admin_list_profiles(text, int, int) to authenticated;
 
 -- =============================================================================
@@ -127,7 +129,7 @@ returns table (
   created_at timestamptz
 )
 language plpgsql
-security definer
+security invoker
 set search_path = pg_catalog, public, private
 as $$
 begin
@@ -176,4 +178,5 @@ end;
 $$;
 
 revoke all on function public.admin_get_recent_activity(int) from public;
+revoke all on function public.admin_get_recent_activity(int) from anon;
 grant execute on function public.admin_get_recent_activity(int) to authenticated;

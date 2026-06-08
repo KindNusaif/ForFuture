@@ -10,6 +10,7 @@ import SkeletonCard from '../components/ui/SkeletonCard'
 import { useAuthUser } from '../hooks/useAuthUser'
 import { useAuthGate } from '../hooks/useAuthGate'
 import { useDataSync } from '../hooks/useDataSync'
+import { useRouteFocusRefetch } from '../hooks/useRouteFocusRefetch'
 import { useVisibilityRefetch } from '../hooks/useVisibilityRefetch'
 import { fetchCommentCount } from '../lib/comments'
 import { fetchInspirePostsPage, fetchSavedInspireIds } from '../lib/inspire'
@@ -120,6 +121,10 @@ export default function InspireHub() {
   })
 
   useVisibilityRefetch(silentRefresh, { enabled: !loading && posts.length > 0 })
+  useRouteFocusRefetch(silentRefresh, {
+    pathPrefixes: ['/inspire'],
+    enabled: !loading,
+  })
 
   useEffect(() => {
     if (posts.length === 0) return

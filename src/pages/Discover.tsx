@@ -13,6 +13,7 @@ import DiscoverImpactPreview from '../components/discover/DiscoverImpactPreview'
 import DiscoverVisitorCta from '../components/discover/DiscoverVisitorCta'
 import { useDiscoverData } from '../hooks/useDiscoverData'
 import { useDataSync } from '../hooks/useDataSync'
+import { useRouteFocusRefetch } from '../hooks/useRouteFocusRefetch'
 import { useVisibilityRefetch } from '../hooks/useVisibilityRefetch'
 import { useAuthUser } from '../hooks/useAuthUser'
 
@@ -21,12 +22,20 @@ function DiscoverGuestContent() {
   const { data, loading, error, reload } = useDiscoverData(true)
 
   useDataSync((event) => {
-    if (event.type === 'feed:invalidate' || event.type === 'post:created') {
+    if (
+      event.type === 'feed:invalidate' ||
+      event.type === 'post:created' ||
+      event.type === 'post:updated' ||
+      event.type === 'post:deleted' ||
+      event.type === 'polls:invalidate' ||
+      event.type === 'follows:invalidate'
+    ) {
       reload()
     }
   })
 
-  useVisibilityRefetch(reload, { enabled: !loading && Boolean(data) })
+  useVisibilityRefetch(reload, { enabled: !loading })
+  useRouteFocusRefetch(reload, { pathPrefixes: ['/discover'], enabled: !loading })
 
   return (
     <>

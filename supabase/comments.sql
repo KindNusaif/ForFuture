@@ -10,7 +10,7 @@ create or replace function public.post_comments_allowed(p_post_id uuid)
 returns boolean
 language sql
 stable
-security definer
+security invoker
 set search_path = pg_catalog, public, private
 as $$
   select exists (
@@ -30,6 +30,7 @@ as $$
 $$;
 
 revoke all on function public.post_comments_allowed(uuid) from public;
+revoke all on function public.post_comments_allowed(uuid) from anon;
 grant execute on function public.post_comments_allowed(uuid) to anon, authenticated;
 
 -- =============================================================================
@@ -264,7 +265,7 @@ returns table (
 )
 language plpgsql
 stable
-security definer
+security invoker
 set search_path = pg_catalog, public, private
 as $$
 begin
@@ -307,7 +308,7 @@ create or replace function public.admin_update_comment_report(
 )
 returns void
 language plpgsql
-security definer
+security invoker
 set search_path = pg_catalog, public
 as $$
 declare
@@ -345,7 +346,9 @@ end;
 $$;
 
 revoke all on function public.admin_get_comment_moderation_queue() from public;
+revoke all on function public.admin_get_comment_moderation_queue() from anon;
 revoke all on function public.admin_update_comment_report(uuid, text, text) from public;
+revoke all on function public.admin_update_comment_report(uuid, text, text) from anon;
 grant execute on function public.admin_get_comment_moderation_queue() to authenticated;
 grant execute on function public.admin_update_comment_report(uuid, text, text) to authenticated;
 
