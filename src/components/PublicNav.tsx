@@ -26,7 +26,7 @@ function mobileNavClass(isActive: boolean): string {
 
 export default function PublicNav() {
   const [open, setOpen] = useState(false)
-  const { isMember, authReady } = useAuth()
+  const { isLoggedIn, authReady, loggingOut } = useAuth()
   const { t } = useTranslation()
   const menuPanelId = useId()
   const location = useLocation()
@@ -46,9 +46,10 @@ export default function PublicNav() {
 
   const isLovableHome = location.pathname === '/'
   const isMarketingRoute = isPublicMarketingRoute(location.pathname)
-  const signedIn = authReady && isMember
+  const showAuthResolved = authReady && !loggingOut
+  const signedIn = showAuthResolved && isLoggedIn
   const showMarketingCenterNav = isMarketingRoute
-  const showAppQuickLinks = !isMarketingRoute && authReady && signedIn
+  const showAppQuickLinks = !isMarketingRoute && showAuthResolved && signedIn
   const showMarketingGuestActions = isMarketingRoute
   const showLaptopMenu = showMarketingCenterNav
 
@@ -150,7 +151,9 @@ export default function PublicNav() {
     </>
   )
 
-  const marketingDrawerAuth = signedIn ? (
+  const marketingDrawerAuth = !showAuthResolved ? (
+    <div className="public-nav-auth-placeholder h-10 w-full animate-pulse rounded-xl bg-white/10" aria-hidden />
+  ) : signedIn ? (
     <Link to="/feed" className="btn-primary mt-1 w-full" onClick={() => setOpen(false)}>
       {t('nav.myFeed')}
     </Link>
@@ -183,7 +186,12 @@ export default function PublicNav() {
     ? 'public-nav-login lovable-nav-login'
     : 'public-nav-login'
 
-  const desktopAuthActions = showAppQuickLinks ? (
+  const desktopAuthActions = !showAuthResolved ? (
+    <div className="public-nav-auth">
+      <span className="public-nav-auth-placeholder h-9 w-16 animate-pulse rounded-lg bg-white/10" aria-hidden />
+      <span className="public-nav-auth-placeholder h-9 w-24 animate-pulse rounded-lg bg-white/10" aria-hidden />
+    </div>
+  ) : showAppQuickLinks ? (
     <div className="public-nav-auth">
       <Link to="/feed" className={navLinkClass(false)}>
         {t('nav.myFeed')}

@@ -48,8 +48,8 @@ export default function LandingLovable() {
 
 function Hero() {
   const { t } = useTranslation()
-  const { isMember, authReady } = useAuth()
-  const signedIn = authReady && isMember
+  const { isLoggedIn, authReady } = useAuth()
+  const signedIn = authReady && isLoggedIn
   const hasSplitHeadline = Boolean(t('landing.heroTitleThrough') || t('landing.heroTitleAccent'))
 
   return (
@@ -742,8 +742,8 @@ function Voices() {
 
 function CTA() {
   const { t } = useTranslation()
-  const { isMember, authReady } = useAuth()
-  const signedIn = authReady && isMember
+  const { isLoggedIn, authReady } = useAuth()
+  const signedIn = authReady && isLoggedIn
 
   return (
     <section className="mx-auto max-w-7xl px-4 sm:px-6 py-28">

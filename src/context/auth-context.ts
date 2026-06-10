@@ -15,6 +15,8 @@ export interface AuthContextValue {
   profileError: string | null
   isGuest: boolean
   isMember: boolean
+  /** True when session is resolved, user is signed in, and logout is not in progress. */
+  isLoggedIn: boolean
   role: 'admin' | 'user'
   isAdmin: boolean
   /** True while sign-out is in progress (blocks protected UI and member CTAs). */

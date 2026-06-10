@@ -190,6 +190,27 @@ export function isRealtimeSyncActive(): boolean {
   return syncChannel != null && !subscribeFailed
 }
 
+/** Tear down global realtime bridge and Supabase channels on logout. */
+export function teardownRealtimeSyncBridge(): void {
+  if (flushTimer) {
+    window.clearTimeout(flushTimer)
+    flushTimer = null
+  }
+  pendingKeys.clear()
+
+  const client = supabase
+  if (client && syncChannel) {
+    void client.removeChannel(syncChannel)
+  }
+  syncChannel = null
+  started = false
+  subscribeFailed = false
+
+  if (client) {
+    client.removeAllChannels()
+  }
+}
+
 /** @deprecated Use ensureRealtimeSyncBridge — kept for DataSyncProvider mount hook. */
 export function acquireRealtimeSyncBridge(): () => void {
   ensureRealtimeSyncBridge()

@@ -39,7 +39,7 @@ export default function SessionExpiryHandler() {
 
   useEffect(() => {
     function onSessionExpired() {
-      if (handledRef.current || loading || !user) return
+      if (handledRef.current || loading || loggingOut || !user) return
       if (isPublicPath(location.pathname)) return
 
       handledRef.current = true

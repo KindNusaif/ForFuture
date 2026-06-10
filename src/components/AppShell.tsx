@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import {
   Home,
   PlusCircle,
@@ -38,9 +38,8 @@ const mobileLinkClass = ({ isActive }: { isActive: boolean }) =>
   }`
 
 export default function AppShell({ children }: { children?: ReactNode }) {
-  const { profile, logout, loggingOut } = useAuth()
+  const { profile, logout, loggingOut, isLoggedIn } = useAuth()
   const isAdmin = useIsAdmin()
-  const navigate = useNavigate()
   const location = useLocation()
   const { t } = useTranslation()
   const toast = useToast()
@@ -55,8 +54,6 @@ export default function AppShell({ children }: { children?: ReactNode }) {
           defaultValue: "We couldn't log you out. Please try again.",
         }),
       )
-    } finally {
-      navigate('/', { replace: true })
     }
   }
 
@@ -146,7 +143,7 @@ export default function AppShell({ children }: { children?: ReactNode }) {
                 )}
               </nav>
 
-              {profile && (
+              {profile && isLoggedIn && (
                 <div className="voice-id-card app-sidebar-voice mt-5 p-4">
                   <p
                     className="text-[10px] font-bold uppercase tracking-[0.12em]"
@@ -191,7 +188,7 @@ export default function AppShell({ children }: { children?: ReactNode }) {
                   <LogOut className="h-5 w-5 shrink-0" aria-hidden />
                 )}
                 {loggingOut
-                  ? t('auth.loggingOut', { defaultValue: 'Logging out…' })
+                  ? t('auth.loggingOut', { defaultValue: 'Signing out…' })
                   : t('nav.logout')}
               </button>
             </footer>

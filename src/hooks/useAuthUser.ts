@@ -11,6 +11,7 @@ export function useAuthUser() {
     configured,
     isGuest,
     isMember,
+    isLoggedIn,
     role,
     isAdmin,
   } = useAuth()
@@ -24,6 +25,7 @@ export function useAuthUser() {
     configured,
     isGuest,
     isMember,
+    isLoggedIn,
     role,
     isAdmin,
   }

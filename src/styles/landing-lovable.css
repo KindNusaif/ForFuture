@@ -115,6 +115,10 @@
   --color-ink: oklch(0.16 0.04 265);
 }
 
+.landing-lovable-shell {
+  min-height: 60vh;
+}
+
 .landing-lovable {
   --lv-radius: 0.875rem;
   --lv-navy: oklch(0.22 0.08 265);

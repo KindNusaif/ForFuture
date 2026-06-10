@@ -1,14 +1,19 @@
 import { Navigate } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
+import LogoutTransitionLoader from './auth/LogoutTransitionLoader'
 import AdminAccessDenied from './admin/AdminAccessDenied'
 import { useAuth } from '../hooks/useAuth'
 import { useIsAdmin } from '../hooks/useIsAdmin'
 
 export default function AdminRoute({ children }: { children: React.ReactNode }) {
-  const { loading, authReady, user, profile, profileError } = useAuth()
+  const { loading, authReady, loggingOut, user, profile, profileError } = useAuth()
   const isAdmin = useIsAdmin()
   const profileSettled =
     !user || profile !== null || Boolean(profileError)
+
+  if (loggingOut) {
+    return <LogoutTransitionLoader />
+  }
 
   if (loading || !authReady || (user && !profileSettled)) {
     return (

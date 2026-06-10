@@ -361,9 +361,11 @@
 @layer base {
   html {
     overflow-x: clip;
-    scroll-behavior: smooth;
+    scroll-behavior: auto;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
+    background-color: var(--ff-page-1);
   }
 
   body {

@@ -2,6 +2,9 @@ import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react'
 import { Outlet, Route, Routes, useLocation, useSearchParams } from 'react-router-dom'
 import { isPublicMarketingRoute } from './lib/publicRoutes'
 import AdminRoute from './components/AdminRoute'
+import AuthNavigationRegistrar from './components/auth/AuthNavigationRegistrar'
+import LogoutOverlay from './components/auth/LogoutOverlay'
+import ScrollRestoration from './components/ScrollRestoration'
 import JoinMovementModalHost from './components/JoinMovementModalHost'
 import Layout from './components/Layout'
 import ExploreLayout from './components/ExploreLayout'
@@ -88,6 +91,9 @@ function AppFrame({ children }: { children: ReactNode }) {
 export default function App() {
   return (
     <>
+      <AuthNavigationRegistrar />
+      <ScrollRestoration />
+      <LogoutOverlay />
       <SessionExpiryHandler />
       <JoinMovementModalHost />
       <AppFrame>
