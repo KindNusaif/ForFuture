@@ -3,13 +3,21 @@ import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { isAuthProfileReady } from '../lib/authReady'
 import { isOnboardingComplete } from '../lib/onboarding'
+import LogoutTransitionLoader from './auth/LogoutTransitionLoader'
 import PageLoader from './PageLoader'
 
 /** Redirects members who have not finished onboarding to `/onboarding`. */
 export default function OnboardingGate({ children }: { children: ReactNode }) {
-  const { user, profile, loading, profileError } = useAuth()
+  const { user, profile, loading, profileError, loggingOut, authReady } = useAuth()
   const location = useLocation()
   const profileReady = isAuthProfileReady(loading, user?.id, profile, profileError)
+
+  if (!authReady || loggingOut) {
+    if (loggingOut) {
+      return <LogoutTransitionLoader />
+    }
+    return <PageLoader />
+  }
 
   if (!profileReady) {
     return <PageLoader />

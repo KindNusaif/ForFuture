@@ -20,7 +20,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const profileUserIdRef = useRef<string | null>(null)
   const profileLoadGenRef = useRef(0)
-  const logoutInFlightRef = useRef(false)
+  const isLoggingOutRef = useRef(false)
   const mountedRef = useRef(true)
 
   const finishLoading = useCallback(() => setLoading(false), [])
@@ -69,8 +69,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [session, loadProfile])
 
   const logout = useCallback(async () => {
-    if (logoutInFlightRef.current) return
-    logoutInFlightRef.current = true
+    if (isLoggingOutRef.current) return
+
+    // Set flag before signOut so onAuthStateChange does not race our navigation.
+    isLoggingOutRef.current = true
     setLoggingOut(true)
 
     clearLocalAuth()
@@ -79,10 +81,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       if (!isSupabaseConfigured || !supabase) {
         navigateAfterLogout('/')
-        if (mountedRef.current) {
-          setLoggingOut(false)
-          logoutInFlightRef.current = false
-        }
         return
       }
 
@@ -91,10 +89,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       navigateAfterLogout('/')
     } catch (err) {
-      logoutInFlightRef.current = false
+      isLoggingOutRef.current = false
       if (mountedRef.current) setLoggingOut(false)
       throw err
     }
+
+    isLoggingOutRef.current = false
+    if (mountedRef.current) setLoggingOut(false)
   }, [clearLocalAuth])
 
   useEffect(() => {
@@ -163,10 +164,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (event === 'SIGNED_OUT') {
-        clearLocalAuth()
-        clearUserSessionCache()
-        setLoggingOut(false)
-        logoutInFlightRef.current = false
+        setSession(null)
+        if (!isLoggingOutRef.current) {
+          clearLocalAuth()
+          clearUserSessionCache()
+          navigateAfterLogout('/')
+        }
         finishLoading()
         return
       }

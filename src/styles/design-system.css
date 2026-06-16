@@ -11,6 +11,12 @@
       color 0.18s ease;
   }
 
+  html,
+  body,
+  #root {
+    background-color: var(--color-surface, #f8fafc);
+  }
+
   #root {
     min-height: 100vh;
   }

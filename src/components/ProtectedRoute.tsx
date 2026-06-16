@@ -13,8 +13,11 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
   const location = useLocation()
   const { showSlowHint, showRecovery } = useLoadingProgress(loading && !authError)
 
-  if (loggingOut) {
-    return <LogoutTransitionLoader />
+  if (!authReady || loggingOut) {
+    if (loggingOut) {
+      return <LogoutTransitionLoader />
+    }
+    return <SessionBootstrapLoader showSlowHint={showSlowHint} showRecovery={showRecovery} minHeight="screen" />
   }
 
   if (!configured) {
@@ -29,10 +32,6 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
         </div>
       </main>
     )
-  }
-
-  if (loading || !authReady) {
-    return <SessionBootstrapLoader showSlowHint={showSlowHint} showRecovery={showRecovery} minHeight="screen" />
   }
 
   if (authError) {
