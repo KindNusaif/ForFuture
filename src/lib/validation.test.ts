@@ -7,7 +7,7 @@ describe('validateSignup', () => {
   })
 
   it('accepts valid signup', () => {
-    expect(validateSignup('Youth Leader', 'user@test.com', 'secret12')).toBeNull()
+    expect(validateSignup('Youth Leader', 'user@test.com', 'Secret12!')).toBeNull()
   })
 })
 

@@ -33,7 +33,7 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   isActive ? 'nav-link nav-link-active' : 'nav-link'
 
 const mobileLinkClass = ({ isActive }: { isActive: boolean }) =>
-  `flex min-w-0 flex-1 flex-col items-center gap-0.5 px-1 py-2 text-[10px] font-medium transition ${
+  `flex min-h-11 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-1 py-2 text-[10px] font-medium transition ${
     isActive ? 'text-accent-400' : 'text-muted'
   }`
 

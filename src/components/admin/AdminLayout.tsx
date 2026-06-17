@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import SkipLink from '../SkipLink'
 import AdminSidebar from './AdminSidebar'
 import AdminTopbar from './AdminTopbar'
 
@@ -32,6 +33,7 @@ export default function AdminLayout() {
 
   return (
     <div className="admin-shell">
+      <SkipLink targetId="admin-main" />
       <AdminSidebar className="admin-sidebar--desktop" />
       {menuOpen ? (
         <>

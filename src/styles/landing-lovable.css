@@ -304,7 +304,6 @@
 .landing-lovable .landing-motion-deco.animate-float,
 .landing-lovable .animate-float.landing-motion-deco {
   animation: lv-float 6s ease-in-out infinite;
-  will-change: transform;
 }
 
 @keyframes lv-marquee {
@@ -335,7 +334,6 @@
   width: max-content;
   flex-wrap: nowrap;
   animation: lv-marquee 36s linear infinite;
-  will-change: transform;
 }
 
 .landing-lovable .landing-marquee:hover .landing-marquee-track {
@@ -398,7 +396,6 @@
   display: flex;
   width: max-content;
   animation: lv-marquee 36s linear infinite;
-  will-change: transform;
 }
 
 @keyframes landing-hero-glow-drift {

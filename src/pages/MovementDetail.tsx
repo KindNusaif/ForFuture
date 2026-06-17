@@ -15,9 +15,10 @@ import { useJoinMovement } from '../hooks/useJoinMovement'
 import { useAuthUser } from '../hooks/useAuthUser'
 import { useDataSync } from '../hooks/useDataSync'
 import { useMovementDetail } from '../hooks/useMovementDetail'
+import { useLoadingProgress } from '../hooks/useLoadingProgress'
 import { useRouteFocusRefetch } from '../hooks/useRouteFocusRefetch'
 import { useVisibilityRefetch } from '../hooks/useVisibilityRefetch'
-import { useLoadingProgress } from '../hooks/useLoadingProgress'
+import { usePageMeta } from '../hooks/usePageMeta'
 import { castPollVote } from '../lib/polls'
 import { getActionSuccessMessage } from '../lib/movements'
 import { togglePostAction } from '../lib/postActions'
@@ -106,14 +107,11 @@ function MovementDetailContent({
     void movementFollows.refreshCountsForPosts([post.id])
   }, [post?.id, isGuest, movementFollows])
 
-  useEffect(() => {
-    if (!post) return
-    const previous = document.title
-    document.title = `${post.title} · ForFuture`
-    return () => {
-      document.title = previous
-    }
-  }, [post?.title])
+  usePageMeta({
+    title: post?.title ?? t('movementDetail.pageTitle', { defaultValue: 'Movement' }),
+    description: post?.description?.slice(0, 160),
+    path: post ? `/feed/${post.id}` : '/feed',
+  })
 
   useEffect(() => {
     if (!post || typeof window === 'undefined') return

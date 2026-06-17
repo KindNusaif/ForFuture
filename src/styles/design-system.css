@@ -21,6 +21,12 @@
     min-height: 100vh;
   }
 
+  /* Skip off-screen list rows until scrolled into view */
+  .list-item-deferred {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 320px;
+  }
+
   html:not([data-reduce-motion='true']) .theme-transition,
   html:not([data-reduce-motion='true']) .theme-transition * {
     transition:
@@ -63,6 +69,36 @@
 
 [data-reduce-motion='true'] .page-enter {
   animation: none;
+}
+
+/* Scroll-reveal sections — pair with useRevealOnScroll */
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reveal-on-scroll.is-revealed,
+.reveal-on-scroll .is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+[data-reveal-child] {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+[data-reduce-motion='true'] .reveal-on-scroll,
+[data-reduce-motion='true'] .reveal-on-scroll [data-reveal-child] {
+  opacity: 1;
+  transform: none;
+  transition: none;
 }
 
 @utility hero-display {
@@ -974,6 +1010,12 @@ html:not([data-reduce-motion='true']) .post-card-interactive:hover {
 .toast-dismiss:hover {
   opacity: 1;
   background: color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.toast-dismiss:focus-visible {
+  outline: 2px solid var(--color-accent-500, #6366f1);
+  outline-offset: 2px;
+  opacity: 1;
 }
 
 .toast-enter {

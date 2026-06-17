@@ -11,7 +11,7 @@ export default function Toaster({ toasts, onDismiss }: ToasterProps) {
 
   return (
     <div
-      className="toast-stack pointer-events-none fixed inset-x-0 top-4 z-[200] flex flex-col items-end gap-2 px-4 sm:inset-x-auto sm:right-4 sm:top-4 sm:max-w-sm"
+      className="toast-stack pointer-events-none fixed inset-x-0 top-[calc(4.5rem+env(safe-area-inset-top,0px))] z-[200] flex flex-col items-center gap-2 px-4 sm:inset-x-auto sm:right-4 sm:top-4 sm:max-w-sm"
       aria-label="Notifications"
     >
       {toasts.map((toast) => (

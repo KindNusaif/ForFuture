@@ -22,10 +22,11 @@
 .public-nav-mobile-row {
   display: flex;
   height: 4.5rem;
-  min-height: 4.5rem;
+  min-height: calc(4.5rem + env(safe-area-inset-top, 0px));
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
+  padding-top: env(safe-area-inset-top, 0px);
 }
 
 @media (min-width: 1280px) {
@@ -45,9 +46,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 2.5rem;
-  min-width: 2.5rem;
-  padding: 0.5rem;
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  padding: 0.625rem;
   border-radius: 0.75rem;
   border: 1px solid var(--ff-border);
   color: var(--text-secondary);
