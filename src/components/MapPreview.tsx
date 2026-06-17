@@ -42,8 +42,11 @@ export default function MapPreview({ post, className = '' }: MapPreviewProps) {
         <img
           src={staticUrl}
           alt={`Map showing ${name ?? 'event location'}`}
+          width={640}
+          height={200}
           className="h-36 w-full object-cover sm:h-40"
           loading="lazy"
+          decoding="async"
         />
       ) : null}
 

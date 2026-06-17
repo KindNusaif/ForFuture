@@ -7,7 +7,9 @@ import PostFeed from '../components/PostFeed'
 import ReliefCreateRequestCard from '../components/relief/ReliefCreateRequestCard'
 import ReliefTrustStrip from '../components/relief/ReliefTrustStrip'
 import { useAuth } from '../hooks/useAuth'
+import { useDebouncedValue } from '../hooks/useDebouncedValue'
 import { useJoinMovement } from '../hooks/useJoinMovement'
+import { usePageMeta } from '../hooks/usePageMeta'
 import { useToast } from '../hooks/useToast'
 import type { ReliefHubFilter } from '../lib/reliefHub'
 import type { ReliefHubTab } from '../lib/reliefCampaignPublic'
@@ -36,6 +38,7 @@ export default function ReliefHub({ mode = 'member' }: ReliefHubProps) {
 
   const [activeTab, setActiveTab] = useState<ReliefHubTab>('all')
   const [search, setSearch] = useState('')
+  const debouncedSearch = useDebouncedValue(search, 300)
   const reliefSubtype = useMemo(() => {
     const tab = TABS.find((x) => x.id === activeTab)
     return tab?.filter ?? 'all'
@@ -64,6 +67,12 @@ export default function ReliefHub({ mode = 'member' }: ReliefHubProps) {
   const memberTabs = user
     ? ([...TABS, { id: 'my_campaigns' as ReliefHubTab, filter: 'all' as ReliefHubFilter }] as const)
     : TABS
+
+  usePageMeta({
+    title: t('relief.title'),
+    description: t('relief.subtitle'),
+    path: isGuest ? '/explore/relief' : '/relief',
+  })
 
   return (
     <div className="relief-hub-page min-w-0">
@@ -148,7 +157,7 @@ export default function ReliefHub({ mode = 'member' }: ReliefHubProps) {
           reliefHub
           reliefSubtype={reliefSubtype}
           reliefHubTab={activeTab}
-          reliefSearchQuery={search}
+          reliefSearchQuery={debouncedSearch}
           reliefDetailBase={isGuest ? '/explore/relief' : '/relief'}
           showCreateButton={false}
           onReliefCreateRequest={handleCreateReliefRequest}

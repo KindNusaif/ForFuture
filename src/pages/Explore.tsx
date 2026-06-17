@@ -1,23 +1,26 @@
 import { useEffect } from 'react'
-import { Compass, Loader2 } from 'lucide-react'
+import { Compass } from 'lucide-react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import PostFeed from '../components/PostFeed'
+import { FeedPostListSkeleton } from '../components/Skeleton'
 import GuestExploreBanner from '../components/guest/GuestExploreBanner'
 import { useAuthUser } from '../hooks/useAuthUser'
+import { usePageMeta } from '../hooks/usePageMeta'
 
 export default function Explore() {
   const { t } = useTranslation()
   const location = useLocation()
   const { isMember, loading, authReady, loggingOut } = useAuthUser()
 
-  useEffect(() => {
-    const previous = document.title
-    document.title = `${t('explore.pageTitle', { defaultValue: 'Explore' })} · ForFuture`
-    return () => {
-      document.title = previous
-    }
-  }, [t])
+  usePageMeta({
+    title: t('explore.pageTitle', { defaultValue: 'Explore' }),
+    description: t('explore.metaDescription', {
+      defaultValue:
+        'Discover youth-led movements, petitions, volunteer drives, and polls in your community.',
+    }),
+    path: '/explore',
+  })
 
   useEffect(() => {
     document.documentElement.dataset.guestExplore = 'true'
@@ -32,14 +35,12 @@ export default function Explore() {
 
   if (!authReady || loading || loggingOut) {
     return (
-      <main className="flex min-h-[40vh] flex-col items-center justify-center gap-3 px-4">
-        <Loader2
-          className="motion-essential h-8 w-8 animate-spin text-accent-600"
-          aria-hidden
-        />
-        <p className="text-sm text-secondary" role="status" aria-live="polite">
-          {t('explore.loadingMovements', { defaultValue: 'Loading youth movements…' })}
-        </p>
+      <main className="mx-auto min-w-0 max-w-3xl px-4 py-6 sm:px-6 lg:max-w-4xl lg:py-8">
+        <div className="mb-6 space-y-3" aria-hidden>
+          <div className="skeleton-shimmer h-10 w-56 max-w-full rounded-xl" />
+          <div className="skeleton-shimmer h-4 w-full max-w-md rounded" />
+        </div>
+        <FeedPostListSkeleton count={4} />
       </main>
     )
   }

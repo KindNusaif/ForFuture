@@ -278,7 +278,7 @@ export async function cleanupMovementAttachmentStorage(movementId: string): Prom
   }
   for (const [bucket, paths] of byBucket) {
     const { error } = await client.storage.from(bucket).remove(paths)
-    if (error) {
+    if (error && import.meta.env.DEV) {
       console.warn('Attachment storage cleanup failed:', error.message)
     }
   }

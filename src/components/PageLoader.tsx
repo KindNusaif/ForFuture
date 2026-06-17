@@ -1,15 +1,19 @@
-import { Loader2 } from 'lucide-react'
+import { FeedPostListSkeleton } from './Skeleton'
 
+/** Route transition skeleton — matches feed layout to avoid spinner flash. */
 export default function PageLoader() {
   return (
     <div
-      className="flex min-h-[40vh] flex-col items-center justify-center gap-3 px-4"
+      className="page-enter mx-auto max-w-6xl px-4 py-8 sm:px-6"
       role="status"
       aria-live="polite"
       aria-label="Loading page"
     >
-      <Loader2 className="h-9 w-9 animate-spin text-accent-600" />
-      <p className="text-sm text-secondary">Loading…</p>
+      <div className="mb-6 space-y-3" aria-hidden>
+        <div className="skeleton-shimmer h-8 w-48 max-w-full rounded-lg" />
+        <div className="skeleton-shimmer h-4 w-full max-w-md rounded" />
+      </div>
+      <FeedPostListSkeleton count={3} />
     </div>
   )
 }

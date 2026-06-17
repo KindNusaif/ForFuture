@@ -84,7 +84,6 @@ export default defineConfig({
           ) {
             return 'router'
           }
-          if (id.includes('node_modules/leaflet')) return 'leaflet'
           if (id.includes('node_modules/@googlemaps')) return 'google-maps'
           // Isolate context + provider modules (not whole dependency trees) so lazy routes
           // share one React context instance — avoid duplicating toast-context in route chunks.

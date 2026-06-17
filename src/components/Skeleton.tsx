@@ -16,6 +16,39 @@ export function FeedPostListSkeleton({ count = FEED_SKELETON_COUNT }: { count?: 
   )
 }
 
+export function InspireDetailSkeleton() {
+  return (
+    <div className="space-y-6" aria-busy="true" aria-label="Loading story">
+      <Skeleton className="h-5 w-32" />
+      <div className="card-surface space-y-4 p-6 sm:p-8">
+        <Skeleton className="h-6 w-28 rounded-full" />
+        <Skeleton className="h-8 w-4/5 max-w-lg" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-11/12" />
+        <Skeleton className="mt-4 h-4 w-10/12" />
+        <Skeleton className="mt-6 h-4 w-2/3" />
+      </div>
+    </div>
+  )
+}
+
+export function CommentListSkeleton({ count = 3 }: { count?: number }) {
+  return (
+    <ul className="comment-list space-y-4" aria-busy="true" aria-label="Loading discussion">
+      {Array.from({ length: count }, (_, i) => (
+        <li key={i} className="list-item-deferred flex gap-3">
+          <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
+          <div className="min-w-0 flex-1 space-y-2">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-4/5" />
+          </div>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
 export function MovementDetailSkeleton() {
   return (
     <div className="space-y-6" aria-busy="true" aria-label="Loading movement">

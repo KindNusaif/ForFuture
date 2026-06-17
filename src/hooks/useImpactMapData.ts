@@ -14,6 +14,7 @@ import { DEFAULT_NEAR_RADIUS_KM } from '../lib/mapConfig'
 import { formatError } from '../lib/errors'
 import { withAutoRetry } from '../lib/supabaseRequest'
 import { isRequestAborted } from '../lib/supabaseRequest'
+import { useDebouncedValue } from './useDebouncedValue'
 import type { GeoPosition } from './useGeolocation'
 
 export function useImpactMapData(userLocation: GeoPosition | null) {
@@ -28,6 +29,7 @@ export function useImpactMapData(userLocation: GeoPosition | null) {
   const [nearMeEnabled, setNearMeEnabled] = useState(false)
   const [nearRadiusKm, setNearRadiusKm] = useState(DEFAULT_NEAR_RADIUS_KM)
   const [search, setSearch] = useState('')
+  const debouncedSearch = useDebouncedValue(search, 300)
 
   const requestIdRef = useRef(0)
   const abortRef = useRef<AbortController | null>(null)
@@ -78,7 +80,7 @@ export function useImpactMapData(userLocation: GeoPosition | null) {
       nearMeEnabled,
       nearRadiusKm,
       userLocation,
-      search,
+      search: debouncedSearch,
     }),
     [
       contentType,
@@ -88,7 +90,7 @@ export function useImpactMapData(userLocation: GeoPosition | null) {
       nearMeEnabled,
       nearRadiusKm,
       userLocation,
-      search,
+      debouncedSearch,
     ],
   )
 

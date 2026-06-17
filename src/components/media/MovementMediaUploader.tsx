@@ -136,6 +136,8 @@ export default function MovementMediaUploader({
                 <img
                   src={item.previewUrl}
                   alt=""
+                  width={64}
+                  height={64}
                   className="h-16 w-16 shrink-0 rounded-lg object-cover"
                 />
               ) : (
@@ -158,7 +160,7 @@ export default function MovementMediaUploader({
                 type="button"
                 onClick={() => onRemoveFile(item.id)}
                 disabled={disabled || uploading}
-                className="shrink-0 rounded-lg p-1.5 text-muted hover:bg-muted hover:text-secondary"
+                className="shrink-0 rounded-lg p-2.5 text-muted hover:bg-muted hover:text-secondary"
                 aria-label={t('media.removeFile')}
               >
                 <X className="h-4 w-4" />

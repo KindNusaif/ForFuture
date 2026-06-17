@@ -16,7 +16,10 @@ export const FEED_ENRICH_TIMEOUT_MS = 25_000
 /** Auth bootstrap — do not block the app too aggressively. */
 export const AUTH_BOOTSTRAP_TIMEOUT_MS = 15_000
 
-/** One automatic retry before surfacing a hard error. */
-export const REQUEST_AUTO_RETRY_DELAY_MS = 900
+/** Exponential backoff delays between automatic retries (1s → 2s → 4s). */
+export const REQUEST_RETRY_DELAYS_MS = [1_000, 2_000, 4_000] as const
 
-export const REQUEST_MAX_AUTO_RETRIES = 1
+/** @deprecated Use REQUEST_RETRY_DELAYS_MS — kept for callers passing explicit delayMs. */
+export const REQUEST_AUTO_RETRY_DELAY_MS = REQUEST_RETRY_DELAYS_MS[0]
+
+export const REQUEST_MAX_AUTO_RETRIES = REQUEST_RETRY_DELAYS_MS.length

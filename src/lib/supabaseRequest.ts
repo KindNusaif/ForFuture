@@ -1,6 +1,6 @@
 import {
-  REQUEST_AUTO_RETRY_DELAY_MS,
   REQUEST_MAX_AUTO_RETRIES,
+  REQUEST_RETRY_DELAYS_MS,
 } from './requestConfig'
 
 export {
@@ -99,13 +99,12 @@ export async function withTimeout<T>(
   }
 }
 
-/** Run an async function with one lightweight retry on transient failures. */
+/** Run an async function with exponential backoff retries on transient failures. */
 export async function withAutoRetry<T>(
   fn: (attempt: number) => Promise<T>,
   options?: { maxRetries?: number; delayMs?: number; signal?: AbortSignal },
 ): Promise<T> {
   const maxRetries = options?.maxRetries ?? REQUEST_MAX_AUTO_RETRIES
-  const delayMs = options?.delayMs ?? REQUEST_AUTO_RETRY_DELAY_MS
   let lastError: unknown
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -117,6 +116,8 @@ export async function withAutoRetry<T>(
       if (isRequestAborted(error) || !isTransientRequestError(error) || attempt >= maxRetries) {
         throw error
       }
+      const delayMs =
+        options?.delayMs ?? REQUEST_RETRY_DELAYS_MS[attempt] ?? REQUEST_RETRY_DELAYS_MS.at(-1)!
       await sleep(delayMs, options?.signal)
     }
   }
