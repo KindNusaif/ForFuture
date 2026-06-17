@@ -1,4 +1,14 @@
 {
+  "a11y": {
+    "skipToMain": "Skip to main content",
+    "loadingPage": "Loading page"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "This link may be outdated or the page was moved. Head back to ForFuture to keep exploring youth movements.",
+    "backHome": "Back to ForFuture",
+    "browseMovements": "Browse movements"
+  },
   "language": {
     "label": "Language",
     "select": "Select language",
@@ -125,6 +135,8 @@
     "heroTagline": "Where Youth Voices Become Movements.",
     "heroPositioning": "A civic platform for Sri Lankan youth, students, volunteers, and community builders.",
     "heroSubtitle": "ForFuture helps young people raise community issues, organize petitions, launch volunteer drives, support relief efforts, and create measurable civic impact across Sri Lanka.",
+    "metaTitle": "ForFuture — Youth civic action",
+    "metaDescription": "Create and support youth-led movements, petitions, polls, and volunteer drives in your community.",
     "joinCta": "Join the Movement",
     "exploreCta": "Explore Movements",
     "socialProof": "From local concerns to real community action.",
@@ -436,6 +448,8 @@
     "emptyTitle": "No movements yet",
     "emptyGuest": "Be the first to explore — or join to create the next youth movement.",
     "emptyMember": "Create your first movement and inspire others to join.",
+    "emptyCategoryTitle": "No {{category}} movements yet",
+    "emptyCategoryDescription": "Try another category or movement type.",
     "createMovement": "Create a Youth Movement",
     "movementType": "Movement type",
     "tabDiscover": "Discover",

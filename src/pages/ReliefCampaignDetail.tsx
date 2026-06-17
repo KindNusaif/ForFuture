@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, ExternalLink, Loader2 } from 'lucide-react'
+import { ArrowLeft, ExternalLink } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import MovementDetailView from '../components/movement/MovementDetailView'
 import ReliefCampaignTrustPanel from '../components/relief/ReliefCampaignTrustPanel'
 import ReliefUpdatesTimeline from '../components/relief/ReliefUpdatesTimeline'
+import { MovementDetailSkeleton } from '../components/Skeleton'
+import { usePageMeta } from '../hooks/usePageMeta'
 import { useAuth } from '../hooks/useAuth'
 import { useDataSync } from '../hooks/useDataSync'
 import { useRouteFocusRefetch } from '../hooks/useRouteFocusRefetch'
@@ -83,10 +85,16 @@ export default function ReliefCampaignDetail({ mode = 'member' }: ReliefCampaign
     enabled: Boolean(id) && !loading,
   })
 
+  usePageMeta({
+    title: post?.title ?? t('reliefHub.pageTitle', { defaultValue: 'Relief campaign' }),
+    description: post?.description?.slice(0, 160),
+    path: id ? `${detailBase}/${id}` : backTo,
+  })
+
   if (loading) {
     return (
-      <div className="mx-auto flex max-w-4xl justify-center py-20">
-        <Loader2 className="h-10 w-10 animate-spin text-brand-600" aria-hidden />
+      <div className="mx-auto max-w-4xl px-4 py-6">
+        <MovementDetailSkeleton />
       </div>
     )
   }

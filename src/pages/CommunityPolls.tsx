@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { BarChart3, Plus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import SectionErrorBoundary from '../components/SectionErrorBoundary'
 import PollCard from '../components/polls/PollCard'
 import PollsEmptyPanel from '../components/polls/PollsEmptyPanel'
 import PollsInsightStrip from '../components/polls/PollsInsightStrip'
@@ -16,6 +17,7 @@ import { useAuthGate } from '../hooks/useAuthGate'
 import { useCreatePoll } from '../hooks/useCreatePoll'
 import { useToast } from '../hooks/useToast'
 import { useDataSync } from '../hooks/useDataSync'
+import { usePageMeta } from '../hooks/usePageMeta'
 import { useRouteFocusRefetch } from '../hooks/useRouteFocusRefetch'
 import { useVisibilityRefetch } from '../hooks/useVisibilityRefetch'
 import { safeList, upsertById } from '../lib/listUtils'
@@ -338,6 +340,14 @@ export default function CommunityPolls({ mode = 'member' }: CommunityPollsProps)
     tab === 'mine' ? 'mine' : tab === 'trending' ? 'trending' : 'all'
   const emptyFiltered = showEmpty && tab !== 'all' && tab !== 'mine' && posts.length > 0
 
+  usePageMeta({
+    title: t('polls.pageTitle', { defaultValue: 'Community Polls' }),
+    description: t('polls.metaDescription', {
+      defaultValue: 'Vote in youth community polls and share what matters most in your area.',
+    }),
+    path: isGuestMode ? '/explore/polls' : '/polls',
+  })
+
   return (
     <PageContainer className="community-polls-page !py-6 lg:!py-8">
       {isGuestMode ? <GuestModeBanner className="mb-4" /> : null}
@@ -401,6 +411,7 @@ export default function CommunityPolls({ mode = 'member' }: CommunityPollsProps)
             ))}
           </nav>
 
+          <SectionErrorBoundary section="Community Polls">
           {error && (
             <div
               className="alert-warning mb-6 flex flex-col gap-3 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between"
@@ -463,7 +474,7 @@ export default function CommunityPolls({ mode = 'member' }: CommunityPollsProps)
               )}
               <ul className="space-y-4 sm:space-y-5">
                 {filteredPosts.map((post) => (
-                  <li key={post.id} className="min-w-0">
+                  <li key={post.id} className="list-item-deferred min-w-0">
                     <PollCard
                       post={post}
                       detailPath={isGuestMode ? guestMovementDetailPath(post.id) : `/feed/${post.id}`}
@@ -494,6 +505,7 @@ export default function CommunityPolls({ mode = 'member' }: CommunityPollsProps)
               )}
             </div>
           )}
+          </SectionErrorBoundary>
         </section>
 
         {showSidebar && <PollsSidebar />}

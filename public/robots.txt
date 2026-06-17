@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /feed
+Disallow: /profile
+Disallow: /onboarding
+Disallow: /create
+Disallow: /inspire/create
+
+Sitemap: https://forfuture.app/sitemap.xml

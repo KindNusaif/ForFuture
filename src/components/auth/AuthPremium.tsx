@@ -159,13 +159,17 @@ export function AuthField({
   children,
   icon,
   hint,
+  error,
 }: {
   fieldId: string
   label: string
   children: ReactNode
   icon?: ReactNode
   hint?: ReactNode
+  error?: string | null
 }) {
+  const errorId = error ? `${fieldId}-error` : undefined
+
   return (
     <div className="auth-field-block">
       {hint ? (
@@ -180,10 +184,15 @@ export function AuthField({
           {label}
         </label>
       )}
-      <div className="auth-field-wrap">
+      <div className={`auth-field-wrap${error ? ' auth-field-wrap--invalid' : ''}`}>
         {icon && <span className="auth-field-icon">{icon}</span>}
         {children}
       </div>
+      {error ? (
+        <p id={errorId} className="auth-field-error" role="alert">
+          {error}
+        </p>
+      ) : null}
     </div>
   )
 }
@@ -303,6 +312,7 @@ export function AuthShell({
   const formErrorId = `${reactId}-form-error`
   const passwordHelperId = `${reactId}-password-helper`
   const [termsAccepted, setTermsAccepted] = useState(false)
+  const [emailTouched, setEmailTouched] = useState(false)
 
   const trimmedName = displayName.trim()
   const trimmedEmail = email.trim()
@@ -318,6 +328,13 @@ export function AuthShell({
   const loginCanSubmit = trimmedEmail.length > 0 && password.length > 0
   const canSubmit = isLogin ? loginCanSubmit : signupCanSubmit
   const showPasswordInvalid = !isLogin && password.length > 0 && !passwordPolicyOk
+  const emailFieldError =
+    emailTouched && trimmedEmail.length > 0 && !isValidEmail(trimmedEmail)
+      ? t('auth.emailInvalid')
+      : emailTouched && !isLogin && trimmedEmail.length === 0
+        ? t('auth.emailRequired')
+        : null
+  const emailErrorId = emailFieldError ? `${emailId}-error` : undefined
 
   return (
     <AuthPremiumLayout showSignupSocialProof={!isLogin}>
@@ -405,17 +422,20 @@ export function AuthShell({
               />
             </AuthField>
           )}
-          <AuthField fieldId={emailId} label={t('auth.emailAddress')} icon={<Mail className="h-4 w-4" />}>
+          <AuthField fieldId={emailId} label={t('auth.emailAddress')} icon={<Mail className="h-4 w-4" />} error={emailFieldError}>
             <input
               id={emailId}
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              onBlur={() => setEmailTouched(true)}
               placeholder={t('auth.emailPlaceholder')}
               className="auth-field-input auth-field-input--icon"
               autoComplete="email"
               required
               disabled={loading || formLocked}
+              aria-invalid={emailFieldError ? true : undefined}
+              aria-describedby={emailErrorId}
             />
           </AuthField>
           <AuthField

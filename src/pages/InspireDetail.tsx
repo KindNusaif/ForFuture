@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Loader2, Trash2 } from 'lucide-react'
+import { ArrowLeft, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import InspireCategoryBadge from '../components/inspire/InspireCategoryBadge'
 import InspireCommentsSection from '../components/inspire/InspireCommentsSection'
 import InspireSaveButton from '../components/inspire/InspireSaveButton'
 import InspireShareButton from '../components/inspire/InspireShareButton'
-import LoadingState from '../components/ui/LoadingState'
+import ConfirmDialog from '../components/ui/ConfirmDialog'
 import PageContainer from '../components/ui/PageContainer'
+import { InspireDetailSkeleton } from '../components/Skeleton'
+import { usePageMeta } from '../hooks/usePageMeta'
 import { useAuthUser } from '../hooks/useAuthUser'
 import { useToast } from '../hooks/useToast'
 import { deleteInspirePost, fetchInspirePostById } from '../lib/inspire'
@@ -109,6 +111,7 @@ export default function InspireDetail({ backTo = '/inspire', backLabel }: Inspir
   const [post, setPost] = useState<InspirePost | null>(null)
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -143,9 +146,14 @@ export default function InspireDetail({ backTo = '/inspire', backLabel }: Inspir
   const isOwner = post && user?.id === post.user_id
   const config = post ? getInspireCategoryConfig(post.category) : null
 
+  usePageMeta({
+    title: post?.title ?? t('inspire.pageTitle', { defaultValue: 'Inspire story' }),
+    description: post?.body?.slice(0, 160),
+    path: id ? `/inspire/${id}` : '/inspire',
+  })
+
   async function handleDelete() {
     if (!post || !user?.id || deleting) return
-    if (!window.confirm(t('inspire.deleteConfirm', { defaultValue: 'Delete this story permanently?' }))) return
     setDeleting(true)
     try {
       await deleteInspirePost(post.id, user.id)
@@ -155,13 +163,14 @@ export default function InspireDetail({ backTo = '/inspire', backLabel }: Inspir
       toast.error(formatError(err))
     } finally {
       setDeleting(false)
+      setDeleteOpen(false)
     }
   }
 
   if (loading) {
     return (
       <PageContainer>
-        <LoadingState label={t('inspire.loadingPost', { defaultValue: 'Loading story…' })} />
+        <InspireDetailSkeleton />
       </PageContainer>
     )
   }
@@ -209,16 +218,12 @@ export default function InspireDetail({ backTo = '/inspire', backLabel }: Inspir
             {isOwner && (
               <button
                 type="button"
-                onClick={() => void handleDelete()}
+                onClick={() => setDeleteOpen(true)}
                 disabled={deleting}
                 className="share-icon-btn text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
                 aria-label={t('inspire.deleteAria', { defaultValue: 'Delete story' })}
               >
-                {deleting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                ) : (
-                  <Trash2 className="h-4 w-4" aria-hidden />
-                )}
+                <Trash2 className="h-4 w-4" aria-hidden />
               </button>
             )}
           </div>
@@ -267,6 +272,20 @@ export default function InspireDetail({ backTo = '/inspire', backLabel }: Inspir
         inspirePostId={post.id}
         guestMode={isGuestMode}
         currentUserId={user?.id}
+      />
+
+      <ConfirmDialog
+        open={deleteOpen}
+        title={t('inspire.deleteTitle', { defaultValue: 'Delete this story?' })}
+        description={t('inspire.deleteConfirm', {
+          defaultValue: 'This story will be permanently removed. This cannot be undone.',
+        })}
+        confirmLabel={t('inspire.deleteConfirmButton', { defaultValue: 'Delete story' })}
+        cancelLabel={t('common.cancel', { defaultValue: 'Cancel' })}
+        variant="danger"
+        loading={deleting}
+        onConfirm={() => void handleDelete()}
+        onCancel={() => setDeleteOpen(false)}
       />
     </PageContainer>
   )

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Sparkles, Plus, Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import SectionErrorBoundary from '../components/SectionErrorBoundary'
 import InspireCard from '../components/inspire/InspireCard'
 import EmptyState from '../components/EmptyState'
 import GuestModeBanner from '../components/guidance/GuestModeBanner'
@@ -10,6 +11,7 @@ import SkeletonCard from '../components/ui/SkeletonCard'
 import { useAuthUser } from '../hooks/useAuthUser'
 import { useAuthGate } from '../hooks/useAuthGate'
 import { useDataSync } from '../hooks/useDataSync'
+import { usePageMeta } from '../hooks/usePageMeta'
 import { useRouteFocusRefetch } from '../hooks/useRouteFocusRefetch'
 import { useVisibilityRefetch } from '../hooks/useVisibilityRefetch'
 import { fetchCommentCount } from '../lib/comments'
@@ -161,6 +163,14 @@ export default function InspireHub() {
   const showEmpty = !loading && posts.length === 0
   const emptyFiltered = activeFilter !== 'all'
 
+  usePageMeta({
+    title: t('inspire.pageTitle', { defaultValue: 'Inspire Hub' }),
+    description: t('inspire.metaDescription', {
+      defaultValue: 'Celebrate youth progress, share ideas, and inspire civic action across the community.',
+    }),
+    path: isGuest ? '/explore/inspire' : '/inspire',
+  })
+
   return (
     <PageContainer className="inspire-hub-page !py-6 lg:!py-8">
       {isGuest ? <GuestModeBanner className="mb-4" /> : null}
@@ -229,6 +239,7 @@ export default function InspireHub() {
         ))}
       </nav>
 
+      <SectionErrorBoundary section="Inspire Hub">
       {error && (
         <div className="alert-warning mb-6 flex flex-col gap-3 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between" role="alert">
           <p>{error}</p>
@@ -277,7 +288,7 @@ export default function InspireHub() {
         <>
           <ul className="space-y-4 sm:space-y-5">
             {posts.map((post) => (
-              <li key={post.id}>
+              <li key={post.id} className="list-item-deferred">
                 <InspireCard
                   post={post}
                   detailPath={`/inspire/${post.id}`}
@@ -313,6 +324,7 @@ export default function InspireHub() {
           )}
         </>
       )}
+      </SectionErrorBoundary>
     </PageContainer>
   )
 }

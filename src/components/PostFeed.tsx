@@ -7,6 +7,7 @@ import EmptyState from './EmptyState'
 import FeedDiscoveryBar from './FeedDiscoveryBar'
 import FeedTabs, { type FeedTab } from './FeedTabs'
 import SafePostCard from './SafePostCard'
+import AsyncLoadHint from './AsyncLoadHint'
 import { FeedPostListSkeleton } from './Skeleton'
 import { useDataSync } from '../hooks/useDataSync'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
@@ -23,7 +24,7 @@ import { isPollMovement } from '../lib/movements'
 import { isPetitionMovement } from '../lib/petitions'
 import { signPetition } from '../lib/petitionSignatures'
 import { castPollVote } from '../lib/polls'
-import AsyncLoadHint from './AsyncLoadHint'
+import SectionErrorBoundary from './SectionErrorBoundary'
 import { useLoadingProgress } from '../hooks/useLoadingProgress'
 import { removeById, upsertById } from '../lib/listUtils'
 import {
@@ -507,12 +508,12 @@ function PostFeedContent({
     }
     if (debouncedSearch.trim()) {
       return {
-        title: 'No movements matched your search',
+        title: t('feed.noMatchTitle'),
         description: isGuest
           ? t('explore.guestEmptyFilter')
           : hasMore
-            ? 'Try different words or load more movements to search further.'
-            : 'Try different words or reset your filters.',
+            ? t('feed.noMatchSearch')
+            : t('feed.noMatchFilter'),
       }
     }
     if (reliefHub) {
@@ -529,23 +530,21 @@ function PostFeedContent({
     }
     if (movementFilter === 'donation_relief_hub') {
       return {
-        title: 'No relief requests found',
-        description: 'Try another filter or explore other movement types.',
+        title: t('movements.donation_relief.emptyTitle'),
+        description: t('movements.donation_relief.emptyDescription'),
       }
     }
     if (category !== 'All') {
       return {
-        title: `No ${category} movements`,
+        title: t('feed.emptyCategoryTitle', { category }),
         description: isGuest
           ? t('explore.guestEmptyFilter')
-          : 'Try another category or movement type.',
+          : t('feed.emptyCategoryDescription'),
       }
     }
     return {
-      title: 'No movements yet',
-      description: isGuest
-        ? t('explore.guestEmptyDefault')
-        : 'Be the first to create a youth movement on ForFuture.',
+      title: t('feed.emptyTitle'),
+      description: isGuest ? t('feed.emptyGuest') : t('feed.emptyMember'),
     }
   }, [
     debouncedSearch,
@@ -868,7 +867,7 @@ function PostFeedContent({
         <>
           <ul className="mt-4 min-w-0 space-y-4 sm:space-y-5">
             {filtered.map((post) => (
-              <li key={post.id} className="min-w-0">
+              <li key={post.id} className="list-item-deferred min-w-0">
                 <SafePostCard
                   post={post}
                   detailPath={
@@ -935,5 +934,9 @@ function PostFeedContent({
 }
 
 export default function PostFeed(props: PostFeedProps) {
-  return <PostFeedContent {...props} />
+  return (
+    <SectionErrorBoundary section="Feed">
+      <PostFeedContent {...props} />
+    </SectionErrorBoundary>
+  )
 }
