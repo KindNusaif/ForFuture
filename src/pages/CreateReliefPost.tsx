@@ -26,6 +26,7 @@ import { uploadMovementAttachments } from '../lib/movementAttachments'
 import MovementMediaUploader from '../components/media/MovementMediaUploader'
 import { usePendingMovementMedia } from '../hooks/usePendingMovementMedia'
 import { formatError } from '../lib/errors'
+import { navigateAfterSuccess } from '../lib/navigationTiming'
 import { enrichReliefDescription } from '../lib/reliefDescription'
 import {
   formatFieldErrorsSummary,
@@ -178,7 +179,7 @@ export default function CreateReliefPost() {
         subtype === 'fundraising'
           ? t('reliefHub.fundraisingReviewPending')
           : t('relief.publishSuccess')
-      navigate('/relief', {
+      navigateAfterSuccess(navigate, '/relief', {
         state: { toast: { type: 'success', message: successMessage } },
       })
     }, [

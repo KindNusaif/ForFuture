@@ -91,6 +91,8 @@ function GalleryImage({ attachment }: { attachment: MovementAttachment }) {
       <img
         src={attachment.public_url}
         alt={attachment.original_file_name}
+        width={640}
+        height={360}
         loading="lazy"
         decoding="async"
         onError={() => setFailed(true)}

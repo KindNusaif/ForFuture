@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Calendar, Clock, MapPin, Users } from 'lucide-react'
 import MapPreview from './MapPreview'
+import PetitionProgressBar from './PetitionProgressBar'
 import { formatCurrency, formatEventDate } from '../lib/movements'
 import {
   formatPetitionSupporterCount,
@@ -224,18 +225,10 @@ export default function MovementCardExtras({ post }: MovementCardExtrasProps) {
               <p className="text-xs font-semibold text-secondary">
                 {formatPetitionSupporterCount(count, goal)}
               </p>
-              <div
-                className="mt-2 h-2 overflow-hidden rounded-full bg-fuchsia-200/60"
-                role="progressbar"
-                aria-valuenow={progress ?? 0}
-                aria-valuemin={0}
-                aria-valuemax={100}
-              >
-                <div
-                  className="h-full rounded-full bg-linear-to-r from-fuchsia-500 to-accent-500"
-                  style={{ width: `${progress ?? 0}%` }}
-                />
-              </div>
+              <PetitionProgressBar
+                percent={progress ?? 0}
+                trackClassName="mt-2 h-2 overflow-hidden rounded-full bg-fuchsia-200/60"
+              />
             </div>
           )}
           <p className="text-[11px] leading-relaxed text-muted">{PETITION_DISCLAIMER}</p>

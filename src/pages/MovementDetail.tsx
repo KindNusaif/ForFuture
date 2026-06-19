@@ -3,6 +3,8 @@ import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft } from 'lucide-react'
 import MovementDetailView from '../components/movement/MovementDetailView'
+import Breadcrumbs from '../components/ui/Breadcrumbs'
+import SectionErrorBoundary from '../components/SectionErrorBoundary'
 import ShareButton from '../components/share/ShareButton'
 import EmptyState from '../components/EmptyState'
 import { MovementDetailSkeleton } from '../components/Skeleton'
@@ -221,6 +223,16 @@ function MovementDetailContent({
 
   return (
     <>
+      <Breadcrumbs
+        items={[
+          { label: t('nav.home', { defaultValue: 'Home' }), to: '/' },
+          {
+            label: mode === 'guest' ? t('nav.explore', { defaultValue: 'Explore' }) : t('nav.myFeed', { defaultValue: 'My Feed' }),
+            to: backTo,
+          },
+          { label: post?.title ?? t('movementDetail.pageTitle', { defaultValue: 'Movement' }) },
+        ]}
+      />
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <button
           type="button"
@@ -251,6 +263,7 @@ function MovementDetailContent({
           action={{ label: 'Back to Movements', to: backTo }}
         />
       ) : post ? (
+        <SectionErrorBoundary section="Movement detail">
         <MovementDetailView
           post={post}
           guestMode={isGuest}
@@ -274,6 +287,7 @@ function MovementDetailContent({
           detailPath={isGuest ? `/explore/${post.id}` : `/feed/${post.id}`}
           onPostDeleted={() => navigate(backTo, { replace: true })}
         />
+        </SectionErrorBoundary>
       ) : null}
     </>
   )

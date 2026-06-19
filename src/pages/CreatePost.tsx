@@ -33,6 +33,7 @@ import { notifyPollPublished, notifyPostUpdated } from '../lib/dataSync'
 import { createPost } from '../lib/posts'
 import { ensureYouthVoiceId } from '../lib/auth'
 import { formatError } from '../lib/errors'
+import { navigateAfterSuccess } from '../lib/navigationTiming'
 import {
   formatFieldErrorsSummary,
   hasFieldErrors,
@@ -508,7 +509,7 @@ export default function CreatePost() {
         setPublishedPostId(post.id)
         toast.success('Your movement is live!', `"${title.trim()}" is now on the feed.`)
       } else {
-        navigate(isPoll ? '/polls' : '/feed', {
+        navigateAfterSuccess(navigate, isPoll ? '/polls' : '/feed', {
           replace: true,
           state: {
             toast: {

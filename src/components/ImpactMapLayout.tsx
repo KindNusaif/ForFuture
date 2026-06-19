@@ -1,7 +1,7 @@
-import { Loader2 } from 'lucide-react'
 import { Outlet } from 'react-router-dom'
 import AppShell from './AppShell'
 import ExploreLayout from './ExploreLayout'
+import PageLoader from './PageLoader'
 import { useAuth } from '../hooks/useAuth'
 
 /**
@@ -21,9 +21,8 @@ export default function ImpactMapLayout() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center gap-3 bg-muted">
-        <Loader2 className="motion-essential h-10 w-10 animate-spin text-accent-600" aria-label="Loading" />
-        <p className="text-sm text-muted">Loading…</p>
+      <main className="min-h-screen bg-muted">
+        <PageLoader />
       </main>
     )
   }

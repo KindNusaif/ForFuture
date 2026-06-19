@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, CheckCircle2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import InspireCreateForm from '../components/inspire/InspireCreateForm'
 import PageContainer from '../components/ui/PageContainer'
 import { useAuthUser } from '../hooks/useAuthUser'
 import { useToast } from '../hooks/useToast'
 import { createInspirePost } from '../lib/inspire'
+import { navigateAfterSuccess } from '../lib/navigationTiming'
 import { INSPIRE_CATEGORIES, isInspireCategory } from '../lib/inspireCategories'
 import type { InspireCategory, InspireFieldData } from '../types/inspire'
 
@@ -21,6 +22,7 @@ export default function InspireCreate() {
     typeParam && isInspireCategory(typeParam) ? typeParam : null,
   )
   const [loading, setLoading] = useState(false)
+  const [publishedId, setPublishedId] = useState<string | null>(null)
 
   async function handlePublish(payload: {
     title: string
@@ -41,7 +43,8 @@ export default function InspireCreate() {
       toast.success(
         t('inspire.published', { defaultValue: 'Your story has been shared.' }),
       )
-      navigate(`/inspire/${post.id}`, { replace: true })
+      setPublishedId(post.id)
+      navigateAfterSuccess(navigate, `/inspire/${post.id}`, { replace: true })
     } catch (err) {
       console.error(err)
       toast.error(
@@ -56,6 +59,18 @@ export default function InspireCreate() {
 
   return (
     <PageContainer className="mx-auto max-w-2xl !py-6 lg:!py-8">
+      {publishedId ? (
+        <div className="card-surface flex flex-col items-center gap-4 p-10 text-center" role="status" aria-live="polite">
+          <CheckCircle2 className="h-12 w-12 text-brand-600" aria-hidden />
+          <h2 className="text-xl font-bold text-primary">
+            {t('inspire.published', { defaultValue: 'Your story has been shared.' })}
+          </h2>
+          <p className="text-sm text-secondary">
+            {t('inspire.publishedRedirect', { defaultValue: 'Opening your story…' })}
+          </p>
+        </div>
+      ) : (
+        <>
       <Link
         to="/inspire"
         className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-secondary transition hover:text-brand-700"
@@ -114,6 +129,8 @@ export default function InspireCreate() {
             {t('inspire.changeCategory', { defaultValue: '← Change category' })}
           </button>
           <InspireCreateForm category={selected} loading={loading} onSubmit={handlePublish} />
+        </>
+      )}
         </>
       )}
     </PageContainer>

@@ -12,6 +12,7 @@ import EmptyState from '../components/EmptyState'
 import CreateMovementCta from '../components/create/CreateMovementCta'
 import AsyncLoadHint from '../components/AsyncLoadHint'
 import { useLoadingProgress } from '../hooks/useLoadingProgress'
+import { usePageMeta } from '../hooks/usePageMeta'
 import { PostCardSkeleton } from '../components/Skeleton'
 import { useGeolocation } from '../hooks/useGeolocation'
 import { useImpactMapData } from '../hooks/useImpactMapData'
@@ -25,6 +26,15 @@ type MobilePanel = 'map' | 'list'
 export default function ImpactMapPage() {
   const { t } = useTranslation()
   const { isMember } = useAuth()
+
+  usePageMeta({
+    title: t('impactMap.pageTitle', { defaultValue: 'Impact Map' }),
+    description: t('impactMap.metaDescription', {
+      defaultValue: 'See youth civic action, volunteer drives, and community issues on an interactive map.',
+    }),
+    path: isMember ? '/impact-map' : '/explore/impact-map',
+  })
+
   const geo = useGeolocation({ tryInitialOnMount: false })
   const {
     loading,

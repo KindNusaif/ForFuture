@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Check, Loader2, Lock, ScrollText } from 'lucide-react'
 import ConfirmDialog from './ui/ConfirmDialog'
+import PetitionProgressBar from './PetitionProgressBar'
+import { useActionRipple } from '../hooks/useActionRipple'
 import { getMovementConfig } from '../lib/movements'
 import { getMovementVisual } from '../lib/movementVisual'
 import {
@@ -32,6 +34,7 @@ export default function PetitionActionButton({
 }: PetitionActionButtonProps) {
   const { t } = useTranslation()
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const { onPointerDown, rippleClassName } = useActionRipple()
   const movement = getMovementConfig('youth_petition')
   const visual = getMovementVisual('youth_petition')
   const signed = Boolean(post.supported_by_me)
@@ -67,19 +70,10 @@ export default function PetitionActionButton({
             <span>{formatPetitionSupporterCount(count, goal)}</span>
             {progress != null && <span>{progress}%</span>}
           </div>
-          <div
-            className="mt-2 h-2 overflow-hidden rounded-full bg-muted"
-            role="progressbar"
-            aria-valuenow={progress ?? 0}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-label={t('petitions.progressLabel')}
-          >
-            <div
-              className="h-full rounded-full bg-linear-to-r from-fuchsia-500 to-accent-500 transition-all duration-500 dark:from-fuchsia-400 dark:to-accent-400"
-              style={{ width: `${progress ?? 0}%` }}
-            />
-          </div>
+          <PetitionProgressBar
+            percent={progress ?? 0}
+            label={t('petitions.progressLabel')}
+          />
         </div>
       )}
 
@@ -95,7 +89,8 @@ export default function PetitionActionButton({
         type="button"
         disabled={disabled}
         onClick={guestMode ? onSign : handlePrimaryClick}
-        className={
+        onPointerDown={onPointerDown}
+        className={`${
           signed
             ? 'btn-cta-supported w-full'
             : closed
@@ -103,7 +98,7 @@ export default function PetitionActionButton({
               : guestMode
                 ? 'btn-cta-guest w-full'
                 : 'btn-cta w-full'
-        }
+        } ${rippleClassName}`}
         aria-pressed={signed}
         aria-busy={loading}
         title={guestMode ? t('petitions.signInToSupport') : movement.actionDisclaimer}

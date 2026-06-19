@@ -1,4 +1,5 @@
 import { Check, Loader2, Lock } from 'lucide-react'
+import { useActionRipple } from '../hooks/useActionRipple'
 import { getMovementConfig } from '../lib/movements'
 import { getMovementVisual } from '../lib/movementVisual'
 import type { MovementType } from '../types'
@@ -29,6 +30,7 @@ export default function MovementActionButton({
   const movement = getMovementConfig(movementType)
   const visual = getMovementVisual(movementType)
   const Icon = movement.icon
+  const { onPointerDown, rippleClassName } = useActionRipple()
   const label = active ? movement.ctaActiveLabel : movement.ctaLabel
   const countText = movement.countLabel(count)
   const emptyText = `Be the first to ${movement.ctaLabel.toLowerCase()}`
@@ -45,13 +47,14 @@ export default function MovementActionButton({
         type="button"
         disabled={disabled || loading}
         onClick={onClick}
-        className={
+        onPointerDown={onPointerDown}
+        className={`${
           active
             ? 'btn-cta-supported w-full'
             : guestMode
               ? 'btn-cta-guest w-full'
               : 'btn-cta w-full'
-        }
+        } ${rippleClassName}`}
         aria-pressed={active}
         aria-busy={loading}
         title={

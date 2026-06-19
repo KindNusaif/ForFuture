@@ -7,6 +7,7 @@ import InspireCommentsSection from '../components/inspire/InspireCommentsSection
 import InspireSaveButton from '../components/inspire/InspireSaveButton'
 import InspireShareButton from '../components/inspire/InspireShareButton'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
+import Breadcrumbs from '../components/ui/Breadcrumbs'
 import PageContainer from '../components/ui/PageContainer'
 import { InspireDetailSkeleton } from '../components/Skeleton'
 import { usePageMeta } from '../hooks/usePageMeta'
@@ -196,6 +197,13 @@ export default function InspireDetail({ backTo = '/inspire', backLabel }: Inspir
 
   return (
     <PageContainer className="!py-6 lg:!py-8">
+      <Breadcrumbs
+        items={[
+          { label: t('nav.home', { defaultValue: 'Home' }), to: '/' },
+          { label: t('nav.inspireHub', { defaultValue: 'Inspire Hub' }), to: backTo },
+          { label: post.title },
+        ]}
+      />
       <Link
         to={backTo}
         className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-secondary transition hover:text-brand-700"

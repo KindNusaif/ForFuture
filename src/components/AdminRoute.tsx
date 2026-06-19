@@ -1,7 +1,7 @@
 import { Navigate } from 'react-router-dom'
-import { Loader2 } from 'lucide-react'
 import LogoutTransitionLoader from './auth/LogoutTransitionLoader'
 import AdminAccessDenied from './admin/AdminAccessDenied'
+import AdminLoadingSkeleton from './admin/AdminLoadingSkeleton'
 import { useAuth } from '../hooks/useAuth'
 import { useIsAdmin } from '../hooks/useIsAdmin'
 
@@ -17,9 +17,8 @@ export default function AdminRoute({ children }: { children: React.ReactNode }) 
 
   if (loading || !authReady || (user && !profileSettled)) {
     return (
-      <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3">
-        <Loader2 className="h-8 w-8 animate-spin text-accent-600" />
-        <p className="text-sm text-muted">Checking access…</p>
+      <div className="mx-auto max-w-5xl px-4 py-8" role="status" aria-live="polite" aria-label="Checking access">
+        <AdminLoadingSkeleton rows={5} />
       </div>
     )
   }

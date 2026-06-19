@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, ExternalLink } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import MovementDetailView from '../components/movement/MovementDetailView'
+import Breadcrumbs from '../components/ui/Breadcrumbs'
 import ReliefCampaignTrustPanel from '../components/relief/ReliefCampaignTrustPanel'
 import ReliefUpdatesTimeline from '../components/relief/ReliefUpdatesTimeline'
 import { MovementDetailSkeleton } from '../components/Skeleton'
@@ -116,7 +117,14 @@ export default function ReliefCampaignDetail({ mode = 'member' }: ReliefCampaign
 
   return (
     <div className="mx-auto min-w-0 max-w-5xl px-4 py-6 sm:px-6">
-      <Link to={backTo} className="inline-flex items-center gap-1.5 text-sm font-medium text-secondary hover:text-primary">
+      <Breadcrumbs
+        items={[
+          { label: t('nav.home', { defaultValue: 'Home' }), to: '/' },
+          { label: t('relief.title', { defaultValue: 'Donation & Relief' }), to: backTo },
+          { label: post.title },
+        ]}
+      />
+      <Link to={backTo} className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-secondary hover:text-primary">
         <ArrowLeft className="h-4 w-4" aria-hidden />
         {t('reliefHub.backToRelief')}
       </Link>

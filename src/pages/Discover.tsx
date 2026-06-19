@@ -1,4 +1,3 @@
-import { Loader2 } from 'lucide-react'
 import { Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import DiscoverGuestBanner from '../components/discover/DiscoverGuestBanner'
@@ -16,6 +15,7 @@ import { useDataSync } from '../hooks/useDataSync'
 import { useRouteFocusRefetch } from '../hooks/useRouteFocusRefetch'
 import { useVisibilityRefetch } from '../hooks/useVisibilityRefetch'
 import { useAuthUser } from '../hooks/useAuthUser'
+import { usePageMeta } from '../hooks/usePageMeta'
 
 function DiscoverGuestContent() {
   const { t } = useTranslation()
@@ -74,8 +74,12 @@ export default function Discover() {
 
   if (authLoading) {
     return (
-      <main className="flex min-h-[40vh] items-center justify-center px-4">
-        <Loader2 className="motion-essential h-8 w-8 animate-spin text-accent-600" aria-label="Loading" />
+      <main className="mx-auto min-w-0 max-w-7xl px-4 py-6 sm:px-6 lg:py-8" aria-busy="true">
+        <div className="space-y-3" aria-hidden>
+          <div className="skeleton-shimmer h-10 w-56 max-w-full rounded-xl" />
+          <div className="skeleton-shimmer h-4 w-full max-w-lg rounded" />
+          <div className="skeleton-shimmer mt-6 h-48 w-full rounded-2xl" />
+        </div>
       </main>
     )
   }
@@ -88,7 +92,16 @@ export default function Discover() {
 }
 
 function DiscoverGuestPage() {
+  const { t } = useTranslation()
   useDiscoverNearbyFocus()
+
+  usePageMeta({
+    title: t('discover.pageTitle', { defaultValue: 'Discover' }),
+    description: t('discover.metaDescription', {
+      defaultValue: 'Explore trending youth movements, categories, and civic momentum across your community.',
+    }),
+    path: '/discover',
+  })
 
   return (
     <div className="mx-auto min-w-0 max-w-7xl px-4 py-6 sm:px-6 lg:py-8">

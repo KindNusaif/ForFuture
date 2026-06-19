@@ -103,9 +103,20 @@ export default function VerificationCenter() {
 
   if (loading) {
     return (
-      <div className="mx-auto flex max-w-2xl justify-center py-20">
-        <Loader2 className="h-8 w-8 animate-spin text-brand-600" aria-label={t('common.loading')} />
-      </div>
+      <section className="verification-center-page mx-auto max-w-2xl px-4 py-8 sm:px-6" aria-busy="true">
+        <div className="skeleton-shimmer mb-6 h-4 w-36 rounded" aria-hidden />
+        <div className="card-surface space-y-4 p-6 sm:p-8">
+          <div className="skeleton-shimmer h-4 w-28 rounded-full" aria-hidden />
+          <div className="skeleton-shimmer h-8 w-3/4 rounded-lg" aria-hidden />
+          <div className="skeleton-shimmer h-4 w-full rounded" aria-hidden />
+          <div className="skeleton-shimmer h-4 w-11/12 rounded" aria-hidden />
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div className="skeleton-shimmer h-11 rounded-xl" aria-hidden />
+            <div className="skeleton-shimmer h-11 rounded-xl" aria-hidden />
+          </div>
+          <div className="skeleton-shimmer h-32 w-full rounded-xl" aria-hidden />
+        </div>
+      </section>
     )
   }
 

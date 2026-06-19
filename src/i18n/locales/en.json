@@ -40,6 +40,7 @@
     "exploreShort": "Explore",
     "exploreMovements": "Explore Movements",
     "discoverNearby": "Discover Nearby",
+    "explore": "Explore",
     "discover": "Discover",
     "movements": "Movements",
     "searchMovements": "Search movements",
@@ -64,6 +65,8 @@
     "guestBenefit": "See what young people are building before you join."
   },
   "discover": {
+    "pageTitle": "Discover",
+    "metaDescription": "Explore trending youth movements, browse by cause, and see how communities are making an impact.",
     "heroEyebrow": "Discover ForFuture",
     "heroTitle": "Find movements that matter to you",
     "heroSubtitle": "Explore trending youth action, browse by cause, and see how communities are making an impact.",
@@ -572,6 +575,7 @@
     "storyLoadFailed": "We couldn't load this story right now. Please try again.",
     "retry": "Try again",
     "published": "Your story has been shared.",
+    "publishedRedirect": "Opening your story…",
     "publishError": "We couldn't publish your story. Please try again.",
     "notFound": "This story could not be found.",
     "deleted": "Story removed.",
@@ -1234,6 +1238,10 @@
     "setupStep1": "Create a key at Google Cloud Console (Maps JavaScript, Places, Geocoding APIs).",
     "setupStep2": "Add VITE_GOOGLE_MAPS_API_KEY to Netlify environment variables (or .env locally).",
     "setupStep3": "Redeploy the site and refresh this page."
+  },
+  "impactMap": {
+    "pageTitle": "Impact Map",
+    "metaDescription": "See youth civic action, volunteer drives, and community issues on an interactive map across Sri Lanka."
   },
   "relief": {
     "eyebrow": "Donation & Relief Hub",

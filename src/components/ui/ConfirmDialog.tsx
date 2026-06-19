@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { AlertTriangle } from 'lucide-react'
+import { useDialogFocus } from '../../hooks/useDialogFocus'
 
 interface ConfirmDialogProps {
   open: boolean
@@ -25,6 +26,8 @@ export default function ConfirmDialog({
   onCancel,
 }: ConfirmDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
+
+  useDialogFocus(open, dialogRef)
 
   useEffect(() => {
     const dialog = dialogRef.current
