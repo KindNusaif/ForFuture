@@ -84,6 +84,8 @@ interface PostFeedProps {
   syncFiltersFromUrl?: boolean
   feedTab?: FeedTab
   onFeedTabChange?: (tab: FeedTab) => void
+  /** Member feed: all posts, newest first — no tabs, filters, or following scope. */
+  chronological?: boolean
   className?: string
 }
 
@@ -112,13 +114,14 @@ function PostFeedContent({
   syncFiltersFromUrl = false,
   feedTab = 'discover',
   onFeedTabChange,
+  chronological = false,
   className = '',
 }: PostFeedProps) {
   const { t } = useTranslation()
   const { gate, openJoinModal } = useAuthGate()
   const isGuest = mode === 'guest'
   const viewerUserId = isGuest ? undefined : userId
-  const isFollowingFeed = !isGuest && feedTab === 'following'
+  const isFollowingFeed = !chronological && !isGuest && feedTab === 'following'
   const movementFollows = useMovementFollows(viewerUserId)
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -162,6 +165,7 @@ function PostFeedContent({
   const { showSlowHint, showRecovery } = useLoadingProgress(isRequestActive)
 
   const feedCacheKey = useMemo(() => {
+    if (chronological) return 'chronological'
     if (isGuest || reliefHub) return ''
     return buildFeedCacheKey({
       feedTab,
@@ -179,6 +183,7 @@ function PostFeedContent({
     category,
     reliefSubtype,
     followedIdsKey,
+    chronological,
   ])
 
   const loadPage = useCallback(
@@ -229,11 +234,19 @@ function PostFeedContent({
           viewerUserId,
           offset,
           limit: DEFAULT_FEED_PAGE_SIZE,
+          chronological,
           movementType:
-            isFollowingFeed || hubActive ? undefined : serverMovementType(movementFilter),
-          category: isFollowingFeed ? serverCategory(category) : serverCategory(category),
-          reliefHub: isFollowingFeed ? false : hubActive,
-          reliefSubtype: hubActive && !isFollowingFeed ? (reliefHub ? reliefSubtype : 'all') : undefined,
+            chronological || isFollowingFeed || hubActive
+              ? undefined
+              : serverMovementType(movementFilter),
+          category: chronological || isFollowingFeed ? undefined : serverCategory(category),
+          reliefHub: chronological || isFollowingFeed ? false : hubActive,
+          reliefSubtype:
+            hubActive && !isFollowingFeed && !chronological
+              ? reliefHub
+                ? reliefSubtype
+                : 'all'
+              : undefined,
           movementIds: isFollowingFeed ? followedIds : undefined,
         }
 
@@ -296,6 +309,7 @@ function PostFeedContent({
       isFollowingFeed,
       followedIdsKey,
       feedCacheKey,
+      chronological,
     ],
   )
 
@@ -375,6 +389,8 @@ function PostFeedContent({
         matchesReliefTab(p, reliefHubTab, { ownerUserId: userId }),
       )
     }
+    if (chronological) return list
+
     const q = (reliefSearchQuery ?? debouncedSearch).trim().toLowerCase()
     if (!q) return list
 
@@ -394,7 +410,7 @@ function PostFeedContent({
         movementLabel.includes(q)
       )
     })
-  }, [posts, debouncedSearch, reliefSearchQuery, reliefHub, reliefHubTab, userId])
+  }, [posts, debouncedSearch, reliefSearchQuery, reliefHub, reliefHubTab, userId, chronological])
 
   const commentEligibleIds = useMemo(
     () => filtered.filter((p) => canPostHaveComments(p)).map((p) => p.id),
@@ -429,10 +445,36 @@ function PostFeedContent({
     if (syncTimerRef.current) window.clearTimeout(syncTimerRef.current)
     syncTimerRef.current = window.setTimeout(() => {
       syncTimerRef.current = null
-      invalidateFeedCache(feedTab)
+      invalidateFeedCache(chronological ? undefined : feedTab)
       void loadPageRef.current(0, false, { silent: postsRef.current.length > 0 })
     }, 400)
-  }, [feedTab])
+  }, [feedTab, chronological])
+
+  const prependCreatedPost = useCallback(
+    async (postId: string) => {
+      try {
+        const row = await fetchPostById(postId, viewerUserId)
+        if (!row) {
+          syncRefetch()
+          return
+        }
+        const enriched = await enrichPosts([row], viewerUserId)
+        const follows = followsRef.current
+        const withFollow = isGuest
+          ? enriched
+          : applyFollowStateToPosts(enriched, follows.followedIds, follows.followerCounts)
+        const normalized = normalizePostForDisplay(withFollow[0])
+        setPosts((prev) => {
+          if (prev.some((p) => p.id === postId)) return prev
+          return [normalized, ...prev]
+        })
+        invalidateFeedCache(chronological ? undefined : feedTab)
+      } catch {
+        syncRefetch()
+      }
+    },
+    [viewerUserId, isGuest, feedTab, chronological, syncRefetch],
+  )
 
   useEffect(() => {
     return () => {
@@ -447,12 +489,16 @@ function PostFeedContent({
       return
     }
     if (event.type === 'post:created') {
+      if (chronological || !isFollowingFeed) {
+        void prependCreatedPost(event.postId)
+        return
+      }
       syncRefetch()
       return
     }
     if (event.type === 'post:deleted') {
       setPosts((prev) => removeById(prev, event.postId))
-      invalidateFeedCache(feedTab)
+      invalidateFeedCache(chronological ? undefined : feedTab)
       return
     }
     if (event.type === 'post:updated') {
@@ -585,6 +631,34 @@ function PostFeedContent({
     void loadPage(0, false, { silent: posts.length > 0 })
   }
 
+  const hasMoreRef = useRef(hasMore)
+  const loadingMoreRef = useRef(loadingMore)
+  const loadingRef = useRef(loading)
+  const nextOffsetRef = useRef(nextOffset)
+  const sentinelRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    hasMoreRef.current = hasMore
+    loadingMoreRef.current = loadingMore
+    loadingRef.current = loading
+    nextOffsetRef.current = nextOffset
+  }, [hasMore, loadingMore, loading, nextOffset])
+
+  useEffect(() => {
+    if (!chronological) return
+    const el = sentinelRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries[0]?.isIntersecting) return
+        if (!hasMoreRef.current || loadingMoreRef.current || loadingRef.current) return
+        void loadPageRef.current(nextOffsetRef.current, true)
+      },
+      { threshold: 0.1 },
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [chronological, filtered.length, hasMore])
+
   function handleLoadMore() {
     if (!hasMore || loadingMore || loading) return
     void loadPage(nextOffset, true)
@@ -636,24 +710,26 @@ function PostFeedContent({
     const post = posts.find((p) => p.id === postId)
     if (!post || post.supported_by_me) return
 
+    const prevCount = post.support_count ?? 0
     setPetitionSigningId(postId)
+    setPosts((prev) =>
+      prev.map((p) =>
+        p.id === postId ? { ...p, supported_by_me: true, support_count: prevCount + 1 } : p,
+      ),
+    )
+
     try {
       await signPetition(postId, userId)
-      setPosts((prev) =>
-        prev.map((p) => {
-          if (p.id !== postId) return p
-          return {
-            ...p,
-            supported_by_me: true,
-            support_count: (p.support_count ?? 0) + 1,
-          }
-        }),
-      )
       toast.success(
         'You have supported this petition.',
         'Thank you for adding your youth voice to this call for change.',
       )
     } catch (err) {
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.id === postId ? { ...p, supported_by_me: false, support_count: prevCount } : p,
+        ),
+      )
       toast.error(formatError(err))
     } finally {
       setPetitionSigningId(null)
@@ -697,28 +773,51 @@ function PostFeedContent({
     if (!userId || supportingId) return
     if (!post || isPetitionMovement(post.movement_type)) return
 
+    const wasParticipating = Boolean(post.supported_by_me)
+    const prevCount = post.support_count ?? 0
+    const optimisticParticipating = !wasParticipating
+    const optimisticCount = Math.max(0, prevCount + (optimisticParticipating ? 1 : -1))
+
     setSupportingId(postId)
+    setPosts((prev) =>
+      prev.map((p) =>
+        p.id === postId
+          ? { ...p, supported_by_me: optimisticParticipating, support_count: optimisticCount }
+          : p,
+      ),
+    )
+
     try {
       const nowParticipating = await togglePostAction(
         postId,
         userId,
         post.movement_type,
-        Boolean(post.supported_by_me),
+        wasParticipating,
         post.donation_subtype,
       )
       setPosts((prev) =>
         prev.map((p) => {
           if (p.id !== postId) return p
-          const delta = nowParticipating ? 1 : -1
+          const confirmedCount = Math.max(
+            0,
+            prevCount + (nowParticipating && !wasParticipating ? 1 : !nowParticipating && wasParticipating ? -1 : 0),
+          )
           return {
             ...p,
             supported_by_me: nowParticipating,
-            support_count: Math.max(0, (p.support_count ?? 0) + delta),
+            support_count: confirmedCount,
           }
         }),
       )
       toast.success(getActionSuccessMessage(post.movement_type, nowParticipating))
     } catch (err) {
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.id === postId
+            ? { ...p, supported_by_me: wasParticipating, support_count: prevCount }
+            : p,
+        ),
+      )
       toast.error(formatError(err))
     } finally {
       setSupportingId(null)
@@ -727,7 +826,7 @@ function PostFeedContent({
 
   return (
     <div className={className}>
-      {!reliefHub && (isGuest || onFeedTabChange) && (
+      {!reliefHub && !chronological && (isGuest || onFeedTabChange) && (
         <FeedTabs
           active={isGuest ? 'discover' : feedTab}
           onChange={isGuest ? handleGuestTabChange : onFeedTabChange!}
@@ -743,7 +842,7 @@ function PostFeedContent({
         className="min-w-0"
       >
 
-      {!reliefHub && (
+      {!reliefHub && !chronological && (
         <FeedDiscoveryBar
           search={search}
           onSearchChange={setSearch}
@@ -899,7 +998,7 @@ function PostFeedContent({
                   commentCount={commentCounts[post.id] ?? 0}
                   onPostDeleted={(postId) => {
                     setPosts((prev) => prev.filter((p) => p.id !== postId))
-                    invalidateFeedCache(feedTab)
+                    invalidateFeedCache(chronological ? undefined : feedTab)
                   }}
                 />
               </li>
@@ -907,7 +1006,11 @@ function PostFeedContent({
           </ul>
 
           {hasMore && (
-            <div className="mt-8 flex justify-center">
+            <div
+              ref={chronological ? sentinelRef : undefined}
+              className="mt-8 flex justify-center"
+            >
+              {!chronological ? (
               <button
                 type="button"
                 onClick={handleLoadMore}
@@ -924,6 +1027,14 @@ function PostFeedContent({
                   'Load more movements'
                 )}
               </button>
+              ) : loadingMore ? (
+                <p className="flex items-center gap-2 text-sm text-muted" role="status" aria-live="polite">
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                  {t('feed.loadingMore', { defaultValue: 'Loading more…' })}
+                </p>
+              ) : (
+                <span className="sr-only">{t('feed.scrollSentinel', { defaultValue: 'Load more as you scroll' })}</span>
+              )}
             </div>
           )}
         </>

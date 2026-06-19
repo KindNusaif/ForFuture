@@ -9,11 +9,17 @@ import { useMovementFollows } from '../../hooks/useMovementFollows'
 
 interface FeedWelcomeHeroProps {
   firstName?: string
-  feedTab: FeedTab
+  feedTab?: FeedTab
+  chronological?: boolean
   userId?: string
 }
 
-export default function FeedWelcomeHero({ firstName, feedTab, userId }: FeedWelcomeHeroProps) {
+export default function FeedWelcomeHero({
+  firstName,
+  feedTab = 'discover',
+  chronological = false,
+  userId,
+}: FeedWelcomeHeroProps) {
   const { t } = useTranslation()
   const { profile } = useAuth()
   const movementFollows = useMovementFollows(userId)
@@ -51,9 +57,14 @@ export default function FeedWelcomeHero({ firstName, feedTab, userId }: FeedWelc
             {firstName ? t('feed.greetingNamed', { name: firstName }) : t('feed.greeting')}
           </h1>
           <p className="mt-2 max-w-xl text-sm leading-relaxed text-secondary sm:text-base">
-            {feedTab === 'following'
-              ? t('feed.memberFollowingSubtitle')
-              : t('feed.memberDiscoverSubtitle')}
+            {chronological
+              ? t('feed.memberChronologicalSubtitle', {
+                  defaultValue:
+                    'Every movement from the community, newest first. Post something and everyone signed in will see it right away.',
+                })
+              : feedTab === 'following'
+                ? t('feed.memberFollowingSubtitle')
+                : t('feed.memberDiscoverSubtitle')}
           </p>
           <CreateMovementCta className="mt-5 sm:w-auto" fullWidth />
         </div>

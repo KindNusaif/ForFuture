@@ -35,6 +35,9 @@ function flushPending() {
       emitDataSync({ type: 'feed:invalidate' })
     } else if (key === 'inspire') {
       emitDataSync({ type: 'inspire:invalidate' })
+    } else if (key.startsWith('notif:')) {
+      const userId = key.slice(6)
+      emitDataSync({ type: 'notifications:invalidate', userId: userId || undefined })
     }
   }
 }
@@ -143,6 +146,15 @@ function buildChannel(client: NonNullable<typeof supabase>): RealtimeChannel {
       { event: '*', schema: 'public', table: 'inspire_posts' },
       () => {
         schedule('inspire')
+      },
+    )
+    .on(
+      'postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'notifications' },
+      (payload) => {
+        const row = payload.new as { user_id?: string }
+        if (row?.user_id) schedule(`notif:${row.user_id}`)
+        else schedule('notif:')
       },
     )
 }

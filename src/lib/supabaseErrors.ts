@@ -22,12 +22,23 @@ export function isMissingColumn(error: unknown): boolean {
   )
 }
 
-const DEV_SCHEMA_HINT =
+const DEV_MOVEMENTS_SCHEMA_HINT =
   'In Supabase → SQL Editor, run supabase/FIX_MOVEMENTS_FEED_NOW.sql (after fix_database.sql). Hard-refresh when done.'
 
-function logDeveloperHint(context: string, error: PostgrestError) {
+const DEV_VERIFICATION_SCHEMA_HINT =
+  'In Supabase → SQL Editor, run supabase/fix_verification_center.sql. Hard-refresh when done.'
+
+function postgrestErrorBlob(error: PostgrestError): string {
+  return `${error.message} ${error.details ?? ''} ${error.hint ?? ''}`.toLowerCase()
+}
+
+export function isOrganizationVerificationError(error: unknown): boolean {
+  return isPostgrestError(error) && postgrestErrorBlob(error).includes('organization_verification')
+}
+
+function logDeveloperHint(context: string, error: PostgrestError, hint = DEV_MOVEMENTS_SCHEMA_HINT) {
   if (typeof import.meta !== 'undefined' && import.meta.env?.DEV) {
-    console.warn(`[ForFuture] ${context}`, error.message, DEV_SCHEMA_HINT)
+    console.warn(`[ForFuture] ${context}`, error.message, hint)
   }
 }
 
@@ -37,6 +48,12 @@ export function enhanceSupabaseError(error: unknown): Error {
   }
 
   if (isMissingRelation(error)) {
+    if (isOrganizationVerificationError(error)) {
+      logDeveloperHint('Organization verification table missing', error, DEV_VERIFICATION_SCHEMA_HINT)
+      return new Error(
+        'Organization verification is not available yet because the database setup is incomplete. Please try again later or contact support if this continues.',
+      )
+    }
     logDeveloperHint('Missing database relation', error)
     return new Error(
       'Movements could not load because the database setup is incomplete. Please try again later or contact support if this continues.',

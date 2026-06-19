@@ -1,10 +1,18 @@
-import { enhanceSupabaseError, isPostgrestError, sanitizeErrorForDisplay } from './supabaseErrors'
+import {
+  enhanceSupabaseError,
+  isMissingRelation,
+  isOrganizationVerificationError,
+  isPostgrestError,
+  sanitizeErrorForDisplay,
+} from './supabaseErrors'
 import { isRequestAborted, RequestTimeoutError } from './supabaseRequest'
 import { isSessionExpiredError, notifySessionExpiredIfNeeded } from './sessionErrors'
 
 export type FormatErrorOptions = {
   /** Use on password-recovery screens so JWT errors stay recovery-specific. */
   passwordRecovery?: boolean
+  /** Use on Verification Center so missing-table errors stay verification-specific. */
+  verificationCenter?: boolean
 }
 
 /** Turn Supabase / network errors into user-friendly messages */
@@ -22,6 +30,13 @@ export function formatError(error: unknown, options?: FormatErrorOptions): strin
   }
 
   if (isPostgrestError(error)) {
+    if (options?.verificationCenter && isMissingRelation(error)) {
+      return sanitizeErrorForDisplay(
+        isOrganizationVerificationError(error)
+          ? enhanceSupabaseError(error).message
+          : 'Organization verification is not available yet because the database setup is incomplete. Please try again later or contact support if this continues.',
+      )
+    }
     return sanitizeErrorForDisplay(enhanceSupabaseError(error).message)
   }
 

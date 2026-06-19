@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ArrowRight } from 'lucide-react'
@@ -80,7 +81,7 @@ function isInteractiveTarget(target: EventTarget | null): boolean {
   )
 }
 
-export default function PostCard({
+function PostCard({
   post,
   onSupport,
   onPetitionSign,
@@ -346,3 +347,5 @@ export default function PostCard({
     </article>
   )
 }
+
+export default memo(PostCard)

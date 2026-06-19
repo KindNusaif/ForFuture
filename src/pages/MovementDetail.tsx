@@ -129,17 +129,16 @@ function MovementDetailContent({
     }
     if (!user || !post || post.supported_by_me || petitionSigning) return
 
+    const prevCount = post.support_count ?? 0
     setPetitionSigning(true)
+    setPost({ ...post, supported_by_me: true, support_count: prevCount + 1 })
+    setActionError(null)
+
     try {
       await signPetition(postId, user.id)
-      setPost({
-        ...post,
-        supported_by_me: true,
-        support_count: (post.support_count ?? 0) + 1,
-      })
-      setActionError(null)
       toast.success('You have supported this petition.')
     } catch (err) {
+      setPost({ ...post, supported_by_me: false, support_count: prevCount })
       setActionError(formatError(err))
     } finally {
       setPetitionSigning(false)
@@ -152,23 +151,40 @@ function MovementDetailContent({
       return
     }
     if (!user || !post || isPetitionMovement(post.movement_type) || supporting) return
+
+    const wasParticipating = Boolean(post.supported_by_me)
+    const prevCount = post.support_count ?? 0
+    const optimisticParticipating = !wasParticipating
+    const optimisticCount = Math.max(0, prevCount + (optimisticParticipating ? 1 : -1))
+
     setSupporting(true)
+    setPost({
+      ...post,
+      supported_by_me: optimisticParticipating,
+      support_count: optimisticCount,
+    })
+    setActionError(null)
+
     try {
       const nowParticipating = await togglePostAction(
         postId,
         user.id,
         post.movement_type,
-        Boolean(post.supported_by_me),
+        wasParticipating,
         post.donation_subtype,
+      )
+      const confirmedCount = Math.max(
+        0,
+        prevCount + (nowParticipating && !wasParticipating ? 1 : !nowParticipating && wasParticipating ? -1 : 0),
       )
       setPost({
         ...post,
         supported_by_me: nowParticipating,
-        support_count: Math.max(0, (post.support_count ?? 0) + (nowParticipating ? 1 : -1)),
+        support_count: confirmedCount,
       })
-      setActionError(null)
       toast.success(getActionSuccessMessage(post.movement_type, nowParticipating))
     } catch (err) {
+      setPost({ ...post, supported_by_me: wasParticipating, support_count: prevCount })
       setActionError(formatError(err))
     } finally {
       setSupporting(false)

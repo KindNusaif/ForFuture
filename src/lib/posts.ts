@@ -47,7 +47,7 @@ function safeText(value: unknown, fallback = ''): string {
   return typeof value === 'string' ? value : fallback
 }
 
-export const DEFAULT_FEED_PAGE_SIZE = 16
+export const DEFAULT_FEED_PAGE_SIZE = 20
 export const PROFILE_POSTS_LIMIT = 100
 export const PROFILE_MOVEMENTS_PAGE_SIZE = 12
 
@@ -62,6 +62,8 @@ export interface FetchPostsPageParams {
   reliefSubtype?: ReliefHubFilter
   /** When set, only return posts whose id is in this list (following feed). */
   movementIds?: string[]
+  /** Pure chronological feed — no type/category/following filters. */
+  chronological?: boolean
 }
 
 export interface FetchPostsPageResult {
@@ -239,9 +241,10 @@ function applyFeedFilters<
   query: Q,
   params: Pick<
     FetchPostsPageParams,
-    'movementType' | 'category' | 'reliefHub' | 'reliefSubtype' | 'movementIds'
+    'movementType' | 'category' | 'reliefHub' | 'reliefSubtype' | 'movementIds' | 'chronological'
   >,
 ): Q {
+  if (params.chronological) return query
   let q = query
   if (params.movementIds) {
     q = q.in('id', params.movementIds)
@@ -704,6 +707,10 @@ function buildInsertRow(input: CreateMovementInput): Record<string, unknown> {
     case 'quick_youth_poll':
       row.issue_summary = trim(input.issue_summary)
       break
+  }
+
+  if (input.movementType !== 'fundraising') {
+    row.publication_status = 'published'
   }
 
   return row

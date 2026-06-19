@@ -12,6 +12,7 @@ import {
 } from '../lib/organizationVerification'
 import { isVerifiedOrganizer } from '../lib/reliefCampaignPublic'
 import { formatError } from '../lib/errors'
+import { isMissingRelation } from '../lib/supabaseErrors'
 
 const ORG_TYPES: OrganizationType[] = [
   'ngo',
@@ -32,6 +33,7 @@ export default function VerificationCenter() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [setupUnavailable, setSetupUnavailable] = useState(false)
 
   const [organization_name, setOrganizationName] = useState('')
   const [organization_type, setOrganizationType] = useState<OrganizationType>('ngo')
@@ -62,7 +64,13 @@ export default function VerificationCenter() {
           setRegistrationReference(row.registration_reference ?? '')
         }
       })
-      .catch(() => {})
+      .catch((err) => {
+        if (cancelled) return
+        if (isMissingRelation(err)) {
+          setSetupUnavailable(true)
+          setError(formatError(err, { verificationCenter: true }))
+        }
+      })
       .finally(() => {
         if (!cancelled) setLoading(false)
       })
@@ -95,7 +103,10 @@ export default function VerificationCenter() {
       setExisting(row)
       toast.success(t('reliefHub.verificationSubmitted'))
     } catch (err) {
-      setError(formatError(err))
+      if (isMissingRelation(err)) {
+        setSetupUnavailable(true)
+      }
+      setError(formatError(err, { verificationCenter: true }))
     } finally {
       setSubmitting(false)
     }
@@ -160,7 +171,13 @@ export default function VerificationCenter() {
 
       {!verified && (
         <form onSubmit={handleSubmit} className="mt-6 card-surface space-y-5 p-6 sm:p-8" noValidate>
-          {error && (
+          {setupUnavailable && error && (
+            <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-100" role="alert">
+              {error}
+            </p>
+          )}
+
+          {error && !setupUnavailable && (
             <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-200" role="alert">
               {error}
             </p>
@@ -233,7 +250,7 @@ export default function VerificationCenter() {
             <span>{t('reliefHub.verificationConfirm')}</span>
           </label>
 
-          <button type="submit" disabled={submitting} className="btn-primary w-full">
+          <button type="submit" disabled={submitting || setupUnavailable} className="btn-primary w-full">
             {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
             {submitting ? t('reliefHub.verificationSubmitting') : t('reliefHub.verificationSubmit')}
           </button>

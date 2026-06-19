@@ -464,6 +464,7 @@
     "greeting": "Good to see you",
     "greetingNamed": "Good to see you, {{name}}",
     "memberDiscoverSubtitle": "Your next civic action starts here.",
+    "memberChronologicalSubtitle": "Every movement from the community, newest first. Post something and everyone signed in will see it right away.",
     "memberFollowingSubtitle": "Stay close to the movements you follow — then take your next step when you're ready.",
     "heroFollowingCountOne": "Following {{count}} movement",
     "heroFollowingCountMany": "Following {{count}} movements",

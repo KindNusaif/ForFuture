@@ -22,6 +22,7 @@ export type DataSyncEvent =
       contentType?: 'movement' | 'inspire'
     }
   | { type: 'poll:published'; postId: string; userId: string }
+  | { type: 'notifications:invalidate'; userId?: string }
 
 type Listener = (event: DataSyncEvent) => void
 

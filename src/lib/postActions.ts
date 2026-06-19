@@ -1,4 +1,5 @@
 import { notifyPostUpdated } from './dataSync'
+import { mapDuplicateActionError } from './duplicateErrors'
 import { getActionTypeForMovement } from './movements'
 import { enhanceSupabaseError, isMissingRelation } from './supabaseErrors'
 import { requireSupabase } from './supabase'
@@ -104,7 +105,12 @@ async function insertAction(
       client.from(LEGACY_SUPPORTS_TABLE).insert({ post_id: postId, user_id: userId }),
       DEFAULT_REQUEST_TIMEOUT_MS,
     )
-    if (error) throw enhanceSupabaseError(error)
+    if (error) {
+      if (error.code === '23505') {
+        throw mapDuplicateActionError(error, 'post_action')
+      }
+      throw enhanceSupabaseError(error)
+    }
     return
   }
 
@@ -116,7 +122,12 @@ async function insertAction(
     }),
     DEFAULT_REQUEST_TIMEOUT_MS,
   )
-  if (error) throw enhanceSupabaseError(error)
+  if (error) {
+    if (error.code === '23505') {
+      throw mapDuplicateActionError(error, 'post_action')
+    }
+    throw enhanceSupabaseError(error)
+  }
 }
 
 async function deleteAction(

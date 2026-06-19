@@ -10,6 +10,7 @@ import {
 import { DEFAULT_REQUEST_TIMEOUT_MS, FEED_REQUEST_TIMEOUT_MS } from './requestConfig'
 import { isRequestAborted, withTimeout } from './supabaseRequest'
 import { coerceCategory } from './safeData'
+import { calculateTrendingScore } from './trendingScore'
 import type { Category, MovementType, Post } from '../types'
 import { CATEGORIES } from '../types'
 
@@ -66,14 +67,18 @@ export const EMPTY_DISCOVER_PAGE: DiscoverPageData = {
   featured: { volunteer: [], civic: [], rising: [] },
 }
 
+function trendingScoreForPost(post: Post): number {
+  const isPetition = post.movement_type === 'youth_petition'
+  const isPoll = post.movement_type === 'quick_youth_poll'
+  return calculateTrendingScore({
+    createdAt: post.created_at,
+    signatureCount: isPetition ? (post.support_count ?? 0) : undefined,
+    supportCount: isPoll ? (post.poll?.totalVotes ?? 0) : (post.support_count ?? 0),
+  })
+}
+
 function engagementScore(post: Post): number {
-  if (post.movement_type === 'quick_youth_poll' && post.poll) {
-    return post.poll.totalVotes ?? 0
-  }
-  if (post.movement_type === 'youth_petition') {
-    return post.support_count ?? 0
-  }
-  return post.support_count ?? 0
+  return trendingScoreForPost(post)
 }
 
 function toTrendingItem(post: Post): DiscoverTrendingItem {
@@ -103,7 +108,7 @@ function toFeaturedItem(post: Post): DiscoverFeaturedItem {
 
 function rankByEngagement(posts: Post[]): Post[] {
   return [...posts].sort((a, b) => {
-    const diff = engagementScore(b) - engagementScore(a)
+    const diff = trendingScoreForPost(b) - trendingScoreForPost(a)
     if (diff !== 0) return diff
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
   })

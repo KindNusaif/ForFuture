@@ -217,11 +217,7 @@ select
 from private.posts p
 left join public.profiles pr
   on pr.id = p.user_id and p.posting_identity <> 'youth_voice'
-where p.publication_status in ('published', 'completed')
-  and (
-    p.movement_type is distinct from 'fundraising'
-    or p.review_status = 'reviewed'
-  );
+where coalesce(p.publication_status, 'published') not in ('draft', 'rejected', 'paused');
 
 grant select on public.posts_public_safe to anon, authenticated;
 

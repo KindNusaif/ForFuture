@@ -7,6 +7,7 @@ import {
 } from '../lib/notifications'
 import { formatError } from '../lib/errors'
 import { isRequestAborted } from '../lib/supabaseRequest'
+import { useDataSync } from './useDataSync'
 
 const POLL_MS = 60_000
 
@@ -44,6 +45,12 @@ export function useNotifications(userId: string | undefined) {
     const timer = window.setInterval(() => void load(), POLL_MS)
     return () => window.clearInterval(timer)
   }, [load, userId])
+
+  useDataSync((event) => {
+    if (event.type !== 'notifications:invalidate') return
+    if (event.userId && event.userId !== userId) return
+    void load()
+  })
 
   const markRead = useCallback(
     async (id: string) => {
