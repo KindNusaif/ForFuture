@@ -31,3 +31,6 @@ dist-ssr
 
 # Supabase CLI local link state
 supabase/.temp/
+".env" 
+".env.*" 
+"!.env.example" 
