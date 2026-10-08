@@ -1,142 +1,199 @@
+
+
 # ForFuture
 
-ForFuture is a youth-centric civic engagement platform that helps young people turn social concerns into organized action. Users can raise issues, create movements, launch petitions, organize volunteer drives, run polls, and support meaningful community campaigns.
+### The civic action platform built for the next generation.
 
-The web app is built with **React**, **Vite**, **TypeScript**, **Tailwind CSS**, and **Supabase**.
+**Raise it. Rally it. Resolve it.**
+Young people turn social concerns into organized, measurable action, in their own language.
 
-## How to use
+[**Live product**](https://fforfuture.netlify.app) · · [**How it works**](https://fforfuture.netlify.app/how-it-works) ·
 
-1. **Sign up or log in** to the platform.
-2. **Browse the feed** to explore posts, petitions, polls, and drives.
-3. **Create a movement** by choosing the relevant category.
-4. **Use ActionPath AI** to improve and organize your submission.
-5. **Engage with others** by voting, signing petitions, joining drives, or supporting campaigns.
-6. **Track your activity and impact** through your profile.
+`React 19` · `TypeScript` · `Supabase` · `Edge Functions + AI` · `English / සිංහල / தமிழ்`
 
-## Purpose
 
-ForFuture empowers youth, students, volunteers, and civic-minded citizens to move beyond discussion and take meaningful action for society.
 
-## Core features
+> Built by AhamedNusaif
 
-- **Authentication** — sign up, login, logout, session persistence, protected routes
-- **Youth Voice** — anonymous posting with Youth Voice ID
-- **Movements feed** — browse, filter, search, support, and view full movement details
-- **Petitions** — create, sign, and track support
-- **Polls** — vote once per user with live results
-- **Volunteer drives & civic actions** — event metadata and participation
-- **Fundraising & relief hub** — donation / relief flows with trust review hooks
-- **ActionPath AI** — Supabase Edge Function suggests titles, copy, and movement structure
-- **Impact** — Youth Impact Pulse dashboard and impact map
-- **Discover** — curated public hub for guests
-- **Profiles** — user dashboard and movement management
-- **i18n** — English, Sinhala, Tamil
-- **Responsive UI** — smooth experience across desktop and mobile
+---
 
-## Tech stack
+## The problem
 
-| Layer | Technology |
-|-------|------------|
-| Frontend | React 19, Vite 8, TypeScript, Tailwind CSS 4 |
-| Routing | React Router 7 |
-| Backend | Supabase (Postgres, Auth, Storage, Edge Functions) |
-| Maps | Leaflet (impact map), optional Google Maps (location picker) |
-| Tests | Vitest, React Testing Library |
+Young people are the most connected generation in history, and the most likely to say they want to change their communities. But between a post and a real result there is a gap:
 
-## Setup
+- **Talk doesn't become action.** Concerns get shared and forgotten. Petitions, polls, volunteer drives and fundraisers live on separate tools that don't connect.
+- **Many voices stay silent.** Fear of backlash keeps young people from speaking up under their own name.
+- **Trust is low.** Donors and volunteers can't tell which campaigns are real, and organizers can't show their results.
+- **Local languages are left out.** Most civic tools are English-only, which shuts out millions of Sinhala and Tamil speakers.
 
-### 1. Install dependencies
+## Our solution
 
-```bash
-npm install
+ForFuture is one platform that takes a concern from **idea to impact**:
+
+1. **Raise** an issue, anonymously if needed.
+2. **Organize** it into a movement with the help of AI.
+3. **Mobilize** support through petitions, polls, volunteer drives and fundraising.
+4. **Prove** the result on a public impact dashboard and map.
+
+Safety is built in. Verification, reports, moderation and trust review keep the community honest.
+
+---
+
+## Try the product
+
+**Live product: https://fforfuture.netlify.app**
+
+No account is needed to explore. **Discover**, **Movements**, **Relief Hub** and **Polls** are open to guests. To see everything, use a test account:
+
+| Role  | Email                    | Password    |
+|-------|--------------------------|-------------|
+| User  | `demo.user@example.com`  | `CHANGE-ME` |
+| Admin | `demo.admin@example.com` | `CHANGE-ME` |
+
+**A 2-minute tour**
+
+1. Open **Discover** as a guest and browse live movements.
+2. Log in and open the **Feed**.
+3. Start a movement and let **ActionPath AI** sharpen the title and description.
+4. Vote in a **poll** and sign a **petition**.
+5. Open **Impact** for the Youth Impact Pulse dashboard and the impact map.
+6. Switch the language to **සිංහල** or **தமிழ்**.
+7. Log in as admin and review a report in the **moderation** tools.
+
+---
+
+## Product
+
+| | Pillar | What it does |
+|---|--------|--------------|
+| 📣 | **Youth Voice** | Anonymous posting with a Youth Voice ID, so people can speak up safely |
+| 🚩 | **Movements** | Browse, filter, search and support causes, with full movement pages |
+| ✍️ | **Petitions** | Create, sign and track support in real time |
+| 🗳️ | **Polls** | One vote per user, with live results |
+| 🤝 | **Volunteer drives** | Organize civic actions with event details and participation |
+| 💛 | **Relief hub** | Fundraising and relief campaigns with trust-review hooks |
+| 🤖 | **ActionPath AI** | Turns a rough idea into a clear title, copy and movement structure |
+| 📊 | **Impact** | Youth Impact Pulse dashboard and an impact map |
+| 🌍 | **Discover** | A public hub that lets guests explore before signing up |
+| 🛡️ | **Trust and safety** | Verification, reports, moderation and trust review for admins |
+| 🗣️ | **Multi-language** | English, Sinhala and Tamil built in |
+| 📱 | **Responsive** | Works on desktop and mobile |
+
+### Screenshots
+
+| Home | Feed |
+|------|------|
+| ![Home](docs/screenshot-home.png) | ![Feed](docs/screenshot-feed.png) |
+
+| Impact Pulse | Impact Map |
+|--------------|------------|
+| ![Impact Pulse](docs/screenshot-impact.png) | ![Impact Map](docs/screenshot-map.png) |
+
+---
+
+## How it works
+
+```mermaid
+flowchart LR
+  A[Young person] --> B[Raise an issue]
+  B --> C[ActionPath AI organizes it]
+  C --> D[Movement]
+  D --> E[Petitions]
+  D --> F[Polls]
+  D --> G[Volunteer drives]
+  D --> H[Relief fundraising]
+  E & F & G & H --> I[Impact dashboard and map]
+  J[Verification, reports, moderation] -.protects.-> D
 ```
 
-### 2. Supabase
+### Architecture
 
-1. Create a project at [supabase.com](https://supabase.com).
-2. In **SQL Editor**, run [`supabase/APPLY_ALL_MIGRATIONS.sql`](supabase/APPLY_ALL_MIGRATIONS.sql) once.
-3. Under **Authentication → Providers → Email**, disable **Confirm email** for faster local signup (optional).
-4. Copy **Project URL** and **anon public** key.
-
-See [`supabase/SECURITY_NOTES.md`](supabase/SECURITY_NOTES.md) for RLS and Edge Function guidance.
-
-### 3. Environment variables
-
-```bash
-copy .env.example .env
+```mermaid
+flowchart LR
+  U[User / Guest] --> W[React app on Netlify]
+  W -->|anon key + Row Level Security| S[(Supabase: Auth, Postgres, Storage)]
+  W -->|invoke| E[Edge Function: actionpath-ai]
+  E -->|server-side secret| O[OpenAI API]
+  W --> M[Leaflet impact map]
 ```
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `VITE_SUPABASE_URL` | Yes | Supabase project URL |
-| `VITE_SUPABASE_ANON_KEY` | Yes | Supabase anon (public) key |
-| `VITE_APP_URL` | No | Production site URL for auth redirects |
-| `VITE_GOOGLE_MAPS_API_KEY` | No | Map picker / static previews |
+The app is built for safety and scale from the start:
 
-**Never** commit `.env` or put service-role / OpenAI keys in `VITE_*` variables.
+- **Security by design.** The browser only uses the public anon key, and Row Level Security controls access to every record. The AI key lives only in server-side Edge Function secrets.
+- **Serverless and low-cost.** A static front end on Netlify and a managed Supabase backend mean there are no servers to run, and it scales with usage.
+- **Fast.** Route-level code splitting keeps the first load small.
+- **Tested.** Vitest and React Testing Library cover filters, auth validation and protected routes.
 
-### 4. Run locally
+---
 
-```bash
-npm run dev
-```
+## Who it's for
 
-Open `http://localhost:5173`.
+| Audience | What they get |
+|----------|---------------|
+| **Students and young citizens** | A safe place to raise issues and organize |
+| **Volunteers** | Drives and campaigns they can trust and join |
+| **Community organizers and NGOs** | Tools to mobilize supporters and show results |
+| **Schools and universities** | A way to channel student energy into real projects |
+| **Donors and supporters** | Verified campaigns and visible impact |
 
-## Scripts
+## Global goals
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Development server |
-| `npm run build` | Production build (`dist/`) |
-| `npm run preview` | Preview production build |
-| `npm run lint` | ESLint |
-| `npm test` | Vitest watch mode |
-| `npm run test:run` | Vitest single run (CI) |
+ForFuture supports the United Nations Sustainable Development Goals, in particular:
 
-## Testing
+**SDG 4** Quality Education · **SDG 10** Reduced Inequalities · **SDG 11** Sustainable Cities and Communities · **SDG 16** Peace, Justice and Strong Institutions · **SDG 17** Partnerships for the Goals
 
-```bash
-npm run test:run
-```
+---
 
-Tests cover URL filter helpers, auth form validation, and protected-route behavior.
+## Traction
 
-## Netlify deployment
+*Replace these with your real numbers before submitting. Leave out anything you can't back up.*
 
-1. **Build command:** `npm run build`
-2. **Publish directory:** `dist`
-3. **Environment variables:** set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` (and optional keys above).
-4. **SPA routing:** `public/_redirects` contains:
+| Metric | Value |
+|--------|-------|
+| Movements created | _N_ |
+| Petition signatures | _N_ |
+| Volunteers joined | _N_ |
+| Users / testers | _N_ |
+| Languages supported | 3 |
 
-   ```
-   /* /index.html 200
-   ```
+---
 
-5. In Supabase **Authentication → URL Configuration**, add your Netlify URL (e.g. `https://your-site.netlify.app/**`).
+## Vision and roadmap
 
-Redeploy after changing environment variables (Vite bakes them in at build time).
+**Vision:** a world where every young person has the tools to turn a concern into a result.
 
-## Security
+| Stage | Focus |
+|-------|-------|
+| **Now** | A working platform with movements, petitions, polls, drives, relief, AI help, impact tracking and moderation in three languages |
+| **Next** | Pilots with schools, universities and youth organizations. Notifications and sharing. Richer impact reports that can be exported. More local campaign categories |
+| **Later** | More languages and countries. Partnerships with NGOs and local institutions. Public APIs and open impact data. Mobile apps |
 
-- The browser only uses the Supabase **anon** key; RLS enforces access control.
-- **ActionPath AI** calls `supabase/functions/actionpath-ai` — the OpenAI API key must live in Supabase Edge Function secrets, not in this repo or frontend env vars.
-- Review [`supabase/SECURITY_NOTES.md`](supabase/SECURITY_NOTES.md) after schema changes.
+**Sustainability ideas under consideration:** institutional plans for schools and NGOs, sponsored verified campaigns, and grants from civic-tech and education programs. The core tools for young people stay free.
 
-## Project structure (high level)
+---
 
-```
-src/
-  components/   # UI and feature components
-  context/      # Auth, theme, modals
-  hooks/        # Data loading and auth helpers
-  lib/          # Supabase, posts, polls, validation, etc.
-  pages/        # Route-level screens
-  i18n/         # Translations
-supabase/       # SQL migrations and Edge Functions
-public/         # Static assets and Netlify _redirects
-```
+## Trust, privacy and safety
 
-## License
+- Anonymous posts use a **Youth Voice ID** instead of a real name.
+- **Reports, moderation and trust review** give admins tools to handle abuse and verify campaigns.
+- **Row Level Security** protects data at the database level.
+- **No secrets in the frontend.** The AI key is stored only in server-side secrets.
+- Legal pages are included: Privacy Policy, Terms of Use and Community Guidelines.
 
-Private / hackathon project — adjust as needed for your team.
+Security contact: **YOUR EMAIL**
+
+---
+
+## Team
+
+| Name | Role |
+|------|------|
+| AhamedNusaif | Founder, developer and designer ([Linkdin](www.linkedin.com/in/ahamed-nusaif)) |
+
+---
+
+
+
+**ForFuture** · Released under the [MIT License](LICENSE)
+
+</div>
